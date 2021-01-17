@@ -1,0 +1,7 @@
+{
+  "key" : {
+    "bad": "<script src=\"something\"></script>",
+    "fine": "This is some text.",
+    "with a link": "go to http://vaccinateca.com (our website)"
+  }
+}
