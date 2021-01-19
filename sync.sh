@@ -16,4 +16,4 @@ mkdir -p airtable/safe
 ./sanitize/sanitize $OUTDIR/Locations.json | jq 'del(.[]."Phone number")' | jq 'del(.[]."Add report")' | jq 'del(.[]."Add report link w/ phone number")' | jq 'del(.[]."Internal notes")' | jq 'del(.[]."Location notes")' > airtable/safe/Locations.json
 
 # Upload data.
-gsutil -h "Cache-Control:public, max-age=300" cp ./airtable/safe/Locations.json gs://cavaccineinventory-sitedata/airtable-sync/Locations.json
+gsutil -h "Cache-Control:public, max-age=300" cp -Z ./airtable/safe/Locations.json gs://cavaccineinventory-sitedata/airtable-sync/Locations.json
