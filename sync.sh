@@ -20,12 +20,9 @@ mkdir -p $OUTDIR/safe
   jq 'del(.[]."Add report link w/ phone number")' | \
   jq 'del(.[]."airtable_createdTime")' | \
   jq 'del(.[]."Internal notes")' | \
-  jq 'del(.[]."Location notes")' | \
   jq 'del(.[]."Phone number")' | \
   jq -c \
   > $OUTDIR/safe/Locations.json
-
-jq -c '.[] | select(."Vaccines available?" | contains("Yes"))'
 
 # Upload data.
 gsutil -h "Cache-Control:public, max-age=300" cp -Z $OUTDIR/safe/Locations.json gs://cavaccineinventory-sitedata/airtable-sync/Locations.json
