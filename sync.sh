@@ -4,7 +4,7 @@ set -euf -o pipefail
 OUTDIR=airtable
 
 # Fetch data.
-mkdir -p airtable/safe
+mkdir -p $OUTDIR/safe
 /usr/local/bin/airtable-export --json $OUTDIR appy2N9zQSnFRPcN8 Locations --key $AIRTABLE_KEY
 
 # Clean up data.
@@ -13,7 +13,19 @@ mkdir -p airtable/safe
 # In other cases, some fields contain privileged links.
 
 # PLEASE ASK VALLERY, MANISH, OR ANOTHER DATA EXPERT BEFORE CHANGING THIS.
-./sanitize/sanitize $OUTDIR/Locations.json | jq 'del(.[]."Phone number")' | jq 'del(.[]."Add report")' | jq 'del(.[]."Add report link w/ phone number")' | jq 'del(.[]."Internal notes")' | jq 'del(.[]."Location notes")' > airtable/safe/Locations.json
+
+# Locations.json is a slightly reduced version of the main dataset.
+./sanitize/sanitize $OUTDIR/Locations.json | \
+  jq 'del(.[]."Add report")' | \
+  jq 'del(.[]."Add report link w/ phone number")' | \
+  jq 'del(.[]."airtable_createdTime")' | \
+  jq 'del(.[]."Internal notes")' | \
+  jq 'del(.[]."Location notes")' | \
+  jq 'del(.[]."Phone number")' | \
+  jq -c \
+  > $OUTDIR/safe/Locations.json
+
+jq -c '.[] | select(."Vaccines available?" | contains("Yes"))'
 
 # Upload data.
-gsutil -h "Cache-Control:public, max-age=300" cp -Z ./airtable/safe/Locations.json gs://cavaccineinventory-sitedata/airtable-sync/Locations.json
+gsutil -h "Cache-Control:public, max-age=300" cp -Z $OUTDIR/safe/Locations.json gs://cavaccineinventory-sitedata/airtable-sync/Locations.json
