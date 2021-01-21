@@ -20,6 +20,8 @@ mkdir -p $OUTDIR/safe
   jq 'del(.[]."Add report link w/ phone number")' | \
   jq 'del(.[]."airtable_createdTime")' | \
   jq 'del(.[]."Internal notes")' | \
+  jq 'del(.[]."Latest Internal Notes")' | \
+  jq 'del(.[]."Last report author")' | \
   jq 'del(.[]."Phone number")' | \
   jq -c \
   > $OUTDIR/safe/Locations.json
