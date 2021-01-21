@@ -14,7 +14,7 @@ Secrets:
 * /gcloud-key.json: a Google Cloud service account key, with write access to the storage bucket
 
 Example docker invokation:
-`docker run -e AIRTABLE_KEY=<key> -e BUCKET_PATH=gs://gs://cavaccineinventory-sitedata/<directory> -v <gcloud storage key>:/gcloud-key.json -it a`
+`docker run -e AIRTABLE_KEY=<key> -e BUCKET_PATH=gs://gs://cavaccineinventory-sitedata/<directory> -v <gcloud storage key>:/gcloud-key.json -it <image>`
 
 # Old Setup
 
