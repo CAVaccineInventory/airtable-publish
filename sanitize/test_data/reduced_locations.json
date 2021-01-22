@@ -1,0 +1,384 @@
+[
+  {
+    "# Data corrections": 0,
+    "# Unhandled data corrections": 0,
+    "Add report link w/ phone number": "https://airtable.com/shr2SFYbhMFFy0HGU?prefill_Location=rec00NpJzUnVDpLaQ&prefill_Phone=%28833%29%20480-4700",
+    "Address": "12761 Schabarum Ave Plaza Level RM 1100, Irwindale, CA 91706",
+    "Affiliation": "Kaiser Pharmacy",
+    "County": "Los Angeles County",
+    "County Vaccine locations URL": [
+      "http://publichealth.lacounty.gov/acd/ncorona2019/vaccine/hcwsignup/pods/#a93d55e49fd32ffd49714d7cc8a1be83"
+    ],
+    "County link": [
+      "recZNvS1ogJzGOPgG"
+    ],
+    "County vaccine info URL": [
+      "http://publichealth.lacounty.gov/media/coronavirus/vaccine/"
+    ],
+    "Has Report": 0,
+    "Latest report skip?": 0,
+    "Latest report yes?": 0,
+    "Latitude": 34.081292,
+    "Latlong": "34.081292, -117.996576",
+    "Location ID": "rec00NpJzUnVDpLaQ",
+    "Location Type": "Pharmacy",
+    "Longitude": -117.996576,
+    "Name": "Kaiser Permanente Pharmacy #568",
+    "Needs update?": "Yes",
+    "Number of \"yes\" reports": 0,
+    "Number of Reports": 0,
+    "OK to call now?": 1,
+    "Phone number": "833-480-4700",
+    "airtable_createdTime": "2021-01-16T06:29:48.000Z",
+    "airtable_id": "rec00NpJzUnVDpLaQ"
+  },
+  {
+    "# Data corrections": 0,
+    "# Unhandled data corrections": 0,
+    "Add report link w/ phone number": "https://airtable.com/shr2SFYbhMFFy0HGU?prefill_Location=rec00SICtL8KJiLim&prefill_Phone=%28619%29%20231-7405",
+    "Address": "1411 KETTNER BOULEVARD, SAN DIEGO, CA 92101",
+    "Affiliation": "Rite-Aid",
+    "Appointments by phone?": [
+      null
+    ],
+    "Availability Info": [
+      "No: unable to contact"
+    ],
+    "Calculation": "No confirmation / unknown",
+    "County": "San Diego County",
+    "County link": [
+      "recm5wnoHs38ZYhzu"
+    ],
+    "County vaccine info URL": [
+      "https://www.sandiegocounty.gov/content/sdc/hhsa/programs/phs/community_epidemiology/dc/2019-nCoV/vaccines.html"
+    ],
+    "Has Report": 1,
+    "Last report author": [
+      {
+        "email": "nschiefer.assist@gmail.com",
+        "id": "usrcfuGo5q5feHxBy",
+        "name": "Nicholas Schiefer"
+      }
+    ],
+    "Latest report": "2021-01-16T23:04:04.000Z",
+    "Latest report notes": [
+      "Unable to contact pharmacy. Line just kept ringing but there was no answer."
+    ],
+    "Latest report skip?": 0,
+    "Latest report yes?": 0,
+    "Latitude": 32.719981,
+    "Latlong": "32.719981, -117.169015",
+    "Location ID": "rec00SICtL8KJiLim",
+    "Location Type": "Pharmacy",
+    "Longitude": -117.169015,
+    "Name": "RITE AID PHARMACY 06466",
+    "Needs update?": "Yes",
+    "Number of \"yes\" reports": 0,
+    "Number of Reports": 1,
+    "OK to call now?": 1,
+    "Phone number": "619-231-7405",
+    "Reported vaccine availability": "No confirmation / unknown",
+    "Reports": [
+      "recf1gjITJK9tJuRY"
+    ],
+    "Vaccines available?": [
+      "No confirmation / unknown"
+    ],
+    "airtable_createdTime": "2021-01-16T06:30:54.000Z",
+    "airtable_id": "rec00SICtL8KJiLim"
+  },
+  {
+    "# Data corrections": 0,
+    "# Unhandled data corrections": 0,
+    "Add report link w/ phone number": "https://airtable.com/shr2SFYbhMFFy0HGU?prefill_Location=rec00vkz3WanbPXGO&prefill_Phone=%28619%29%20470-4550",
+    "Address": "2939 ALTA VIEW DR SUITE L, SAN DIEGO, CA 92139",
+    "Affiliation": "The Medicine Shoppe",
+    "County": "San Diego County",
+    "County link": [
+      "recm5wnoHs38ZYhzu"
+    ],
+    "County vaccine info URL": [
+      "https://www.sandiegocounty.gov/content/sdc/hhsa/programs/phs/community_epidemiology/dc/2019-nCoV/vaccines.html"
+    ],
+    "Has Report": 0,
+    "Latest report skip?": 0,
+    "Latest report yes?": 0,
+    "Latitude": 32.677037,
+    "Latlong": "32.677037, -117.039177",
+    "Location ID": "rec00vkz3WanbPXGO",
+    "Location Type": "Pharmacy",
+    "Longitude": -117.039177,
+    "Name": "THE MEDICINE SHOPPE",
+    "Needs update?": "Yes",
+    "Number of \"yes\" reports": 0,
+    "Number of Reports": 0,
+    "OK to call now?": 1,
+    "Phone number": "619-470-4550",
+    "airtable_createdTime": "2021-01-16T06:31:29.000Z",
+    "airtable_id": "rec00vkz3WanbPXGO"
+  },
+  {
+    "# Data corrections": 0,
+    "# Unhandled data corrections": 0,
+    "Add report link w/ phone number": "https://airtable.com/shr2SFYbhMFFy0HGU?prefill_Location=rec01FPGB9PljgOyU&prefill_Phone=%28559%29%20353-6300",
+    "Address": "41169 Goodwin Way, Madera, CA 93636",
+    "Affiliation": "Walgreens",
+    "County": "Madera County",
+    "County link": [
+      "rec2j4TlWO7zJT5AE"
+    ],
+    "County vaccine info URL": [
+      "https://www.maderacounty.com/government/public-health/covid-19/covid-vaccination"
+    ],
+    "Has Report": 0,
+    "Latest report skip?": 0,
+    "Latest report yes?": 0,
+    "Latitude": 36.886356,
+    "Latlong": "36.886356, -119.799156",
+    "Location ID": "rec01FPGB9PljgOyU",
+    "Location Type": "Pharmacy",
+    "Longitude": -119.799156,
+    "Name": "WALGREENS #12761",
+    "Needs update?": "Yes",
+    "Number of \"yes\" reports": 0,
+    "Number of Reports": 0,
+    "OK to call now?": 1,
+    "Phone number": "559-353-6300",
+    "airtable_createdTime": "2021-01-16T06:31:52.000Z",
+    "airtable_id": "rec01FPGB9PljgOyU"
+  },
+  {
+    "# Data corrections": 0,
+    "# Unhandled data corrections": 0,
+    "Add report link w/ phone number": "https://airtable.com/shr2SFYbhMFFy0HGU?prefill_Location=rec01tcOLdRjMfCnZ&prefill_Phone=%28818%29%20609-0692",
+    "Address": "17911 VENTURA BLVD, ENCINO, CA 91316",
+    "Affiliation": "None / Unknown / Unimportant",
+    "County": "Los Angeles County",
+    "County Vaccine locations URL": [
+      "http://publichealth.lacounty.gov/acd/ncorona2019/vaccine/hcwsignup/pods/#a93d55e49fd32ffd49714d7cc8a1be83"
+    ],
+    "County link": [
+      "recZNvS1ogJzGOPgG"
+    ],
+    "County vaccine info URL": [
+      "http://publichealth.lacounty.gov/media/coronavirus/vaccine/"
+    ],
+    "Force-exclude from calls": true,
+    "Has Report": 0,
+    "Latest report skip?": 0,
+    "Latest report yes?": 0,
+    "Latitude": 34.163796,
+    "Latlong": "34.163796, -118.522217",
+    "Location ID": "rec01tcOLdRjMfCnZ",
+    "Location Type": "Pharmacy",
+    "Longitude": -118.522217,
+    "Name": "ZELZAH PHARMACY",
+    "Needs update?": "Yes",
+    "Number of \"yes\" reports": 0,
+    "Number of Reports": 0,
+    "OK to call now?": 1,
+    "Phone number": "818-609-0692",
+    "airtable_createdTime": "2021-01-16T06:32:49.000Z",
+    "airtable_id": "rec01tcOLdRjMfCnZ"
+  },
+  {
+    "# Data corrections": 0,
+    "# Unhandled data corrections": 0,
+    "Add report link w/ phone number": "https://airtable.com/shr2SFYbhMFFy0HGU?prefill_Location=rec03MtqJLAZ6IHiu&prefill_Phone=%28714%29%20486-2277",
+    "Address": "1126 S Bristol St, Santa Ana, CA 92704",
+    "Affiliation": "None / Unknown / Unimportant",
+    "County": "Orange County",
+    "County link": [
+      "recarUDlLAO0MtvA7"
+    ],
+    "County vaccine info URL": [
+      "https://occovid19.ochealthinfo.com/covid-19-vaccine-resources"
+    ],
+    "Force-exclude from calls": true,
+    "Has Report": 0,
+    "Latest report skip?": 0,
+    "Latest report yes?": 0,
+    "Latitude": 33.73392,
+    "Latlong": "33.73392, -117.885176",
+    "Location ID": "rec03MtqJLAZ6IHiu",
+    "Location Type": "Pharmacy",
+    "Longitude": -117.885176,
+    "Name": "Farmacia Familiar",
+    "Needs update?": "Yes",
+    "Number of \"yes\" reports": 0,
+    "Number of Reports": 0,
+    "OK to call now?": 1,
+    "Phone number": "714-486-2277",
+    "airtable_createdTime": "2021-01-16T06:29:34.000Z",
+    "airtable_id": "rec03MtqJLAZ6IHiu"
+  },
+  {
+    "# Data corrections": 0,
+    "# Unhandled data corrections": 0,
+    "Add report link w/ phone number": "https://airtable.com/shr2SFYbhMFFy0HGU?prefill_Location=rec03PMZA10ApKD0j&prefill_Phone=%28760%29%20633-6501",
+    "Affiliation": "None / Unknown / Unimportant",
+    "Appointments by phone?": [
+      null
+    ],
+    "Availability Info": [
+      "No: no vaccine inventory"
+    ],
+    "Calculation": "No",
+    "County": "San Diego County",
+    "County link": [
+      "recm5wnoHs38ZYhzu"
+    ],
+    "County vaccine info URL": [
+      "https://www.sandiegocounty.gov/content/sdc/hhsa/programs/phs/community_epidemiology/dc/2019-nCoV/vaccines.html"
+    ],
+    "Has Report": 1,
+    "Last report author": [
+      {
+        "email": "mason.flight@gmail.com",
+        "id": "usr433MZCyh4TWrza",
+        "name": "Mason Flight"
+      }
+    ],
+    "Latest report": "2021-01-16T17:17:33.000Z",
+    "Latest report notes": [
+      "Haven't received their vaccines order yet. Once received, go to myscripps.org. You'll be notified there when it's available for you. You'll make your appointment through that website (or download the MyScripps app)."
+    ],
+    "Latest report skip?": 0,
+    "Latest report yes?": 0,
+    "Latitude": 33.0386292,
+    "Latlong": "33.0386292, -117.2846749",
+    "Location ID": "rec03PMZA10ApKD0j",
+    "Location Type": "Hospital / Clinic",
+    "Longitude": -117.2846749,
+    "Name": "Scripps Memorial Hospital – Encinitas",
+    "Needs update?": "Yes",
+    "Number of \"yes\" reports": 0,
+    "Number of Reports": 1,
+    "OK to call now?": 1,
+    "Phone number": "(760) 633-6501",
+    "Reported vaccine availability": "No",
+    "Reports": [
+      "recO1AGuO90QNDhMS"
+    ],
+    "Vaccines available?": [
+      "No"
+    ],
+    "airtable_createdTime": "2021-01-14T06:16:29.000Z",
+    "airtable_id": "rec03PMZA10ApKD0j"
+  },
+  {
+    "# Data corrections": 0,
+    "# Unhandled data corrections": 0,
+    "Add report link w/ phone number": "https://airtable.com/shr2SFYbhMFFy0HGU?prefill_Location=rec03PQ19zVqwhaa4&prefill_Phone=%28831%29%20757-4333",
+    "Affiliation": "None / Unknown / Unimportant",
+    "Appointments by phone?": [
+      null
+    ],
+    "Availability Info": [
+      "No: not open to the public"
+    ],
+    "Calculation": "No",
+    "County": "Monterey County",
+    "County link": [
+      "rec7vkrMOgPeUg6Z2"
+    ],
+    "County vaccine info URL": [
+      "https://www.co.monterey.ca.us/government/departments-a-h/health/diseases/2019-novel-coronavirus-covid-19/2019-novel-coronavirus-covid-19-vaccines"
+    ],
+    "Has Report": 1,
+    "Last report author": [
+      {
+        "email": "laura.mccarthy@airtable.com",
+        "id": "usrpXVX3g3kquXgOu",
+        "name": "Laura McCarthy"
+      }
+    ],
+    "Latest report": "2021-01-15T22:11:47.000Z",
+    "Latest report notes": [
+      "n/a"
+    ],
+    "Latest report skip?": 0,
+    "Latest report yes?": 0,
+    "Latitude": 36.6591339,
+    "Latlong": "36.6591339, -121.6462973",
+    "Location ID": "rec03PQ19zVqwhaa4",
+    "Location Type": "Hospital / Clinic",
+    "Longitude": -121.6462973,
+    "Name": "Salinas Valley Memorial Hospital – Salinas",
+    "Needs update?": "Yes",
+    "Number of \"yes\" reports": 0,
+    "Number of Reports": 1,
+    "OK to call now?": 1,
+    "Phone number": "(831) 757-4333",
+    "Reported vaccine availability": "No",
+    "Reports": [
+      "recJzI8pMC5aXSD8P"
+    ],
+    "Vaccines available?": [
+      "No"
+    ],
+    "airtable_createdTime": "2021-01-14T06:16:29.000Z",
+    "airtable_id": "rec03PQ19zVqwhaa4"
+  },
+  {
+    "# Data corrections": 0,
+    "# Unhandled data corrections": 0,
+    "Add report link w/ phone number": "https://airtable.com/shr2SFYbhMFFy0HGU?prefill_Location=rec045mrrmQCCSIz2&prefill_Phone=",
+    "Affiliation": "None / Unknown / Unimportant",
+    "County": "Sacramento County",
+    "County link": [
+      "recbziYEC1C89DvF3"
+    ],
+    "County vaccine info URL": [
+      "https://www.saccounty.net/COVID-19/Pages/CoronavirusVaccine.aspx"
+    ],
+    "Has Report": 0,
+    "Latest report skip?": 0,
+    "Latest report yes?": 0,
+    "Latitude": 38.59284729999999,
+    "Latlong": "38.59284729999999, -121.4376522",
+    "Location ID": "rec045mrrmQCCSIz2",
+    "Location Type": "Super Site",
+    "Longitude": -121.4376522,
+    "Name": "Super Site - Sacramento CalExpo Fairgrounds",
+    "Number of \"yes\" reports": 0,
+    "Number of Reports": 0,
+    "OK to call now?": 1,
+    "airtable_createdTime": "2021-01-14T07:00:58.000Z",
+    "airtable_id": "rec045mrrmQCCSIz2"
+  },
+  {
+    "# Data corrections": 0,
+    "# Unhandled data corrections": 0,
+    "Add report link w/ phone number": "https://airtable.com/shr2SFYbhMFFy0HGU?prefill_Location=rec05JmUhdhxRlDd4&prefill_Phone=%28909%29%20464-0300",
+    "Address": "5562 PHILADELPHIA ST. #110, CHINO, CA 91710",
+    "Affiliation": "None / Unknown / Unimportant",
+    "County": "San Bernardino County",
+    "County Vaccine locations URL": [
+      "https://sbcovid19.com/vaccine/locations/#sbc"
+    ],
+    "County link": [
+      "reclZ8DWOEuoluStG"
+    ],
+    "County vaccine info URL": [
+      "https://sbcovid19.com/vaccine/"
+    ],
+    "Force-exclude from calls": true,
+    "Has Report": 0,
+    "Latest report skip?": 0,
+    "Latest report yes?": 0,
+    "Latitude": 34.034887,
+    "Latlong": "34.034887, -117.683566",
+    "Location ID": "rec05JmUhdhxRlDd4",
+    "Location Type": "Pharmacy",
+    "Longitude": -117.683566,
+    "Name": "CHINO PLAZA PHARMACY",
+    "Needs update?": "Yes",
+    "Number of \"yes\" reports": 0,
+    "Number of Reports": 0,
+    "OK to call now?": 1,
+    "Phone number": "909-464-0300",
+    "airtable_createdTime": "2021-01-16T06:29:20.000Z",
+    "airtable_id": "rec05JmUhdhxRlDd4"
+  }
+]
