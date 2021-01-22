@@ -16,14 +16,8 @@ airtable-export --json $OUTDIR appy2N9zQSnFRPcN8 Locations --key $AIRTABLE_KEY
 # PLEASE ASK VALLERY, MANISH, OR ANOTHER DATA EXPERT BEFORE CHANGING THIS.
 
 # Locations.json is a slightly reduced version of the main dataset.
+./sanitize/sanitize $OUTDIR/Locations.json
 ./sanitize/sanitize $OUTDIR/Locations.json | \
-  jq 'del(.[]."Add report")' | \
-  jq 'del(.[]."Add report link w/ phone number")' | \
-  jq 'del(.[]."airtable_createdTime")' | \
-  jq 'del(.[]."Internal notes")' | \
-  jq 'del(.[]."Latest Internal Notes")' | \
-  jq 'del(.[]."Last report author")' | \
-  jq 'del(.[]."Phone number")' | \
   jq -c \
   > $OUTDIR/safe/Locations.json
 

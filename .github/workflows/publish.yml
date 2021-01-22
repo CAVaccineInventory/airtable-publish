@@ -25,7 +25,11 @@ jobs:
       run: go build -v ./...
       working-directory: sanitize
 
-# This still needs to set up and use gsutil
+    # Initialize credentials.
+    - uses: actions-hub/gcloud@324.0.0
+      env:
+        PROJECT_ID: cavaccineinventory
+        APPLICATION_CREDENTIALS: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}
 
     - name: Run
       run: ./sync.sh

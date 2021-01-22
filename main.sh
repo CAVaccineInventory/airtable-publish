@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# Being sunset, we never quite used it.
+
 # Allow this to fail, e.g. if running locally.
 gcloud secrets versions access 1 --secret="storage-upload-key" > gcloud-key.json
 gcloud auth activate-service-account --key-file gcloud-key.json
