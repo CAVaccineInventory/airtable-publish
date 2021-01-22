@@ -1,0 +1,34 @@
+name: Publish
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set up Python exporter tool
+      run: sudo apt install -y python3-pip python3-setuptools && sudo pip3 install airtable-export
+
+    - name: Set up Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: 1.15
+
+    - name: Build
+      run: go build -v ./...
+      working-directory: sanitize
+
+# This still needs to set up and use gsutil
+
+    - name: Run
+      run: ./sync.sh
+      env:
+        AIRTABLE_KEY: ${{ secrets.airtable_key }}
+        BUCKET_PATH: "gs:///cavaccineinventory-sitedata/airtable-staging"
