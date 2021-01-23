@@ -36,5 +36,5 @@ jobs:
         PROJECT_ID: cavaccineinventory
         APPLICATION_CREDENTIALS: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}
       with:
-        args: "-h \"Cache-Control:public, max-age=300\" cp -Z airtable/safe/Locations.json gs://cavaccineinventory-sitedata/airtable-staging/Location.json"
+        args: "-h 'Cache-Control:public, max-age=300' cp -Z airtable/safe/Locations.json gs://cavaccineinventory-sitedata/airtable-staging/Location.json"
         cli: gsutil
