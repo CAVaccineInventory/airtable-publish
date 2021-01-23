@@ -25,14 +25,16 @@ jobs:
       run: go build -v ./...
       working-directory: sanitize
 
-    # Initialize credentials.
-    - uses: actions-hub/gcloud@324.0.0
-      env:
-        PROJECT_ID: cavaccineinventory
-        APPLICATION_CREDENTIALS: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}
-
     - name: Run
       run: ./sync.sh
       env:
         AIRTABLE_KEY: ${{ secrets.airtable_key }}
-        BUCKET_PATH: "gs:///cavaccineinventory-sitedata/airtable-staging"
+
+    - name: Publish
+      uses: actions-hub/gcloud@324.0.0
+      env:
+        PROJECT_ID: cavaccineinventory
+        APPLICATION_CREDENTIALS: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}
+      with:
+        args: "-h \"Cache-Control:public, max-age=300\" cp -Z airtable/safe/Locations.json gs://cavaccineinventory-sitedata/airtable-staging/Location.json"
+        cli: gsutil

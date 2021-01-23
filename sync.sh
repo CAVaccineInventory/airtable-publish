@@ -16,10 +16,4 @@ airtable-export --json $OUTDIR appy2N9zQSnFRPcN8 Locations --key $AIRTABLE_KEY
 # PLEASE ASK VALLERY, MANISH, OR ANOTHER DATA EXPERT BEFORE CHANGING THIS.
 
 # Locations.json is a slightly reduced version of the main dataset.
-./sanitize/sanitize $OUTDIR/Locations.json
-./sanitize/sanitize $OUTDIR/Locations.json | \
-  jq -c \
-  > $OUTDIR/safe/Locations.json
-
-# Upload data.
-gsutil -h "Cache-Control:public, max-age=300" cp -Z $OUTDIR/safe/Locations.json $BUCKET_PATH/Locations.json
+./sanitize/sanitize $OUTDIR/Locations.json $OUTDIR/safe/Locations.json

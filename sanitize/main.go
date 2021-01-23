@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"bytes"
 	"encoding/json"
 	"fmt"
@@ -46,8 +47,10 @@ var allowKeys = map[string]int{
 }
 
 func main() {
+	inFile := os.Args[1]
+	outFile := os.Args[2]
 
-	b, err := ioutil.ReadFile(os.Args[1])
+	b, err := ioutil.ReadFile(inFile)
 	if err != nil {
 		fmt.Print(err)
 	}
@@ -71,7 +74,13 @@ func main() {
 	}
 
 	unsanitizedJson, err := json.Marshal(repack)
-	buf := &bytes.Buffer{}
-	json.HTMLEscape(buf, unsanitizedJson)
-	fmt.Println(buf)
+	sanitizedJson := &bytes.Buffer{}
+	json.HTMLEscape(sanitizedJson, unsanitizedJson)
+
+	f, err := os.Create(outFile)
+	if err != nil {
+		panic(err)
+	}
+	defer f.Close()
+	bufio.NewWriter(f).Write(sanitizedJson.Bytes())
 }
