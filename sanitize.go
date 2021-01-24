@@ -40,6 +40,17 @@ var allowKeys = map[string]int{
 	"Location Type":                       1,
 	"Longitude":                           1,
 	"Name":                                1,
+
+    // Information about vaccine availability:
+    "is_vaccine_available":	               1,
+
+    // Restrictions
+    "restricted_age":                      1,
+    "is_restricted_healthcare":            1,
+    "is_appointment_required":             1,
+    "is_restricted_veteran":               1,
+    "is_restricted_county_resident":       1,
+    "is_restricted_current_patient":       1,
 }
 
 func Sanitize(jsonMap []map[string]interface{}) (*bytes.Buffer, error) {
