@@ -9,10 +9,23 @@ THis can be used to programmatically confirm if the most recent publish iteratio
 This tool exists because Airtable's API isn't feasible/safe to
 expose to client Javascript, and Airtable has harsh rate limits.
 
-# Production (Actually Staging)
+# Production
 
-Runs at: https://console.cloud.google.com/run/detail/us-west1/airtable-exporter/metrics?project=cavaccineinventory
-Pushes data to: [gs://cavaccineinventory](https://console.cloud.google.com/storage/browser/cavaccineinventory-sitedata?project=cavaccineinventory&pageState=(%22StorageObjectListTable%22:(%22f%22:%22%255B%255D%22))&prefix=&forceOnObjectsSortingFiltering=false)
+**The main branch auto-deploys to production.**
+Production deploys take a few minutes to complete, and published files are cached for a few minutes.
+
+**Not sure if this is running?** Check the headers on the locations file (via curl, browser tools, whatever).
+`Last-Modified` should be minutes old.
+
+* Runs on [Google Cloud Run](https://console.cloud.google.com/run/detail/us-west1/airtable-export-prod/metrics?authuser=1&organizationId=0&project=cavaccineinventory&supportedpurview=project)
+(serverless thing that handles automatic container build and deploy).
+* Pushes data to: [gs://cavaccineinventory](https://console.cloud.google.com/storage/browser/cavaccineinventory-sitedata?project=cavaccineinventory&pageState=(%22StorageObjectListTable%22:(%22f%22:%22%255B%255D%22))&prefix=&forceOnObjectsSortingFiltering=false)
+
+Google Cloud Run throttles the app to a crawl when not handling a request.
+As a _terrible_ workaround, the health check endpoint sleeps for >= 1 minute.
+We run a [magic cloud cronjob](https://console.cloud.google.com/cloudscheduler?project=cavaccineinventory)
+which calls that status/healthcheck endpoint minutely as a keep-warm.
+We know it's messy - improve it if and only if it's worth the time and opportunity cost.
 
 # Invocation
 
