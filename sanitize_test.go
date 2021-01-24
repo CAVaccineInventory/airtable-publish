@@ -9,6 +9,7 @@ import (
 
 func TestSanitize(t *testing.T) {
 	in, err := ObjectFromFile("test_data/locations_reduced.json")
+	require.NoError(t, err)
 
 	got, err := Sanitize(in)
 	require.NoError(t, err)
