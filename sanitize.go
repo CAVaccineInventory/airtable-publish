@@ -46,7 +46,7 @@ var allowKeys = map[string]int{
 
     // Restrictions
     "restricted_age":                      1,
-    "is_restricted_healthcare":            1,
+    "is_restricted_healthcare_workers":    1,
     "is_appointment_required":             1,
     "is_restricted_veteran":               1,
     "is_restricted_county_resident":       1,
