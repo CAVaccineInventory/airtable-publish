@@ -3,10 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
-	"io/ioutil"
 	"log"
-	"os"
 )
 
 /**
@@ -45,33 +42,22 @@ var allowKeys = map[string]int{
 	"Name":                                1,
 }
 
-func main() {
-
-	b, err := ioutil.ReadFile(os.Args[1])
-	if err != nil {
-		fmt.Print(err)
-	}
-
-	jsonMap := make([]map[string](interface{}), 0)
-	err = json.Unmarshal([]byte(b), &jsonMap)
-	if err != nil {
-		log.Printf("ERROR: fail to unmarshal json, %s", err.Error())
-	}
-
-	repack := make([]map[string](interface{}), 0)
-	for _, element := range jsonMap {
-		var sanitized_element = make(map[string](interface{}))
-		for k, v := range element {
-			_, ok := allowKeys[k]
-			if ok {
-				sanitized_element[k] = v
+func Sanitize(jsonMap []map[string]interface{}) (*bytes.Buffer, error) {
+	for i := range jsonMap {
+		for k := range jsonMap[i] {
+			if _, found := allowKeys[k]; !found {
+				delete(jsonMap[i], k)
 			}
 		}
-		repack = append(repack, sanitized_element)
 	}
+	log.Printf("Cleaned %d elements.\n", len(jsonMap))
 
-	unsanitizedJson, err := json.Marshal(repack)
+	unsanitizedJson, err := json.Marshal(jsonMap)
+	if err != nil {
+		return nil, err
+	}
 	buf := &bytes.Buffer{}
 	json.HTMLEscape(buf, unsanitizedJson)
-	fmt.Println(buf)
+
+	return buf, nil
 }
