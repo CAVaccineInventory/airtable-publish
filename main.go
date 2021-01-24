@@ -98,7 +98,7 @@ func (p *Publisher) syncAndPublish() error {
 	}
 
 	// TODO: consider doing this in Go directly. But last I recall, the Go SDK was a bit fussy with Go modules...
-	cmd = exec.Command("gsutil", "-h", "Cache-Control:public max-age=300", "cp", "-Z", path.Join(publishDir, tableName+".json"), destinationFile)
+	cmd = exec.Command("gsutil", "-h", "Cache-Control:public,max-age=300", "cp", "-Z", path.Join(publishDir, tableName+".json"), destinationFile)
 	if uploadErr := cmd.Run(); uploadErr != nil {
 		log.Println(cmd.Output())
 		return errors.Wrap(uploadErr, "failed to upload json file")
