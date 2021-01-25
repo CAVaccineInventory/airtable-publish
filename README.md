@@ -17,32 +17,19 @@ Javascript, and Airtable has harsh rate limits.
 
 ## Production
 
-**The `main` branch auto-deploys to production.**
+**The `main` branch auto-deploys to staging, the `prod` branch to production.**
 
-Production deploys take a few minutes to complete, and published files are
-cached for a few minutes.
+Deploys take ~2 minutes to complete, and published files are cached
+for a few minutes.
 
 Auto-deployment configured through Cloud Build.
 [trigger](https://console.cloud.google.com/cloud-build/triggers/edit/2a8c6015-8b1d-4073-815f-f35edd1a3b1a?project=cavaccineinventory)
-
-**Not sure if this is working?**
-Check the headers on the
-[locations](https://storage.googleapis.com/cavaccineinventory-sitedata/airtable-sync/Locations.json)
-file (via curl, browser tools, whatever).
-`Last-Modified` should be minutes old.
-
-For example:
-```
-$ curl -sI https://storage.googleapis.com/cavaccineinventory-sitedata/airtable-sync/Locations.json | grep last-modified; echo -n "          now: "; date -Ru
-last-modified: Sun, 24 Jan 2021 05:34:47 GMT
-          now: Sun, 24 Jan 2021 05:57:58 +0000
-```
 
 * Runs on [Google Cloud Run](https://console.cloud.google.com/run/detail/us-west1/airtable-export-prod/metrics?authuser=1&organizationId=0&project=cavaccineinventory&supportedpurview=project)
 
 (serverless thing that handles automatic container build and deploy).
 
-* Pushes data to: [gs://cavaccineinventory](https://console.cloud.google.com/storage/browser/cavaccineinventory-sitedata?project=cavaccineinventory&pageState=(%22StorageObjectListTable%22:(%22f%22:%22%255B%255D%22))&prefix=&forceOnObjectsSortingFiltering=false)
+* Pushes data to: [gs://cavaccineinventory-sitedata](https://console.cloud.google.com/storage/browser/cavaccineinventory-sitedata?project=cavaccineinventory&pageState=(%22StorageObjectListTable%22:(%22f%22:%22%255B%255D%22))&prefix=&forceOnObjectsSortingFiltering=false)
 
 Google Cloud Run throttles the app to a crawl when not handling a request.
 As a _terrible_ workaround, the health check endpoint sleeps for >= 1 minute.
@@ -65,20 +52,25 @@ In production, these are fetched automatically from Google Cloud's Secrets Manag
  - [airtable-key](https://console.cloud.google.com/security/secret-manager/secret/airtable-key/versions?project=cavaccineinventory)
  - [storage-upload-key](https://console.cloud.google.com/security/secret-manager/secret/storage-upload-key/versions?project=cavaccineinventory)
 
-In development, you should mount the file if you need to upload as part of your QA cycle.
-* /gcloud-key.json: a Google Cloud service account key, with write access to the
-  storage bucket
+In development:
+ - You can look up your Airtable API key at https://airtable.com/account
+ - Create Google Cloud service account key, with write access to the
+   storage bucket; you should mount the file into the Docker image if
+   you need to upload as part of your QA cycle.
+
 
 ## Development
 
 Example docker invocation:
 
 ```
+docker build -t airtable-export
+
 docker run \
   -e AIRTABLE_KEY=<key> \
   -e BUCKET_PATH=gs://cavaccineinventory-sitedata/<directory> \
   -v <gcloud storage key>:/gcloud-key.json \
-  --rm -it <image>`
+  --rm -it airtable-export
 ```
 
 ## Testing
