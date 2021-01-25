@@ -10,8 +10,10 @@ import (
 	"time"
 )
 
-// TODO: make the url parameterized
-const url = "https://storage.googleapis.com/cavaccineinventory-sitedata/airtable-sync/Locations.json"
+var urls = map[string]string{
+	"prod": "https://storage.googleapis.com/cavaccineinventory-sitedata/airtable-sync/Locations.json",
+	"staging": "https://storage.googleapis.com/cavaccineinventory-sitedata/airtable-sync-staging/Locations.json",
+}
 
 // CheckFreshness checks the freshness of the Locations.json
 func CheckFreshness(w http.ResponseWriter, r *http.Request) {
@@ -22,6 +24,12 @@ func CheckFreshness(w http.ResponseWriter, r *http.Request) {
 		if t, err := strconv.Atoi(thr); err == nil {
 			thresh = t
 		}
+	}
+
+	deploy := os.Getenv("DEPLOY")
+	url, found := urls[deploy];
+	if !found {
+		url = urls["prod"]
 	}
 
 	resp, err := http.Head(url)

@@ -19,6 +19,21 @@ $ gcloud functions deploy \
   --source=.
 ```
 
+For a staging deployment, a couple lines get changed -- the addition
+of an env var, and the change of the name:
+
+``` shell
+$ gcloud functions deploy \
+  freshLocationsStaging \
+  --project cavaccineinventory \
+  --entry-point CheckFreshness \
+  --runtime go113 \
+  --set-env-vars=DEPLOY=staging \
+  --trigger-http \
+  --allow-unauthenticated \
+  --source=.
+```
+
 Deployment can take up to two minutes, as under the hood it builds a new container and does other magic.
 
 ## Local Development
