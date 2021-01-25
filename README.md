@@ -6,6 +6,8 @@
 it through a sanitization pass (including but not limited to removing
 superfluous or sensitive keys), then uploads the results.
 
+It fetches data using [the `airtable-export` Python package](https://github.com/simonw/airtable-export)
+
 It exposes current health status at `:8080`.
 This can be used to programmatically confirm if the most recent publish
 iteration succeeded.
@@ -15,7 +17,7 @@ Javascript, and Airtable has harsh rate limits.
 
 ## Production
 
-**The main branch auto-deploys to production.**
+**The `main` branch auto-deploys to production.**
 
 Production deploys take a few minutes to complete, and published files are
 cached for a few minutes.
@@ -59,9 +61,11 @@ opportunity cost.
 
 ### Secrets
 
-In production, these are fetched automatically.
-In development, you should mount the file if you need to upload as part of your QA cycle.
+In production, these are fetched automatically from Google Cloud's Secrets Manager;
+ - [airtable-key](https://console.cloud.google.com/security/secret-manager/secret/airtable-key/versions?project=cavaccineinventory)
+ - [storage-upload-key](https://console.cloud.google.com/security/secret-manager/secret/storage-upload-key/versions?project=cavaccineinventory)
 
+In development, you should mount the file if you need to upload as part of your QA cycle.
 * /gcloud-key.json: a Google Cloud service account key, with write access to the
   storage bucket
 
