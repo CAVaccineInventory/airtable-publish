@@ -7,7 +7,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"os/exec"
 	"path"
 	"time"
 )
@@ -18,7 +17,7 @@ const airtableId = "appy2N9zQSnFRPcN8"
 var tableNames = [...]string{"Locations", "Counties"}
 
 const tempDir = "airtable-raw"
-const publishDir = "airtable-publish"
+const readyDir = "airtable-publish"
 
 type Publisher struct {
 	bucketPath           string
@@ -69,21 +68,12 @@ func (p *Publisher) Run() {
 // syncAndPublish fetches data from Airtable, does any necessary transforms/cleanup, then publishes the file to Google Cloud Storage.
 // This should probably be broken up further.
 func (p *Publisher) syncAndPublish(tableName string) error {
-	// Get data from AirTable.
-	// TODO: consider doing this in Go directly.
-	log.Println("Shelling out to exporter...")
-	airtableSecret := os.Getenv(airtableSecretEnvKey)
-	exportArgs := []string{"--json", tempDir, airtableId, tableName, "--key"}
-	log.Println("Args: ", exportArgs, ", key length: ", len(airtableSecret))
-	exportArgs = append(exportArgs, airtableSecret)
-	cmd := exec.Command("/usr/bin/airtable-export", exportArgs...)
-	output, exportErr := cmd.CombinedOutput()
-	if exportErr != nil {
-		log.Println(output)
-		return errors.Wrap(exportErr, "failed to run airtable-export")
+	fetchErr := fetchAirtableTable(tableName)
+	if fetchErr != nil {
+		return fetchErr
 	}
 
-	log.Println("Loading and transforming data...")
+	log.Println("Transforming data...")
 	jsonMap, err := ObjectFromFile(path.Join(tempDir, tableName+".json"))
 	sanitizedData, sanitizeErr := Sanitize(jsonMap, tableName)
 	if sanitizeErr != nil {
@@ -92,8 +82,8 @@ func (p *Publisher) syncAndPublish(tableName string) error {
 
 	destinationFile := p.bucketPath + "/" + tableName + ".json"
 	log.Printf("Getting ready to publish to %s...\n", destinationFile)
-	_ = os.Mkdir(publishDir, 0644)
-	f, err := os.Create(path.Join(publishDir, tableName+".json"))
+	_ = os.Mkdir(readyDir, 0644)
+	f, err := os.Create(path.Join(readyDir, tableName+".json"))
 	if err != nil {
 		return errors.Wrap(err, "failed to open destination fail")
 	}
@@ -104,14 +94,7 @@ func (p *Publisher) syncAndPublish(tableName string) error {
 		return errors.Wrap(err, "failed to open write sanitized json")
 	}
 
-	// TODO: consider doing this in Go directly. But last I recall, the Go SDK was a bit fussy with Go modules...
-	cmd = exec.Command("gsutil", "-h", "Cache-Control:public,max-age=300", "cp", "-Z", path.Join(publishDir, tableName+".json"), destinationFile)
-	if uploadErr := cmd.Run(); uploadErr != nil {
-		log.Println(cmd.Output())
-		return errors.Wrap(uploadErr, "failed to upload json file")
-	}
-
-	return nil
+	return uploadFile(tableName, destinationFile)
 }
 
 // healthStatus returns HTTP 200 if the last publish cycle succeeded,

@@ -10,7 +10,7 @@ import (
 func TestSanitize(t *testing.T) {
 	tests := map[string]struct {
 		test_data_file string
-		badKeys       []string
+		badKeys        []string
 	}{
 		"Locations": {test_data_file: "test_data/locations_reduced.json", badKeys: []string{"Last report author", "Internal notes"}},
 		"Counties":  {test_data_file: "test_data/counties.json", badKeys: []string{"Internal notes"}},
