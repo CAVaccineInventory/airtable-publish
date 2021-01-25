@@ -44,69 +44,70 @@ func (p *Publisher) Run() {
 
 	// Serve health status.
 	http.HandleFunc("/", p.healthStatus)
-	go func() {
-		err := http.ListenAndServe(":8080", nil)
-		if err != nil {
-			panic(err)
-		}
-	}()
-	log.Println("Serving health check endpoint...")
+	http.HandleFunc("/publish", p.syncAndPublishRequest)
+	err := http.ListenAndServe(":8080", nil)
+	if err != nil {
+		panic(err)
+	}
+}
+
+func (p *Publisher) syncAndPublishRequest(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+	}
 
 	deploy := os.Getenv("DEPLOY")
 	if deploy == "" {
 		deploy = "staging"
 	}
 	ctx, _ := tag.New(context.Background(), tag.Insert(keyDeploy, deploy))
+	startTime := time.Now()
+	log.Println("Preparing to fetch and publish...")
 
-	// Loop forever.
-	for {
-		startTime := time.Now()
-		log.Println("Preparing to fetch and publish...")
+	// Every iteration gets its own timeout.
+	// TODO: re-evaluate 10 minute timeout.
+	ctx, cxl := context.WithTimeout(ctx, 10*time.Minute)
+	defer cxl()
 
-		// Every iteration gets its own timeout.
-		// TODO: re-evaluate 10 minute timeout.
-		ctx, cxl := context.WithTimeout(ctx, 10*time.Minute)
-		defer cxl()
+	// Kick off ETL for each table in parallel.
+	// TODO: consider making each table pipeline independent, so a particularly "slow" table export or upload doesn't needlessly delay others.
+	wg := sync.WaitGroup{}
+	publishOk := make(chan bool, len(tableNames)) // Add a buffer large enough to hold all results.
+	for _, tableName := range tableNames {
+		wg.Add(1)
+		go func(tableName string) {
+			defer wg.Done()
 
-		// Kick off ETL for each table in parallel.
-		// TODO: consider making each table pipeline independent, so a particularly "slow" table export or upload doesn't needlessly delay others.
-		wg := sync.WaitGroup{}
-		publishOk := make(chan bool, len(tableNames)) // Add a buffer large enough to hold all results.
-		for _, tableName := range tableNames {
-			wg.Add(1)
-			go func(tableName string) {
-				defer wg.Done()
+			tableStartTime := time.Now()
+			tableCtx, _ := tag.New(ctx, tag.Insert(keyTable, tableName))
 
-				tableStartTime := time.Now()
-				tableCtx, _ := tag.New(ctx, tag.Insert(keyTable, tableName))
-
-				publishErr := p.syncAndPublish(tableCtx, tableName)
-				if publishErr == nil {
-					stats.Record(tableCtx, tablePublishSuccesses.M(1))
-					log.Printf("[%s] Successfully published\n", tableName)
-				} else {
-					stats.Record(tableCtx, tablePublishFailures.M(1))
-					log.Printf("[%s] Failed to export and publish: %v\n", tableName, publishErr)
-				}
-				stats.Record(tableCtx, tablePublishLatency.M(time.Since(tableStartTime).Seconds()))
-				publishOk <- publishErr == nil
-			}(tableName)
-		}
-
-		log.Println("Waiting for all tables to finish publishing...")
-		wg.Wait()
-		allPublishOk := true
-		for len(publishOk) != 0 {
-			if !<-publishOk {
-				allPublishOk = false
-				break
+			publishErr := p.syncAndPublish(tableCtx, tableName)
+			if publishErr == nil {
+				stats.Record(tableCtx, tablePublishSuccesses.M(1))
+				log.Printf("[%s] Successfully published\n", tableName)
+			} else {
+				stats.Record(tableCtx, tablePublishFailures.M(1))
+				log.Printf("[%s] Failed to export and publish: %v\n", tableName, publishErr)
 			}
-		}
-		stats.Record(ctx, totalPublishLatency.M(time.Since(startTime).Seconds()))
-		p.lastPublishSucceeded = allPublishOk
-		log.Println("All tables finished publishing.")
+			stats.Record(tableCtx, tablePublishLatency.M(time.Since(tableStartTime).Seconds()))
+			publishOk <- publishErr == nil
+		}(tableName)
+	}
 
-		time.Sleep(time.Second * 30) // TODO: possibly speed up or make this snazzier.
+	log.Println("Waiting for all tables to finish publishing...")
+	wg.Wait()
+	allPublishOk := true
+	for len(publishOk) != 0 {
+		if !<-publishOk {
+			allPublishOk = false
+			break
+		}
+	}
+	stats.Record(ctx, totalPublishLatency.M(time.Since(startTime).Seconds()))
+	p.lastPublishSucceeded = allPublishOk
+	log.Println("All tables finished publishing.")
+	if !allPublishOk {
+		w.WriteHeader(http.StatusInternalServerError)
 	}
 }
 
@@ -151,7 +152,6 @@ func (p *Publisher) syncAndPublish(ctx context.Context, tableName string) error 
 // and returns HTTP 500 if the last publish cycle failed.
 func (p *Publisher) healthStatus(w http.ResponseWriter, r *http.Request) {
 	log.Println("Health check called.")
-	time.Sleep(time.Second * 70) // TODO: This is a TERRIBLE HACK around how Google Cloud Run sleeps the process when not handling a request.
 	lastPublishSucceeded := p.lastPublishSucceeded
 	if !lastPublishSucceeded {
 		w.WriteHeader(http.StatusInternalServerError)

@@ -2,10 +2,10 @@
 
 ## How This Works
 
-`airtable-export` is a worker that periodically fetches data from
-Airtable, runs it through a sanitization pass (including but not
-limited to removing superfluous or sensitive keys), then uploads the
-results.
+`airtable-export` is a worker that fetches data from Airtable upon a
+POST to `/publish`, runs it through a sanitization pass (including but
+not limited to removing superfluous or sensitive keys), then uploads
+the results.
 
 It fetches data using [the `airtable-export` Python
 package](https://github.com/simonw/airtable-export)
@@ -29,16 +29,8 @@ Auto-deployment configured through Cloud Build.
 
 * Runs on [Google Cloud Run](https://console.cloud.google.com/run/detail/us-west1/airtable-export-prod/metrics?authuser=1&organizationId=0&project=cavaccineinventory&supportedpurview=project)
 
-(serverless thing that handles automatic container build and deploy).
-
 * Pushes data to: [gs://cavaccineinventory-sitedata](https://console.cloud.google.com/storage/browser/cavaccineinventory-sitedata?project=cavaccineinventory&pageState=(%22StorageObjectListTable%22:(%22f%22:%22%255B%255D%22))&prefix=&forceOnObjectsSortingFiltering=false)
 
-Google Cloud Run throttles the app to a crawl when not handling a request.
-As a _terrible_ workaround, the health check endpoint sleeps for >= 1 minute.
-We run a [magic cloud cronjob](https://console.cloud.google.com/cloudscheduler?project=cavaccineinventory)
-which calls that status/healthcheck endpoint minutely as a keep-warm.
-We know it's messy - improve it if and only if it's worth the time and
-opportunity cost.
 
 ## Invocation
 
