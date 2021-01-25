@@ -113,7 +113,7 @@ func (p *Publisher) healthStatus(w http.ResponseWriter, r *http.Request) {
 	log.Println("Health check called.")
 	time.Sleep(time.Second * 70) // TODO: This is a TERRIBLE HACK around how Google Cloud Run sleeps the process when not handling a request.
 	lastPublishSucceeded := p.lastPublishSucceeded
-	if lastPublishSucceeded {
+	if !lastPublishSucceeded {
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 	fmt.Fprintf(w, "Last run suceeded: %v", lastPublishSucceeded)
