@@ -71,8 +71,9 @@ func (p *Publisher) syncAndPublish() error {
 	log.Println("Args: ", exportArgs, ", key length: ", len(airtableSecret))
 	exportArgs = append(exportArgs, airtableSecret)
 	cmd := exec.Command("/usr/bin/airtable-export", exportArgs...)
-	if exportErr := cmd.Run(); exportErr != nil {
-		log.Println(cmd.Output())
+	output, exportErr := cmd.CombinedOutput()
+	if exportErr != nil {
+		log.Println(output)
 		return errors.Wrap(exportErr, "failed to run airtable-export")
 	}
 
