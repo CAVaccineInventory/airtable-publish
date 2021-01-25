@@ -12,13 +12,11 @@ from google.cloud import monitoring_v3
 
 
 # Which environment is this (eg, prod, staging).
-TARGET_ENV = os.environ.get('TARGET_ENV', 'prod')
-# Name of the file we're monitoring. Currently we only have Locations.json, but we can have more later.
-TARGET_NAME = os.environ.get('TARGET_NAME', 'locations')
+TARGET_ENV = os.environ['TARGET_ENV']
+# Name of the file we're monitoring. Currently 'locations' or 'counties'.
+TARGET_NAME = os.environ['TARGET_NAME']
 # URL to fetch.
-TARGET_URL = os.environ.get(
-    'TARGET_URL',
-    'https://storage.googleapis.com/cavaccineinventory-sitedata/airtable-sync/Locations.json')
+TARGET_URL = os.environ['TARGET_URL']
 
 # Name of the GCP project to submit metrics to.
 PROJECT_NAME = os.environ.get('PROJECT_NAME', 'cavaccineinventory')
