@@ -3,6 +3,8 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"log"
 )
 
@@ -26,26 +28,44 @@ Okay, for those doing exporter stuff, for the following fields: "Name", "Address
  - perhaps we should give some of these better names and stick that in Locations-v2.json
 */
 
-// Extracted from data.js using "get_required_fields_for_site.py".
-var allowKeys = map[string]int{
-	"Address":                             1,
-	"Appointment scheduling instructions": 1,
-	"Availability Info":                   1,
-	"County":                              1,
-	"Has Report":                          1,
-	"Latest report":                       1,
-	"Latest report notes":                 1,
-	"Latest report yes?":                  1,
-	"Latitude":                            1,
-	"Location Type":                       1,
-	"Longitude":                           1,
-	"Name":                                1,
+var allowKeys = map[string]map[string]int{
+	// Extracted from data.js using "get_required_fields_for_site.py".
+	"Locations": {
+		"Address":                             1,
+		"Appointment scheduling instructions": 1,
+		"Availability Info":                   1,
+		"County":                              1,
+		"Has Report":                          1,
+		"Latest report":                       1,
+		"Latest report notes":                 1,
+		"Latest report yes?":                  1,
+		"Latitude":                            1,
+		"Location Type":                       1,
+		"Longitude":                           1,
+		"Name":                                1,
+	},
+	"Counties": {
+		"County":                              1,
+		"Vaccine info URL":                    1,
+		"Vaccine locations URL":               1,
+		"Notes":                               1,
+		"Total reports":                       1,
+		"Yeses":                               1,
+		"Official volunteering opportunities": 1,
+		"Facebook Page":                       1,
+	},
 }
 
-func Sanitize(jsonMap []map[string]interface{}) (*bytes.Buffer, error) {
+func Sanitize(jsonMap []map[string]interface{}, tableName string) (*bytes.Buffer, error) {
+	keys, ok := allowKeys[tableName]
+
+	if !ok {
+		return nil, errors.New(fmt.Sprintf("ERROR: unsupported kind of export: %s", tableName))
+	}
+
 	for i := range jsonMap {
 		for k := range jsonMap[i] {
-			if _, found := allowKeys[k]; !found {
+			if _, found := keys[k]; !found {
 				delete(jsonMap[i], k)
 			}
 		}

@@ -14,7 +14,9 @@ import (
 
 const airtableSecretEnvKey = "AIRTABLE_KEY"
 const airtableId = "appy2N9zQSnFRPcN8"
-const tableName = "Locations"
+
+var tableNames = [...]string{"Locations", "Counties"}
+
 const tempDir = "airtable-raw"
 const publishDir = "airtable-publish"
 
@@ -47,27 +49,31 @@ func (p *Publisher) Run() {
 
 	// Loop forever.
 	for {
-		log.Println("Preparing to fetch and publish...")
-		publishErr := p.syncAndPublish()
-		p.lastPublishSucceeded = publishErr == nil
-		if publishErr == nil {
-			log.Println("Successfully published")
-		} else {
-			log.Printf("Failed to export and publish: %v\n", publishErr)
+		publishSucceeded := true
+		for _, tableName := range tableNames {
+			log.Println("Preparing to fetch and publish...")
+			publishErr := p.syncAndPublish(tableName)
+			publishSucceeded = publishSucceeded && (publishErr == nil)
+			if publishErr == nil {
+				log.Println("Successfully published")
+			} else {
+				log.Printf("Failed to export and publish %s: %v\n", tableName, publishErr)
+			}
 		}
 
+		p.lastPublishSucceeded = publishSucceeded
 		time.Sleep(time.Second * 30) // TODO: possibly speed up or make this snazzier.
 	}
 }
 
 // syncAndPublish fetches data from Airtable, does any necessary transforms/cleanup, then publishes the file to Google Cloud Storage.
 // This should probably be broken up further.
-func (p *Publisher) syncAndPublish() error {
+func (p *Publisher) syncAndPublish(tableName string) error {
 	// Get data from AirTable.
 	// TODO: consider doing this in Go directly.
 	log.Println("Shelling out to exporter...")
 	airtableSecret := os.Getenv(airtableSecretEnvKey)
-	exportArgs := []string{"--json", tempDir, airtableId, "Locations", "--key"}
+	exportArgs := []string{"--json", tempDir, airtableId, tableName, "--key"}
 	log.Println("Args: ", exportArgs, ", key length: ", len(airtableSecret))
 	exportArgs = append(exportArgs, airtableSecret)
 	cmd := exec.Command("/usr/bin/airtable-export", exportArgs...)
@@ -79,7 +85,7 @@ func (p *Publisher) syncAndPublish() error {
 
 	log.Println("Loading and transforming data...")
 	jsonMap, err := ObjectFromFile(path.Join(tempDir, tableName+".json"))
-	sanitizedData, sanitizeErr := Sanitize(jsonMap)
+	sanitizedData, sanitizeErr := Sanitize(jsonMap, tableName)
 	if sanitizeErr != nil {
 		return errors.Wrap(sanitizeErr, "failed to sanitize json data")
 	}
