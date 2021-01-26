@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"context"
 	"fmt"
 	"log"
 	"net/http"
@@ -48,9 +49,15 @@ func (p *Publisher) Run() {
 	}()
 	log.Println("Serving health check endpoint...")
 
+	ctx := context.Background()
 	// Loop forever.
 	for {
 		log.Println("Preparing to fetch and publish...")
+
+		// Every iteration gets its own timeout.
+		// TODO: re-evaluate 10 minute timeout.
+		ctx, cxl := context.WithTimeout(ctx, 10*time.Minute)
+		defer cxl()
 
 		// Kick off ETL for each table in parallel.
 		// TODO: consider making each table pipeline independent, so a particularly "slow" table export or upload doesn't needlessly delay others.
@@ -61,7 +68,7 @@ func (p *Publisher) Run() {
 			go func(tableName string) {
 				defer wg.Done()
 
-				publishErr := p.syncAndPublish(tableName)
+				publishErr := p.syncAndPublish(ctx, tableName)
 				if publishErr == nil {
 					log.Printf("Successfully published table %s\n", tableName)
 				} else {
@@ -89,8 +96,8 @@ func (p *Publisher) Run() {
 
 // syncAndPublish fetches data from Airtable, does any necessary transforms/cleanup, then publishes the file to Google Cloud Storage.
 // This should probably be broken up further.
-func (p *Publisher) syncAndPublish(tableName string) error {
-	fetchErr := fetchAirtableTable(tableName)
+func (p *Publisher) syncAndPublish(ctx context.Context, tableName string) error {
+	fetchErr := fetchAirtableTable(ctx, tableName)
 	if fetchErr != nil {
 		return fetchErr
 	}
@@ -116,11 +123,12 @@ func (p *Publisher) syncAndPublish(tableName string) error {
 	defer f.Close()
 	w := bufio.NewWriter(f)
 	_, err = w.Write(sanitizedData.Bytes())
+
 	if err != nil {
 		return errors.Wrap(err, "failed to open write sanitized json")
 	}
 
-	return uploadFile(tableName, destinationFile)
+	return uploadFile(ctx, tableName, destinationFile)
 }
 
 // healthStatus returns HTTP 200 if the last publish cycle succeeded,
