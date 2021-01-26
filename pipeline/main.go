@@ -70,9 +70,9 @@ func (p *Publisher) Run() {
 
 				publishErr := p.syncAndPublish(ctx, tableName)
 				if publishErr == nil {
-					log.Printf("Successfully published table %s\n", tableName)
+					log.Printf("[%s] Successfully published\n", tableName)
 				} else {
-					log.Printf("Failed to export and publish table %s: %v\n", tableName, publishErr)
+					log.Printf("[%s] Failed to export and publish: %v\n", tableName, publishErr)
 				}
 				publishOk <- publishErr == nil
 			}(tableName)
@@ -102,9 +102,9 @@ func (p *Publisher) syncAndPublish(ctx context.Context, tableName string) error 
 		return fetchErr
 	}
 
-	log.Println("Transforming data...")
+	log.Printf("[%s] Transforming data...\n", tableName)
 	j := path.Join(tempDir, tableName+".json")
-	jsonMap, err := ObjectFromFile(j)
+	jsonMap, err := ObjectFromFile(tableName, j)
 	if err != nil {
 		return fmt.Errorf("ObjectFromFile(%q): %w", j, err)
 	}
@@ -114,7 +114,7 @@ func (p *Publisher) syncAndPublish(ctx context.Context, tableName string) error 
 	}
 
 	destinationFile := p.bucketPath + "/" + tableName + ".json"
-	log.Printf("Getting ready to publish to %s...\n", destinationFile)
+	log.Printf("[%s] Getting ready to publish to %s...\n", tableName, destinationFile)
 	_ = os.Mkdir(readyDir, 0644)
 	f, err := os.Create(path.Join(readyDir, tableName+".json"))
 	if err != nil {

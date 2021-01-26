@@ -8,12 +8,12 @@ import (
 	"github.com/pkg/errors"
 )
 
-func ObjectFromFile(filePath string) ([]map[string]interface{}, error) {
+func ObjectFromFile(tableName string, filePath string) ([]map[string]interface{}, error) {
 	b, readErr := ioutil.ReadFile(filePath)
 	if readErr != nil {
 		return nil, errors.Wrapf(readErr, "couldn't read file %s", filePath)
 	}
-	log.Printf("Read %d bytes from disk (%s).\n", len(b), filePath)
+	log.Printf("[%s] Read %d bytes from disk (%s).\n", tableName, len(b), filePath)
 
 	jsonMap := make([]map[string](interface{}), 0)
 	marshalErr := json.Unmarshal([]byte(b), &jsonMap)

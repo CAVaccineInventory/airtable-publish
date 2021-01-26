@@ -14,7 +14,7 @@ func fetchAirtableTable(ctx context.Context, tableName string) error {
 	airtableSecret := os.Getenv(airtableSecretEnvKey)
 
 	// TODO: consider doing this in Go directly.
-	log.Println("Shelling out to exporter...")
+	log.Printf("[%s] Shelling out to exporter...\n", tableName)
 	cmd := exec.CommandContext(ctx, "/usr/bin/airtable-export", "--json", tempDir, airtableID, tableName, "--key", airtableSecret)
 	output, exportErr := cmd.CombinedOutput()
 	if exportErr != nil {

@@ -18,7 +18,7 @@ func TestSanitize(t *testing.T) {
 	}
 
 	for name, tc := range tests {
-		in, err := ObjectFromFile(tc.testDataFile)
+		in, err := ObjectFromFile(name, tc.testDataFile)
 		require.NoError(t, err)
 
 		got, err := Sanitize(in, name)
