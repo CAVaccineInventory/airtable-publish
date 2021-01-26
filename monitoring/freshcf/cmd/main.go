@@ -13,8 +13,13 @@ import (
 func main() {
 	ctx := context.Background()
 	if err := funcframework.RegisterHTTPFunctionContext(ctx, "/", freshcf.CheckFreshness); err != nil {
-		log.Fatalf("funcframework.RegisterHTTPFunctionContext: %v\n", err)
+		log.Fatalf("funcframework.RegisterHTTPFunctionContext /: %v\n", err)
 	}
+
+	if err := funcframework.RegisterHTTPFunctionContext(ctx, "/json", freshcf.ExportJSON); err != nil {
+		log.Fatalf("funcframework.RegisterHTTPFunctionContext /json: %v\n", err)
+	}
+
 	// Use PORT environment variable, or default to 8080.
 	port := "8080"
 	if envPort := os.Getenv("PORT"); envPort != "" {
