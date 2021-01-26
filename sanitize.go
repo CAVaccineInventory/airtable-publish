@@ -3,7 +3,6 @@ package main
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"log"
 )
@@ -60,7 +59,7 @@ func Sanitize(jsonMap []map[string]interface{}, tableName string) (*bytes.Buffer
 	keys, ok := allowKeys[tableName]
 
 	if !ok {
-		return nil, errors.New(fmt.Sprintf("ERROR: unsupported kind of export: %s", tableName))
+		return nil, fmt.Errorf("ERROR: unsupported kind of export: %s", tableName)
 	}
 
 	for i := range jsonMap {
@@ -72,12 +71,12 @@ func Sanitize(jsonMap []map[string]interface{}, tableName string) (*bytes.Buffer
 	}
 	log.Printf("Cleaned %d elements.\n", len(jsonMap))
 
-	unsanitizedJson, err := json.Marshal(jsonMap)
+	unsanitizedJSON, err := json.Marshal(jsonMap)
 	if err != nil {
 		return nil, err
 	}
 	buf := &bytes.Buffer{}
-	json.HTMLEscape(buf, unsanitizedJson)
+	json.HTMLEscape(buf, unsanitizedJSON)
 
 	return buf, nil
 }

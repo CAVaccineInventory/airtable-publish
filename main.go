@@ -3,17 +3,18 @@ package main
 import (
 	"bufio"
 	"fmt"
-	"github.com/pkg/errors"
 	"log"
 	"net/http"
 	"os"
 	"path"
 	"sync"
 	"time"
+
+	"github.com/pkg/errors"
 )
 
 const airtableSecretEnvKey = "AIRTABLE_KEY"
-const airtableId = "appy2N9zQSnFRPcN8"
+const airtableID = "appy2N9zQSnFRPcN8"
 
 var tableNames = [...]string{"Locations", "Counties"}
 
@@ -95,7 +96,11 @@ func (p *Publisher) syncAndPublish(tableName string) error {
 	}
 
 	log.Println("Transforming data...")
-	jsonMap, err := ObjectFromFile(path.Join(tempDir, tableName+".json"))
+	j := path.Join(tempDir, tableName+".json")
+	jsonMap, err := ObjectFromFile(j)
+	if err != nil {
+		return fmt.Errorf("ObjectFromFile(%q): %w", j, err)
+	}
 	sanitizedData, sanitizeErr := Sanitize(jsonMap, tableName)
 	if sanitizeErr != nil {
 		return errors.Wrap(sanitizeErr, "failed to sanitize json data")
@@ -127,5 +132,5 @@ func (p *Publisher) healthStatus(w http.ResponseWriter, r *http.Request) {
 	if !lastPublishSucceeded {
 		w.WriteHeader(http.StatusInternalServerError)
 	}
-	fmt.Fprintf(w, "Last run suceeded: %v", lastPublishSucceeded)
+	fmt.Fprintf(w, "Last run succeeded: %v", lastPublishSucceeded)
 }

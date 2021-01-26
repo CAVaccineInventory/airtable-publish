@@ -2,9 +2,10 @@ package main
 
 import (
 	"encoding/json"
-	"github.com/pkg/errors"
 	"io/ioutil"
 	"log"
+
+	"github.com/pkg/errors"
 )
 
 func ObjectFromFile(filePath string) ([]map[string]interface{}, error) {

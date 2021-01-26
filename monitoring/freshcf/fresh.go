@@ -11,7 +11,7 @@ import (
 )
 
 var urls = map[string]string{
-	"prod": "https://storage.googleapis.com/cavaccineinventory-sitedata/airtable-sync/Locations.json",
+	"prod":    "https://storage.googleapis.com/cavaccineinventory-sitedata/airtable-sync/Locations.json",
 	"staging": "https://storage.googleapis.com/cavaccineinventory-sitedata/airtable-sync-staging/Locations.json",
 }
 
@@ -27,7 +27,7 @@ func CheckFreshness(w http.ResponseWriter, r *http.Request) {
 	}
 
 	deploy := os.Getenv("DEPLOY")
-	url, found := urls[deploy];
+	url, found := urls[deploy]
 	if !found {
 		url = urls["prod"]
 	}
@@ -52,7 +52,7 @@ func CheckFreshness(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "error parsing %q as a time: %v", lu, err)
 		return
 	}
-	ago := time.Now().Sub(when).Seconds()
+	ago := time.Since(when).Seconds()
 	log.Printf("Last-Modified: %v (%0.fs ago)", when, ago)
 
 	if int(ago) > thresh {

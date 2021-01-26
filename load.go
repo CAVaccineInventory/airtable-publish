@@ -1,10 +1,11 @@
 package main
 
 import (
-	"github.com/pkg/errors"
 	"log"
 	"os/exec"
 	"path"
+
+	"github.com/pkg/errors"
 )
 
 // uploadFile uploads a file from disk to a Google Cloud Storage bucket.

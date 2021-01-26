@@ -3,21 +3,22 @@ package main
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/stretchr/testify/require"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestSanitize(t *testing.T) {
 	tests := map[string]struct {
-		test_data_file string
-		badKeys        []string
+		testDataFile string
+		badKeys      []string
 	}{
-		"Locations": {test_data_file: "test_data/locations_reduced.json", badKeys: []string{"Last report author", "Internal notes"}},
-		"Counties":  {test_data_file: "test_data/counties.json", badKeys: []string{"Internal notes"}},
+		"Locations": {testDataFile: "test_data/locations_reduced.json", badKeys: []string{"Last report author", "Internal notes"}},
+		"Counties":  {testDataFile: "test_data/counties.json", badKeys: []string{"Internal notes"}},
 	}
 
 	for name, tc := range tests {
-		in, err := ObjectFromFile(tc.test_data_file)
+		in, err := ObjectFromFile(tc.testDataFile)
 		require.NoError(t, err)
 
 		got, err := Sanitize(in, name)
