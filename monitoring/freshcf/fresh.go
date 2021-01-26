@@ -2,7 +2,10 @@
 package freshcf
 
 import (
+	"encoding/json"
 	"fmt"
+	"github.com/pkg/errors"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -12,44 +15,115 @@ import (
 	"github.com/CAVaccineInventory/airtable-export/pipeline/locations"
 )
 
+type ExportedJSONFileStats struct {
+	lastModifiedAgeSeconds int
+	fileLengthJsonItems    int
+	fileLengthBytes        int
+}
+
+// ExportedJSONFileStats is always filled out to the best of our
+// ability. error will be true if there was a fatal error along the
+// way, in which case values that are not meaningful given the error
+// will be 0.
+func getURLStats(url string) (ExportedJSONFileStats, error) {
+	output := ExportedJSONFileStats{}
+
+	resp, err := http.Get(url)
+	if err != nil {
+		return output, errors.Wrapf(err, "fetching: %q", url)
+	}
+
+	// First, check if we got a successful HTTP response. If not,
+	// Last-Modified is not valid/useful.
+	if resp.StatusCode != 200 {
+		return output, errors.New("non-200 status code")
+	}
+
+	// Next, header checks.
+	lu := resp.Header.Get("Last-Modified")
+	when, err := time.Parse(time.RFC1123, lu)
+	if err != nil {
+		log.Printf("invalid last-modified %v", err)
+	} else {
+		ago := time.Since(when).Seconds()
+		output.lastModifiedAgeSeconds = int(ago)
+		log.Printf("Last-Modified: %v (%0.fs ago)", when, ago)
+	}
+
+	// get the contents.
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return output, errors.Wrapf(err, "reading: %q", url)
+	}
+	output.fileLengthBytes = len(body)
+
+	// parse the body
+	var jsonBody []interface{}
+	err = json.Unmarshal(body, &jsonBody)
+	if err != nil {
+		log.Printf("failed to parse JSON %v", err)
+	} else {
+		output.fileLengthJsonItems = len(jsonBody)
+	}
+
+	return output, nil
+}
+
 // CheckFreshness checks the freshness of the Locations.json
 func CheckFreshness(w http.ResponseWriter, r *http.Request) {
-	thresh := 600
+	threshold_age := 600
+	threshold_items := 10
+	threshold_length := 1000
 
-	thr := os.Getenv("THRESHOLD")
+	var thr = ""
+	thr = os.Getenv("THRESHOLD_AGE")
 	if thr != "" {
 		if t, err := strconv.Atoi(thr); err == nil {
-			thresh = t
+			threshold_age = t
+		}
+	}
+
+	thr = os.Getenv("THRESHOLD_ITEMS")
+	if thr != "" {
+		if t, err := strconv.Atoi(thr); err == nil {
+			threshold_items = t
+		}
+	}
+
+	thr = os.Getenv("THRESHOLD_LENGTH")
+	if thr != "" {
+		if t, err := strconv.Atoi(thr); err == nil {
+			threshold_length = t
 		}
 	}
 
 	url := locations.GetExportBaseURL() + "/Locations.json"
 	resp, err := http.Head(url)
+
+	stats, err := getURLStats(url)
+
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintf(w, "error retrieving URL %q: %v", url, err)
+		fmt.Fprintf(w, "error getting stats %q: %v", url, err)
 		return
 	}
 
-	lu := resp.Header.Get("Last-Modified")
-	if lu == "" {
+	if stats.lastModifiedAgeSeconds > threshold_age {
 		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintf(w, "no Last-Modified header for URL %q: %v", url, err)
+		fmt.Fprintf(w, "last modified is too old: %d < %d", stats.lastModifiedAgeSeconds, threshold_age)
 		return
 	}
 
-	when, err := time.Parse(time.RFC1123, lu)
-	if err != nil {
+	if stats.fileLengthBytes < threshold_length {
 		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintf(w, "error parsing %q as a time: %v", lu, err)
+		fmt.Fprintf(w, "file body too short: %d < %d", stats.fileLengthBytes, threshold_length)
 		return
 	}
-	ago := time.Since(when).Seconds()
-	log.Printf("Last-Modified: %v (%0.fs ago)", when, ago)
 
-	if int(ago) > thresh {
+	if stats.fileLengthJsonItems < threshold_items {
 		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintf(w, "%q  (%.0f seconds ago) is too old", lu, ago)
+		fmt.Fprintf(w, "json list too short: %d < %d", stats.fileLengthJsonItems, threshold_items)
 		return
 	}
 
