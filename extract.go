@@ -16,7 +16,7 @@ func fetchAirtableTable(tableName string) error {
 	cmd := exec.Command("/usr/bin/airtable-export", "--json", tempDir, airtableId, tableName, "--key", airtableSecret)
 	output, exportErr := cmd.CombinedOutput()
 	if exportErr != nil {
-		log.Println(output)
+		log.Println(string(output))
 		return errors.Wrap(exportErr, "failed to run airtable-export")
 	}
 	return nil

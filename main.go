@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"sync"
 	"time"
 )
 
@@ -48,19 +49,39 @@ func (p *Publisher) Run() {
 
 	// Loop forever.
 	for {
-		publishSucceeded := true
+		log.Println("Preparing to fetch and publish...")
+
+		// Kick off ETL for each table in parallel.
+		// TODO: consider making each table pipeline independent, so a particularly "slow" table export or upload doesn't needlessly delay others.
+		wg := sync.WaitGroup{}
+		publishOk := make(chan bool, len(tableNames)) // Add a buffer large enough to hold all results.
 		for _, tableName := range tableNames {
-			log.Println("Preparing to fetch and publish...")
-			publishErr := p.syncAndPublish(tableName)
-			publishSucceeded = publishSucceeded && (publishErr == nil)
-			if publishErr == nil {
-				log.Println("Successfully published")
-			} else {
-				log.Printf("Failed to export and publish %s: %v\n", tableName, publishErr)
-			}
+			wg.Add(1)
+			go func(tableName string) {
+				defer wg.Done()
+
+				publishErr := p.syncAndPublish(tableName)
+				if publishErr == nil {
+					log.Printf("Successfully published table %s\n", tableName)
+				} else {
+					log.Printf("Failed to export and publish table %s: %v\n", tableName, publishErr)
+				}
+				publishOk <- publishErr == nil
+			}(tableName)
 		}
 
-		p.lastPublishSucceeded = publishSucceeded
+		log.Println("Waiting for all tables to finish publishing...")
+		wg.Wait()
+		allPublishOk := true
+		for len(publishOk) != 0 {
+			if !<-publishOk {
+				allPublishOk = false
+				break
+			}
+		}
+		p.lastPublishSucceeded = allPublishOk
+		log.Println("All tables finished publishing.")
+
 		time.Sleep(time.Second * 30) // TODO: possibly speed up or make this snazzier.
 	}
 }
