@@ -11,6 +11,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/CAVaccineInventory/airtable-export/pipeline/locations"
 	"github.com/pkg/errors"
 	"go.opencensus.io/stats"
 	"go.opencensus.io/tag"
@@ -25,7 +26,6 @@ const tempDir = "airtable-raw"
 const readyDir = "airtable-publish"
 
 type Publisher struct {
-	bucketPath           string
 	lastPublishSucceeded bool // Make this thread safe if nontrivial multithreading comes up.
 }
 
@@ -33,9 +33,7 @@ type Publisher struct {
 func main() {
 	log.Println("Starting...")
 
-	p := Publisher{
-		bucketPath: os.Args[1],
-	}
+	p := Publisher{}
 	p.Run()
 }
 
@@ -131,7 +129,7 @@ func (p *Publisher) syncAndPublish(ctx context.Context, tableName string) error 
 		return errors.Wrap(sanitizeErr, "failed to sanitize json data")
 	}
 
-	destinationFile := p.bucketPath + "/" + tableName + ".json"
+	destinationFile := locations.GetExportBucket() + "/" + tableName + ".json"
 	log.Printf("[%s] Getting ready to publish to %s...\n", tableName, destinationFile)
 	_ = os.Mkdir(readyDir, 0644)
 	f, err := os.Create(path.Join(readyDir, tableName+".json"))

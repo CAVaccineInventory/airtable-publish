@@ -45,8 +45,6 @@ opportunity cost.
 ### Environment variables
 
 * AIRTABLE_KEY: airtable API key
-* BUCKET_PATH: fully-qualified Google Cloud Storage bucket path (e.g.
-  `gs://bucket/dir1/dir2` ).
 
 ### Secrets
 
@@ -70,7 +68,6 @@ docker build -t airtable-export
 
 docker run \
   -e AIRTABLE_KEY=<key> \
-  -e BUCKET_PATH=gs://cavaccineinventory-sitedata/<directory> \
   -v <gcloud storage key>:/gcloud-key.json \
   --rm -it airtable-export
 ```

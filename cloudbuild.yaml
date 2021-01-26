@@ -32,7 +32,6 @@ steps:
       - "--image=$_IMAGE_NAME:$COMMIT_SHA"
       - "--labels=commit-sha=$COMMIT_SHA,gcb-build-id=$BUILD_ID,deploy=$_DEPLOY"
       - "--region=$_DEPLOY_REGION"
-      - "--set-env-vars=BUCKET_PATH=$_BUCKET_PATH"
       - "--set-env-vars=DEPLOY=$_DEPLOY"
       - "--quiet"
     id: Deploy
@@ -51,7 +50,6 @@ substitutions:
   _IMAGE_NAME: "${_GCR_HOSTNAME}/${PROJECT_ID}/${REPO_NAME}/${_SERVICE_NAME}"
   _DEPLOY_REGION: us-west1
   _DEPLOY: staging
-  _BUCKET_PATH: gs://cavaccineinventory-sitedata/airtable-sync-staging
 
 tags:
   - airtable-export

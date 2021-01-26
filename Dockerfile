@@ -6,7 +6,7 @@ RUN apk add --no-cache py3-pip go jq && \
 COPY pipeline/go.* /
 RUN go mod download
 
-COPY pipeline/*.go /
+COPY pipeline/ /
 RUN go build
 
 COPY entrypoint.sh /

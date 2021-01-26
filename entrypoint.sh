@@ -8,4 +8,4 @@ if [ ! -z "$AIRTABLE_KEY_TEMP" ]; then
 fi
 
 echo "Starting exporter service..."
-./pipeline $BUCKET_PATH
+./pipeline
