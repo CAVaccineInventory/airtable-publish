@@ -33,6 +33,7 @@ steps:
       - "--labels=commit-sha=$COMMIT_SHA,gcb-build-id=$BUILD_ID,deploy=$_DEPLOY"
       - "--region=$_DEPLOY_REGION"
       - "--set-env-vars=BUCKET_PATH=$_BUCKET_PATH"
+      - "--set-env-vars=DEPLOY=$_DEPLOY"
       - "--quiet"
     id: Deploy
     entrypoint: gcloud
