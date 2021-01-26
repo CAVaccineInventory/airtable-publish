@@ -16,9 +16,9 @@ import (
 )
 
 type ExportedJSONFileStats struct {
-	lastModifiedAgeSeconds int
-	fileLengthJsonItems    int
-	fileLengthBytes        int
+	LastModifiedAgeSeconds int `json:"last_modified_age_seconds"`
+	FileLengthJsonItems    int `json:"file_length_json_items"`
+	FileLengthBytes        int `json:"file_length_bytes"`
 }
 
 // ExportedJSONFileStats is always filled out to the best of our
@@ -46,7 +46,7 @@ func getURLStats(url string) (ExportedJSONFileStats, error) {
 		log.Printf("invalid last-modified %v", err)
 	} else {
 		ago := time.Since(when).Seconds()
-		output.lastModifiedAgeSeconds = int(ago)
+		output.LastModifiedAgeSeconds = int(ago)
 		log.Printf("Last-Modified: %v (%0.fs ago)", when, ago)
 	}
 
@@ -56,7 +56,7 @@ func getURLStats(url string) (ExportedJSONFileStats, error) {
 	if err != nil {
 		return output, errors.Wrapf(err, "reading: %q", url)
 	}
-	output.fileLengthBytes = len(body)
+	output.FileLengthBytes = len(body)
 
 	// parse the body
 	var jsonBody []interface{}
@@ -64,10 +64,35 @@ func getURLStats(url string) (ExportedJSONFileStats, error) {
 	if err != nil {
 		log.Printf("failed to parse JSON %v", err)
 	} else {
-		output.fileLengthJsonItems = len(jsonBody)
+		output.FileLengthJsonItems = len(jsonBody)
 	}
 
 	return output, nil
+}
+
+func ExportJSON(w http.ResponseWriter, r *http.Request) {
+	deploy := os.Getenv("DEPLOY")
+	url, found := urls[deploy]
+	if !found {
+		url = urls["prod"]
+	}
+
+	stats, err := getURLStats(url)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprintf(w, "error getting stats %q: %v", url, err)
+		return
+	}
+
+	jsonBytes, err := json.Marshal(stats)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprintf(w, "error marshalling json %q: %v", url, err)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprintln(w, string(jsonBytes))
 }
 
 // CheckFreshness checks the freshness of the Locations.json
@@ -109,21 +134,21 @@ func CheckFreshness(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if stats.lastModifiedAgeSeconds > threshold_age {
+	if stats.LastModifiedAgeSeconds > threshold_age {
 		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintf(w, "last modified is too old: %d < %d", stats.lastModifiedAgeSeconds, threshold_age)
+		fmt.Fprintf(w, "last modified is too old: %d < %d", stats.LastModifiedAgeSeconds, threshold_age)
 		return
 	}
 
-	if stats.fileLengthBytes < threshold_length {
+	if stats.FileLengthBytes < threshold_length {
 		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintf(w, "file body too short: %d < %d", stats.fileLengthBytes, threshold_length)
+		fmt.Fprintf(w, "file body too short: %d < %d", stats.FileLengthBytes, threshold_length)
 		return
 	}
 
-	if stats.fileLengthJsonItems < threshold_items {
+	if stats.FileLengthJsonItems < threshold_items {
 		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintf(w, "json list too short: %d < %d", stats.fileLengthJsonItems, threshold_items)
+		fmt.Fprintf(w, "json list too short: %d < %d", stats.FileLengthJsonItems, threshold_items)
 		return
 	}
 
