@@ -8,12 +8,9 @@ import (
 	"os"
 	"strconv"
 	"time"
-)
 
-var urls = map[string]string{
-	"prod":    "https://storage.googleapis.com/cavaccineinventory-sitedata/airtable-sync/Locations.json",
-	"staging": "https://storage.googleapis.com/cavaccineinventory-sitedata/airtable-sync-staging/Locations.json",
-}
+	"github.com/CAVaccineInventory/airtable-export/pipeline/locations"
+)
 
 // CheckFreshness checks the freshness of the Locations.json
 func CheckFreshness(w http.ResponseWriter, r *http.Request) {
@@ -26,12 +23,7 @@ func CheckFreshness(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	deploy := os.Getenv("DEPLOY")
-	url, found := urls[deploy]
-	if !found {
-		url = urls["prod"]
-	}
-
+	url := locations.GetExportBaseURL() + "/Locations.json"
 	resp, err := http.Head(url)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)

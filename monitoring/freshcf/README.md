@@ -14,12 +14,13 @@ $ gcloud functions deploy \
   --project cavaccineinventory \
   --entry-point CheckFreshness \
   --runtime go113 \
+  --set-env-vars=DEPLOY=prod \
   --trigger-http \
   --allow-unauthenticated \
   --source=.
 ```
 
-For a staging deployment, a couple lines get changed -- the addition
+For a staging deployment, a couple lines get changed -- the change
 of an env var, and the change of the name:
 
 ``` shell
