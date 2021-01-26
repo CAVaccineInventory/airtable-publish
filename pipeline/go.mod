@@ -1,4 +1,4 @@
-module github.com/CAVaccineInventory/airtable-export
+module github.com/CAVaccineInventory/airtable-export/pipeline
 
 go 1.15
 

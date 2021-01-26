@@ -1,4 +1,4 @@
-module github.com/CAVaccineInventory/airtable-export/freshcf
+module github.com/CAVaccineInventory/airtable-export/monitoring/freshcf
 
 go 1.15
 

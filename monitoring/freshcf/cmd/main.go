@@ -6,7 +6,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/CAVaccineInventory/airtable-export/freshcf"
+	"github.com/CAVaccineInventory/airtable-export/monitoring/freshcf"
 	"github.com/GoogleCloudPlatform/functions-framework-go/funcframework"
 )
 
