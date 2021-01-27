@@ -86,7 +86,10 @@ func ExportJSON(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
-	w.Write(jsonBytes)
+	_, err = w.Write(jsonBytes)
+	if err != nil {
+		log.Printf("Error writing to client %v", err)
+	}
 }
 
 // CheckFreshness checks the freshness of the Locations.json
