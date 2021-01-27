@@ -19,18 +19,44 @@ Javascript, and Airtable has harsh rate limits.
 
 ## Production
 
-**The `main` branch auto-deploys to staging, the `prod` branch to production.**
+The service runs on [Google Cloud
+Run](https://console.cloud.google.com/run?project=cavaccineinventory),
+and writes to [Google Cloud
+Storage](https://console.cloud.google.com/storage/browser/cavaccineinventory-sitedata).
 
-Deploys take ~2 minutes to complete, and published files are cached
-for a few minutes.
+### Deploys
 
-Auto-deployment configured through Cloud Build.
-[trigger](https://console.cloud.google.com/cloud-build/triggers/edit/2a8c6015-8b1d-4073-815f-f35edd1a3b1a?project=cavaccineinventory)
+**The `main` branch auto-deploys to staging, the `prod` branch to
+production.**
 
-* Runs on [Google Cloud Run](https://console.cloud.google.com/run/detail/us-west1/airtable-export-prod/metrics?authuser=1&organizationId=0&project=cavaccineinventory&supportedpurview=project)
+Deploys take ~2 minutes to complete, and are controlled through
+[Google Cloud
+Build](https://console.cloud.google.com/cloud-build/triggers?project=cavaccineinventory).
 
-* Pushes data to: [gs://cavaccineinventory-sitedata](https://console.cloud.google.com/storage/browser/cavaccineinventory-sitedata?project=cavaccineinventory&pageState=(%22StorageObjectListTable%22:(%22f%22:%22%255B%255D%22))&prefix=&forceOnObjectsSortingFiltering=false)
+To deploy staging to production:
 
+1. Verify that staging is happy (ordered below from broad to fiddly):
+   - [Staging monitoring](https://us-central1-cavaccineinventory.cloudfunctions.net/freshLocationsStaging)
+     should be `OK`
+   - [Dashboard](https://console.cloud.google.com/monitoring/dashboards/builder/75b273d3-6724-48d0-8dad-0922f6207f79?project=cavaccineinventory)
+     should most publishes taking <60s, no failures, and 0.02 success/sec.
+   - [Logs](https://console.cloud.google.com/run/detail/us-west1/airtable-export-staging/logs?project=cavaccineinventory)
+     should show no warnings or failures.
+   - [Service URL itself](https://airtable-export-staging-patvwfu2ya-uw.a.run.app/healthcheck)
+
+2. [Create a pull request from `main` into `prod`](https://github.com/CAVaccineInventory/airtable-export/compare/prod...main?quick_pull=1&title=[DEPLOY]+%28summarize%20here%29)
+   - Describe the key changes in the summary, and any notes in the body.
+
+3. Get that pull request reviewed and accepted.
+
+4. Merge the pull request _as a rebase_.  This should be the only option.
+
+5. Monitor production; same checks as in staging, above:
+   - [Monitoring](https://us-central1-cavaccineinventory.cloudfunctions.net/freshLocations)
+     will page if it is not `OK`
+   - [Dashboard](https://console.cloud.google.com/monitoring/dashboards/builder/75b273d3-6724-48d0-8dad-0922f6207f79?project=cavaccineinventory)
+   - [Logs](https://console.cloud.google.com/run/detail/us-west1/airtable-export-prod/logs?project=cavaccineinventory)
+   - [Service URL itself](https://airtable-export-prod-patvwfu2ya-uw.a.run.app/healthcheck)
 
 ## Invocation
 
