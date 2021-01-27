@@ -31,7 +31,8 @@ var allowKeys = map[string]map[string]int{
 	// Extracted from data.js using "get_required_fields_for_site.py".
 	"Locations": {
 		"Address":                             1,
-		"Appointment scheduling instructions": 1,
+		"Appointment scheduling instructions": 1, //To be deprecated
+		"How to schedule appointments":        1,
 		"Availability Info":                   1,
 		"County":                              1,
 		"Has Report":                          1,
