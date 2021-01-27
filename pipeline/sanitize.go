@@ -69,7 +69,7 @@ func Sanitize(jsonMap []map[string]interface{}, tableName string) (*bytes.Buffer
 			}
 		}
 	}
-	log.Printf("Cleaned %d elements.\n", len(jsonMap))
+	log.Printf("[%s] Cleaned %d elements.\n", tableName, len(jsonMap))
 
 	unsanitizedJSON, err := json.Marshal(jsonMap)
 	if err != nil {

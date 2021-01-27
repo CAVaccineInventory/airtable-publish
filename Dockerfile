@@ -3,7 +3,10 @@ FROM gcr.io/google.com/cloudsdktool/cloud-sdk:alpine
 RUN apk add --no-cache py3-pip go jq && \
 	pip3 install airtable-export
 
-COPY pipeline/*.go pipeline/go.mod pipeline/go.sum /
+COPY pipeline/go.* /
+RUN go mod download
+
+COPY pipeline/*.go /
 RUN go build
 
 COPY entrypoint.sh /
