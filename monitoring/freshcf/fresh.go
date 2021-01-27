@@ -21,17 +21,12 @@ type ExportedJSONFileStats struct {
 	FileLengthBytes        int `json:"file_length_bytes"`
 }
 
-const NOVALUE int = -1
-
 // ExportedJSONFileStats is always filled out to the best of our
 // ability. error will be true if there was a fatal error along the
 // way, in which case values that are not meaningful given the error
-// will be set to NOVALUE.
+// will be 0.
 func getURLStats(url string) (ExportedJSONFileStats, error) {
 	output := ExportedJSONFileStats{}
-	output.LastModifiedAgeSeconds = NOVALUE
-	output.FileLengthJSONItems = NOVALUE
-	output.FileLengthBytes = NOVALUE
 
 	resp, err := http.Get(url)
 	if err != nil {
@@ -134,19 +129,19 @@ func CheckFreshness(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if stats.LastModifiedAgeSeconds > thresholdAge || stats.LastModifiedAgeSeconds == NOVALUE {
+	if stats.LastModifiedAgeSeconds > thresholdAge {
 		w.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprintf(w, "last modified is too old: %d < %d", stats.LastModifiedAgeSeconds, thresholdAge)
 		return
 	}
 
-	if stats.FileLengthBytes < thresholdLength || stats.FileLengthBytes == NOVALUE {
+	if stats.FileLengthBytes < thresholdLength {
 		w.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprintf(w, "file body too short: %d < %d", stats.FileLengthBytes, thresholdLength)
 		return
 	}
 
-	if stats.FileLengthJSONItems < thresholdItems || stats.FileLengthJSONItems == NOVALUE {
+	if stats.FileLengthJSONItems < thresholdItems {
 		w.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprintf(w, "json list too short: %d < %d", stats.FileLengthJSONItems, thresholdItems)
 		return
