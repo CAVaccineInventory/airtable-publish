@@ -13,7 +13,7 @@ import (
 func uploadFile(ctx context.Context, tableName string, destinationFile string) error {
 	sourceFile := tableName + ".json"
 	// TODO: consider doing this in Go directly. But last I recall, the Go SDK was a bit fussy with Go modules...
-	cmd := exec.CommandContext(ctx, "gsutil", "-h", "Cache-Control:public,max-age=300", "cp", "-Z", path.Join(readyDir, sourceFile), destinationFile)
+	cmd := exec.CommandContext(ctx, "gsutil", "-h", "Cache-Control:public,max-age=120", "cp", "-Z", path.Join(readyDir, sourceFile), destinationFile)
 	output, uploadErr := cmd.CombinedOutput()
 	if uploadErr != nil {
 		log.Println(string(output))
