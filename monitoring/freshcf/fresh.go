@@ -16,9 +16,9 @@ import (
 )
 
 type ExportedJSONFileStats struct {
-	LastModifiedAgeSeconds int `json:"last_modified_age_seconds"`
-	FileLengthJSONItems    int `json:"file_length_json_items"`
-	FileLengthBytes        int `json:"file_length_bytes"`
+	LastModified        time.Time `json:"last_modified"`
+	FileLengthJSONItems int       `json:"file_length_json_items"`
+	FileLengthBytes     int       `json:"file_length_bytes"`
 }
 
 // ExportedJSONFileStats is always filled out to the best of our
@@ -45,9 +45,7 @@ func getURLStats(url string) (ExportedJSONFileStats, error) {
 	if err != nil {
 		log.Printf("invalid last-modified %v", err)
 	} else {
-		ago := time.Since(when).Seconds()
-		output.LastModifiedAgeSeconds = int(ago)
-		log.Printf("Last-Modified: %v (%0.fs ago)", when, ago)
+		output.LastModified = when
 	}
 
 	// get the contents.
@@ -129,9 +127,16 @@ func CheckFreshness(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if stats.LastModifiedAgeSeconds > thresholdAge {
+	if stats.LastModified.IsZero() {
 		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintf(w, "last modified is too old: %d < %d", stats.LastModifiedAgeSeconds, thresholdAge)
+		fmt.Fprintf(w, "invalid last modified header")
+		return
+	}
+
+	ago := int(time.Since(stats.LastModified).Seconds())
+	if ago > thresholdAge {
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprintf(w, "last modified is too old: %d < %d", ago, thresholdAge)
 		return
 	}
 
