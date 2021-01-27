@@ -10,3 +10,24 @@ results.
 `monitoring` is a black-box monitoring of the output of that, which is
 used to page on failures.  One is deployed for each of the four output
 products (prod/staging times counties/locations).
+
+## Layout
+
+* `pipeline` contains the main pipeline code.
+* `monitoring` contains directories containing monitoring related code
+  * `monitoring/freshcf` is the freshness monitor and prober.
+
+## Linting
+
+We use [golangci](https://golangci-lint.run/)'s linter wrapper.
+
+To run locally, from the root of whatever package you're checking (directory with go.mod in it) run:
+
+``` shell
+docker run --rm -v $(pwd):/app -w /app \
+    golangci/golangci-lint:v1.35.2 golangci-lint run \
+    -E golint,goimports,misspell
+```
+
+(When adding a new package, please add a new entry to the matrix in
+`.github/workflows/golangci-lint.yml`)
