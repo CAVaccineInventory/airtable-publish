@@ -24,7 +24,7 @@ var (
 	)
 
 	tablePublishSuccesses = stats.Int64(
-		"table_publish_failures_count",
+		"table_publish_successes_count",
 		"Number of successful publishes by table",
 		stats.UnitDimensionless,
 	)
