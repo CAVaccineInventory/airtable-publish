@@ -97,7 +97,7 @@ func ExportJSON(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
-	fmt.Fprintln(w, string(jsonBytes))
+	w.Write(jsonBytes)
 }
 
 // CheckFreshness checks the freshness of the Locations.json
