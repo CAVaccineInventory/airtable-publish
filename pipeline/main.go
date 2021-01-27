@@ -62,7 +62,8 @@ func (p *Publisher) syncAndPublishRequest(w http.ResponseWriter, r *http.Request
 	startTime := time.Now()
 	log.Println("Preparing to fetch and publish...")
 
-	// Every iteration gets its own timeout.
+	// Every iteration gets its own timeout.  Update the README.md
+	// for new latencies if you adjust this.
 	timeoutMinutes, err := strconv.Atoi(os.Getenv("TIMEOUT"))
 	if err != nil {
 		timeoutMinutes = 2
