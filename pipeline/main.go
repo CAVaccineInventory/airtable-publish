@@ -54,11 +54,11 @@ func (p *Publisher) syncAndPublishRequest(w http.ResponseWriter, r *http.Request
 		w.WriteHeader(http.StatusMethodNotAllowed)
 	}
 
-	deploy := os.Getenv("DEPLOY")
-	if deploy == "" {
-		deploy = "staging"
+	deploy, err := locations.GetDeploy()
+	if err != nil {
+		panic(err)
 	}
-	ctx, _ := tag.New(context.Background(), tag.Insert(keyDeploy, deploy))
+	ctx, _ := tag.New(context.Background(), tag.Insert(keyDeploy, string(deploy)))
 	startTime := time.Now()
 	log.Println("Preparing to fetch and publish...")
 
@@ -142,8 +142,12 @@ func (p *Publisher) syncAndPublish(ctx context.Context, tableName string) error 
 		return fmt.Errorf("failed to sanitize json data: %w", err)
 	}
 
+	bucket, err := locations.GetExportBucket()
+	if err != nil {
+		return fmt.Errorf("failed to get destination bucket: %w", err)
+	}
 	localFile := path.Join(baseTempDir, tableName+".json")
-	destinationFile := locations.GetExportBucket() + "/" + tableName + ".json"
+	destinationFile := bucket + "/" + tableName + ".json"
 	log.Printf("[%s] Getting ready to publish to %s...\n", tableName, destinationFile)
 	f, err := os.Create(localFile)
 	if err != nil {

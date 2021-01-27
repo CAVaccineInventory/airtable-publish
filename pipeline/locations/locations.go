@@ -1,16 +1,20 @@
 package locations
 
 import (
+	"fmt"
 	"os"
 )
 
+type DeployType string
+
 const (
-	DeployTesting    = "testing"
-	DeployStaging    = "staging"
-	DeployProduction = "prod"
+	DeployTesting    DeployType = "testing"
+	DeployStaging    DeployType = "staging"
+	DeployProduction DeployType = "prod"
+	DeployUnknown    DeployType = ""
 )
 
-var exportPaths = map[string]string{
+var exportPaths = map[DeployType]string{
 	DeployTesting:    "cavaccineinventory-sitedata/airtable-sync-testing",
 	DeployStaging:    "cavaccineinventory-sitedata/airtable-sync-staging",
 	DeployProduction: "cavaccineinventory-sitedata/airtable-sync",
@@ -18,18 +22,29 @@ var exportPaths = map[string]string{
 
 const exportBaseURL = "https://storage.googleapis.com/"
 
-func GetDeploy() string {
-	deploy := os.Getenv("DEPLOY")
-	if deploy == "" {
+func GetDeploy() (DeployType, error) {
+	deploy := DeployType(os.Getenv("DEPLOY"))
+	if deploy == DeployUnknown {
 		deploy = DeployTesting
 	}
-	return deploy
+	if _, ok := exportPaths[deploy]; !ok {
+		return DeployUnknown, fmt.Errorf("Unknown deploy environment: %s", deploy)
+	}
+	return deploy, nil
 }
 
-func GetExportBucket() string {
-	return "gs://" + exportPaths[GetDeploy()]
+func GetExportBucket() (string, error) {
+	deploy, err := GetDeploy()
+	if err != nil {
+		return "", err
+	}
+	return "gs://" + exportPaths[deploy], nil
 }
 
-func GetExportBaseURL() string {
-	return exportBaseURL + exportPaths[GetDeploy()]
+func GetExportBaseURL() (string, error) {
+	deploy, err := GetDeploy()
+	if err != nil {
+		return "", err
+	}
+	return exportBaseURL + exportPaths[deploy], nil
 }
