@@ -30,7 +30,6 @@ Okay, for those doing exporter stuff, for the following fields: "Name", "Address
 */
 
 var legacyAllowKeys = map[string]map[string]int{
-	// Extracted from data.js using "get_required_fields_for_site.py".
 	"Locations": {
 		"Address":                             1,
 		"Appointment scheduling instructions": 1,

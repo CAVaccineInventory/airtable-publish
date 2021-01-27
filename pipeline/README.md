@@ -128,10 +128,3 @@ curl -vX POST http://localhost:8080/publish
 ```
 go test -v ./...
 ```
-
-## Fields in use by the 'site' repo
-
-Run `pipenv run ./get_required_fields_for_site.py ../../site/assets/js/data.js`
-
-inside the `sanitize` directory. Adjust the path to `data.js` according to where
-you have the file.
