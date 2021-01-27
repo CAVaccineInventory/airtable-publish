@@ -3,6 +3,8 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"github.com/CAVaccineInventory/airtable-export/pkg/apis/legacy"
+	"github.com/CAVaccineInventory/airtable-export/pkg/apis/locations"
 	"github.com/pkg/errors"
 	"log"
 	"net/http"
@@ -15,6 +17,8 @@ import (
 const airtableSecretEnvKey = "AIRTABLE_KEY"
 const airtableId = "appy2N9zQSnFRPcN8"
 
+// NOTE: Airtable reports a rate limit of 5 calls/second. Depending on how it's validated, we might hit this when adding more tables.
+// If this is a concern, slightly stagger the timing of each fetch call.
 var tableNames = [...]string{"Locations", "Counties"}
 
 const tempDir = "airtable-raw"
@@ -49,53 +53,63 @@ func (p *Publisher) Run() {
 
 	// Loop forever.
 	for {
-		log.Println("Preparing to fetch and publish...")
-
-		// Kick off ETL for each table in parallel.
-		// TODO: consider making each table pipeline independent, so a particularly "slow" table export or upload doesn't needlessly delay others.
-		wg := sync.WaitGroup{}
-		publishOk := make(chan bool, len(tableNames)) // Add a buffer large enough to hold all results.
-		for _, tableName := range tableNames {
-			wg.Add(1)
-			go func(tableName string) {
-				defer wg.Done()
-
-				publishErr := p.syncAndPublish(tableName)
-				if publishErr == nil {
-					log.Printf("Successfully published table %s\n", tableName)
-				} else {
-					log.Printf("Failed to export and publish table %s: %v\n", tableName, publishErr)
-				}
-				publishOk <- publishErr == nil
-			}(tableName)
-		}
-
-		log.Println("Waiting for all tables to finish publishing...")
-		wg.Wait()
-		allPublishOk := true
-		for len(publishOk) != 0 {
-			if !<-publishOk {
-				allPublishOk = false
-				break
-			}
-		}
-		p.lastPublishSucceeded = allPublishOk
-		log.Println("All tables finished publishing.")
-
+		p.publishAll()
 		time.Sleep(time.Second * 30) // TODO: possibly speed up or make this snazzier.
 	}
+}
+
+// publishAll publishes updates for all APIs and versions.
+func (p *Publisher) publishAll() {
+	log.Println("Preparing to fetch and publish...")
+
+	// Populate a map of table name -> table content.
+	tables := map[string][]map[string]interface{}{}
+	tablesMutex := sync.Mutex{}
+
+	// Fetch all required tables in parallel.
+	wg := sync.WaitGroup{}
+	for _, tableName := range tableNames {
+		wg.Add(1)
+		go func(tableName string) {
+			defer wg.Done()
+			filePath, err := fetchAirtableTable(tableName)
+			if err != nil {
+				log.Printf("Failed to fetch table %s: %s\n", tableName, err)
+				return
+			}
+			tableObj, err := ObjectFromFile(filePath)
+			if err != nil {
+				log.Printf("Failed to marshal table %s: %s\n", tableName, err)
+				return
+			}
+
+			// Safely write the table.
+			tablesMutex.Lock()
+			tables[tableName] = tableObj
+			tablesMutex.Unlock()
+		}(tableName)
+	}
+
+	wg.Wait()
+	log.Println("All required tables fetched.")
+
+	// Generate all API views.
+	// TODO: each of these should upload, as part of the API generation or from a simple fileUpload(generationFuncion(...)).
+	// TODO: add a waitgroup to make publishAll wait until all api endpoints complete or time out.
+	legacyLocations := legacy.Locations(tables["Locations"])
+	locationsV1Locations := locations.LocationsV1
 }
 
 // syncAndPublish fetches data from Airtable, does any necessary transforms/cleanup, then publishes the file to Google Cloud Storage.
 // This should probably be broken up further.
 func (p *Publisher) syncAndPublish(tableName string) error {
-	fetchErr := fetchAirtableTable(tableName)
+	rawFilePath, fetchErr := fetchAirtableTable(tableName)
 	if fetchErr != nil {
 		return fetchErr
 	}
 
 	log.Println("Transforming data...")
-	jsonMap, err := ObjectFromFile(path.Join(tempDir, tableName+".json"))
+	jsonMap, err := ObjectFromFile(path.Join(rawFilePath))
 	sanitizedData, sanitizeErr := Sanitize(jsonMap, tableName)
 	if sanitizeErr != nil {
 		return errors.Wrap(sanitizeErr, "failed to sanitize json data")
