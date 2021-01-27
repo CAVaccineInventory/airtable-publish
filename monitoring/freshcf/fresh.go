@@ -3,8 +3,8 @@ package freshcf
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
-	"github.com/pkg/errors"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -17,7 +17,7 @@ import (
 
 type ExportedJSONFileStats struct {
 	LastModifiedAgeSeconds int `json:"last_modified_age_seconds"`
-	FileLengthJsonItems    int `json:"file_length_json_items"`
+	FileLengthJSONItems    int `json:"file_length_json_items"`
 	FileLengthBytes        int `json:"file_length_bytes"`
 }
 
@@ -30,7 +30,7 @@ func getURLStats(url string) (ExportedJSONFileStats, error) {
 
 	resp, err := http.Get(url)
 	if err != nil {
-		return output, errors.Wrapf(err, "fetching: %q", url)
+		return output, fmt.Errorf("fetching: %q: %w", url, err)
 	}
 
 	// First, check if we got a successful HTTP response. If not,
@@ -54,7 +54,7 @@ func getURLStats(url string) (ExportedJSONFileStats, error) {
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return output, errors.Wrapf(err, "reading: %q", url)
+		return output, fmt.Errorf("reading: %q: %w", url, err)
 	}
 	output.FileLengthBytes = len(body)
 
@@ -64,7 +64,7 @@ func getURLStats(url string) (ExportedJSONFileStats, error) {
 	if err != nil {
 		log.Printf("failed to parse JSON %v", err)
 	} else {
-		output.FileLengthJsonItems = len(jsonBody)
+		output.FileLengthJSONItems = len(jsonBody)
 	}
 
 	return output, nil
@@ -97,29 +97,29 @@ func ExportJSON(w http.ResponseWriter, r *http.Request) {
 
 // CheckFreshness checks the freshness of the Locations.json
 func CheckFreshness(w http.ResponseWriter, r *http.Request) {
-	threshold_age := 600
-	threshold_items := 10
-	threshold_length := 1000
+	thresholdAge := 600
+	thresholdItems := 10
+	thresholdLength := 1000
 
-	var thr = ""
+	var thr string
 	thr = os.Getenv("THRESHOLD_AGE")
 	if thr != "" {
 		if t, err := strconv.Atoi(thr); err == nil {
-			threshold_age = t
+			thresholdAge = t
 		}
 	}
 
 	thr = os.Getenv("THRESHOLD_ITEMS")
 	if thr != "" {
 		if t, err := strconv.Atoi(thr); err == nil {
-			threshold_items = t
+			thresholdItems = t
 		}
 	}
 
 	thr = os.Getenv("THRESHOLD_LENGTH")
 	if thr != "" {
 		if t, err := strconv.Atoi(thr); err == nil {
-			threshold_length = t
+			thresholdLength = t
 		}
 	}
 
@@ -134,21 +134,21 @@ func CheckFreshness(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if stats.LastModifiedAgeSeconds > threshold_age {
+	if stats.LastModifiedAgeSeconds > thresholdAge {
 		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintf(w, "last modified is too old: %d < %d", stats.LastModifiedAgeSeconds, threshold_age)
+		fmt.Fprintf(w, "last modified is too old: %d < %d", stats.LastModifiedAgeSeconds, thresholdAge)
 		return
 	}
 
-	if stats.FileLengthBytes < threshold_length {
+	if stats.FileLengthBytes < thresholdLength {
 		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintf(w, "file body too short: %d < %d", stats.FileLengthBytes, threshold_length)
+		fmt.Fprintf(w, "file body too short: %d < %d", stats.FileLengthBytes, thresholdLength)
 		return
 	}
 
-	if stats.FileLengthJsonItems < threshold_items {
+	if stats.FileLengthJSONItems < thresholdItems {
 		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintf(w, "json list too short: %d < %d", stats.FileLengthJsonItems, threshold_items)
+		fmt.Fprintf(w, "json list too short: %d < %d", stats.FileLengthJSONItems, thresholdItems)
 		return
 	}
 
