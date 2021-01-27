@@ -76,11 +76,7 @@ func getURLStats(url string) (ExportedJSONFileStats, error) {
 }
 
 func ExportJSON(w http.ResponseWriter, r *http.Request) {
-	deploy := os.Getenv("DEPLOY")
-	url, found := urls[deploy]
-	if !found {
-		url = urls["prod"]
-	}
+	url := locations.GetExportBaseURL() + "/Locations.json"
 
 	stats, err := getURLStats(url)
 	if err != nil {
@@ -129,7 +125,6 @@ func CheckFreshness(w http.ResponseWriter, r *http.Request) {
 	}
 
 	url := locations.GetExportBaseURL() + "/Locations.json"
-	resp, err := http.Head(url)
 
 	stats, err := getURLStats(url)
 
