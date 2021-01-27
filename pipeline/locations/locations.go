@@ -10,10 +10,10 @@ const (
 	DeployProduction = "prod"
 )
 
-var exportBuckets = map[string]string{
-	DeployTesting:    "gs://cavaccineinventory-sitedata/airtable-sync-testing",
-	DeployStaging:    "gs://cavaccineinventory-sitedata/airtable-sync-staging",
-	DeployProduction: "gs://cavaccineinventory-sitedata/airtable-sync",
+var exportPaths = map[string]string{
+	DeployTesting:    "cavaccineinventory-sitedata/airtable-sync-testing",
+	DeployStaging:    "cavaccineinventory-sitedata/airtable-sync-staging",
+	DeployProduction: "cavaccineinventory-sitedata/airtable-sync",
 }
 
 const exportBaseURL = "https://storage.googleapis.com/"
@@ -27,9 +27,9 @@ func GetDeploy() string {
 }
 
 func GetExportBucket() string {
-	return exportBuckets[GetDeploy()]
+	return "gs://" + exportPaths[GetDeploy()]
 }
 
 func GetExportBaseURL() string {
-	return exportBaseURL + GetExportBucket()
+	return exportBaseURL + exportPaths[GetDeploy()]
 }
