@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"strconv"
 	"sync"
 	"time"
 
@@ -62,8 +63,11 @@ func (p *Publisher) syncAndPublishRequest(w http.ResponseWriter, r *http.Request
 	log.Println("Preparing to fetch and publish...")
 
 	// Every iteration gets its own timeout.
-	// TODO: re-evaluate 10 minute timeout.
-	ctx, cxl := context.WithTimeout(ctx, 10*time.Minute)
+	timeoutMinutes, err := strconv.Atoi(os.Getenv("TIMEOUT"))
+	if err != nil {
+		timeoutMinutes = 2
+	}
+	ctx, cxl := context.WithTimeout(ctx, time.Duration(timeoutMinutes)*time.Minute)
 	defer cxl()
 
 	// Kick off ETL for each table in parallel.
