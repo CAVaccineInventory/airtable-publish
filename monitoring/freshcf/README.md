@@ -8,34 +8,12 @@ Suitable for using with a simple prober service that can look at response code.
 
 ## Deployment
 
-``` shell
-$ gcloud functions deploy \
-  freshLocations \
-  --project cavaccineinventory \
-  --entry-point CheckFreshness \
-  --runtime go113 \
-  --set-env-vars=DEPLOY=prod \
-  --trigger-http \
-  --allow-unauthenticated \
-  --source=.
-```
+From this directory, running `./deploy.sh` will examine the branch you
+are on (`main` or `prod`) and deploy (to `staging` or `prod`
+respectively).
 
-For a staging deployment, a couple lines get changed -- the change
-of an env var, and the change of the name:
-
-``` shell
-$ gcloud functions deploy \
-  freshLocationsStaging \
-  --project cavaccineinventory \
-  --entry-point CheckFreshness \
-  --runtime go113 \
-  --set-env-vars=DEPLOY=staging \
-  --trigger-http \
-  --allow-unauthenticated \
-  --source=.
-```
-
-Deployment can take up to two minutes, as under the hood it builds a new container and does other magic.
+Deployment can take up to two minutes, as under the hood it builds a
+new container and does other magic.
 
 ## Local Development
 
