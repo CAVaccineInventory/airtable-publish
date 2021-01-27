@@ -85,8 +85,8 @@ func (p *Publisher) Run() {
 				publishErr := p.syncAndPublish(tableCtx, tableName)
 				if publishErr == nil {
 					log.Printf("[%s] Successfully published\n", tableName)
-					stats.Record(tableCtx, tablePublishFailures.M(1))
 				} else {
+					stats.Record(tableCtx, tablePublishFailures.M(1))
 					log.Printf("[%s] Failed to export and publish: %v\n", tableName, publishErr)
 				}
 				stats.Record(tableCtx, tablePublishLatency.M(time.Since(tableStartTime).Seconds()))
