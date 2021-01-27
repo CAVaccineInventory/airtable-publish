@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"context"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -21,9 +22,6 @@ const airtableSecretEnvKey = "AIRTABLE_KEY"
 const airtableID = "appy2N9zQSnFRPcN8"
 
 var tableNames = [...]string{"Locations", "Counties"}
-
-const tempDir = "airtable-raw"
-const readyDir = "airtable-publish"
 
 type Publisher struct {
 	lastPublishSucceeded bool // Make this thread safe if nontrivial multithreading comes up.
@@ -114,38 +112,48 @@ func (p *Publisher) syncAndPublishRequest(w http.ResponseWriter, r *http.Request
 // syncAndPublish fetches data from Airtable, does any necessary transforms/cleanup, then publishes the file to Google Cloud Storage.
 // This should probably be broken up further.
 func (p *Publisher) syncAndPublish(ctx context.Context, tableName string) error {
-	fetchErr := fetchAirtableTable(ctx, tableName)
+	baseTempDir, err := ioutil.TempDir("", tableName)
+	defer os.RemoveAll(baseTempDir)
+	if err != nil {
+		return errors.Wrap(err, "failed to make base temp directory")
+	}
+	inDir := path.Join(baseTempDir, "in")
+	err = os.Mkdir(inDir, 0644)
+	if err != nil {
+		return errors.Wrap(err, "failed to make in directory")
+	}
+
+	filePath, fetchErr := fetchAirtableTable(ctx, inDir, tableName)
 	if fetchErr != nil {
 		return fetchErr
 	}
 
 	log.Printf("[%s] Transforming data...\n", tableName)
-	j := path.Join(tempDir, tableName+".json")
-	jsonMap, err := ObjectFromFile(tableName, j)
+	jsonMap, err := ObjectFromFile(tableName, filePath)
 	if err != nil {
-		return fmt.Errorf("ObjectFromFile(%q): %w", j, err)
+		return fmt.Errorf("ObjectFromFile(%q): %w", filePath, err)
 	}
 	sanitizedData, sanitizeErr := Sanitize(jsonMap, tableName)
 	if sanitizeErr != nil {
 		return errors.Wrap(sanitizeErr, "failed to sanitize json data")
 	}
 
+	localFile := path.Join(baseTempDir, tableName+".json")
 	destinationFile := locations.GetExportBucket() + "/" + tableName + ".json"
 	log.Printf("[%s] Getting ready to publish to %s...\n", tableName, destinationFile)
-	_ = os.Mkdir(readyDir, 0644)
-	f, err := os.Create(path.Join(readyDir, tableName+".json"))
+	f, err := os.Create(localFile)
 	if err != nil {
-		return errors.Wrap(err, "failed to open destination fail")
+		return errors.Wrap(err, "failed to open local file")
 	}
 	defer f.Close()
+
 	w := bufio.NewWriter(f)
 	_, err = w.Write(sanitizedData.Bytes())
-
 	if err != nil {
-		return errors.Wrap(err, "failed to open write sanitized json")
+		return errors.Wrap(err, "failed to write sanitized json")
 	}
 
-	return uploadFile(ctx, tableName, destinationFile)
+	return uploadFile(ctx, localFile, destinationFile)
 }
 
 // healthStatus returns HTTP 200 if the last publish cycle succeeded,

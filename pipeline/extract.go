@@ -5,12 +5,13 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"path"
 
 	"github.com/pkg/errors"
 )
 
 // fetchAirtableTable dumps a a table from Airtable as JSON on disk.
-func fetchAirtableTable(ctx context.Context, tableName string) error {
+func fetchAirtableTable(ctx context.Context, tempDir string, tableName string) (string, error) {
 	airtableSecret := os.Getenv(airtableSecretEnvKey)
 
 	// TODO: consider doing this in Go directly.
@@ -19,7 +20,8 @@ func fetchAirtableTable(ctx context.Context, tableName string) error {
 	output, exportErr := cmd.CombinedOutput()
 	if exportErr != nil {
 		log.Println(string(output))
-		return errors.Wrap(exportErr, "failed to run airtable-export")
+		return "", errors.Wrap(exportErr, "failed to run airtable-export")
 	}
-	return nil
+	j := path.Join(tempDir, tableName+".json")
+	return j, nil
 }
