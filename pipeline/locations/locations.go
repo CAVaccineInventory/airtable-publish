@@ -11,9 +11,9 @@ const (
 )
 
 var exportBuckets = map[string]string{
-	DeployTesting:    "cavaccineinventory-sitedata/airtable-sync-testing",
-	DeployStaging:    "cavaccineinventory-sitedata/airtable-sync-staging",
-	DeployProduction: "cavaccineinventory-sitedata/airtable-sync",
+	DeployTesting:    "gs://cavaccineinventory-sitedata/airtable-sync-testing",
+	DeployStaging:    "gs://cavaccineinventory-sitedata/airtable-sync-staging",
+	DeployProduction: "gs://cavaccineinventory-sitedata/airtable-sync",
 }
 
 const exportBaseURL = "https://storage.googleapis.com/"
