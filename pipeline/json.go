@@ -2,16 +2,15 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"log"
-
-	"github.com/pkg/errors"
 )
 
 func ObjectFromFile(tableName string, filePath string) ([]map[string]interface{}, error) {
 	b, readErr := ioutil.ReadFile(filePath)
 	if readErr != nil {
-		return nil, errors.Wrapf(readErr, "couldn't read file %s", filePath)
+		return nil, fmt.Errorf("couldn't read file %s: %w", filePath, readErr)
 	}
 	log.Printf("[%s] Read %d bytes from disk (%s).\n", tableName, len(b), filePath)
 

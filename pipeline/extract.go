@@ -2,12 +2,11 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"os"
 	"os/exec"
 	"path"
-
-	"github.com/pkg/errors"
 )
 
 // fetchAirtableTable dumps a a table from Airtable as JSON on disk.
@@ -19,8 +18,8 @@ func fetchAirtableTable(ctx context.Context, tempDir string, tableName string) (
 	cmd := exec.CommandContext(ctx, "/usr/bin/airtable-export", "--json", tempDir, airtableID, tableName, "--key", airtableSecret)
 	output, exportErr := cmd.CombinedOutput()
 	if exportErr != nil {
-		log.Println(string(output))
-		return "", errors.Wrap(exportErr, "failed to run airtable-export")
+		log.Println("Output from failed airtable-export:\n" + string(output))
+		return "", fmt.Errorf("failed to run airtable-export: %w", exportErr)
 	}
 	j := path.Join(tempDir, tableName+".json")
 	return j, nil

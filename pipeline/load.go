@@ -2,10 +2,9 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"os/exec"
-
-	"github.com/pkg/errors"
 )
 
 // uploadFile uploads a file from disk to a Google Cloud Storage bucket.
@@ -15,7 +14,7 @@ func uploadFile(ctx context.Context, sourceFile string, destinationFile string) 
 	output, uploadErr := cmd.CombinedOutput()
 	if uploadErr != nil {
 		log.Println(string(output))
-		return errors.Wrapf(uploadErr, "failed to upload json file %s to %s", sourceFile, destinationFile)
+		return fmt.Errorf("failed to upload json file %s to %s: %w", sourceFile, destinationFile, uploadErr)
 	}
 	return nil
 }

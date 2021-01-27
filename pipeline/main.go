@@ -13,7 +13,6 @@ import (
 	"time"
 
 	"github.com/CAVaccineInventory/airtable-export/pipeline/locations"
-	"github.com/pkg/errors"
 	"go.opencensus.io/stats"
 	"go.opencensus.io/tag"
 )
@@ -115,27 +114,27 @@ func (p *Publisher) syncAndPublish(ctx context.Context, tableName string) error 
 	baseTempDir, err := ioutil.TempDir("", tableName)
 	defer os.RemoveAll(baseTempDir)
 	if err != nil {
-		return errors.Wrap(err, "failed to make base temp directory")
+		return fmt.Errorf("failed to make base temp directory: %w", err)
 	}
 	inDir := path.Join(baseTempDir, "in")
 	err = os.Mkdir(inDir, 0644)
 	if err != nil {
-		return errors.Wrap(err, "failed to make in directory")
+		return fmt.Errorf("failed to make in directory %s: %w", inDir, err)
 	}
 
-	filePath, fetchErr := fetchAirtableTable(ctx, inDir, tableName)
-	if fetchErr != nil {
-		return fetchErr
+	filePath, err := fetchAirtableTable(ctx, inDir, tableName)
+	if err != nil {
+		return fmt.Errorf("failed to fetch from airtable: %w", err)
 	}
 
 	log.Printf("[%s] Transforming data...\n", tableName)
 	jsonMap, err := ObjectFromFile(tableName, filePath)
 	if err != nil {
-		return fmt.Errorf("ObjectFromFile(%q): %w", filePath, err)
+		return fmt.Errorf("failed to parse json in %s: %w", filePath, err)
 	}
-	sanitizedData, sanitizeErr := Sanitize(jsonMap, tableName)
-	if sanitizeErr != nil {
-		return errors.Wrap(sanitizeErr, "failed to sanitize json data")
+	sanitizedData, err := Sanitize(jsonMap, tableName)
+	if err != nil {
+		return fmt.Errorf("failed to sanitize json data: %w", err)
 	}
 
 	localFile := path.Join(baseTempDir, tableName+".json")
@@ -143,14 +142,14 @@ func (p *Publisher) syncAndPublish(ctx context.Context, tableName string) error 
 	log.Printf("[%s] Getting ready to publish to %s...\n", tableName, destinationFile)
 	f, err := os.Create(localFile)
 	if err != nil {
-		return errors.Wrap(err, "failed to open local file")
+		return fmt.Errorf("failed to create local file %s: %w", localFile, err)
 	}
 	defer f.Close()
 
 	w := bufio.NewWriter(f)
 	_, err = w.Write(sanitizedData.Bytes())
 	if err != nil {
-		return errors.Wrap(err, "failed to write sanitized json")
+		return fmt.Errorf("failed to write sanitized json to %s: %w", localFile, err)
 	}
 
 	return uploadFile(ctx, localFile, destinationFile)
