@@ -84,6 +84,7 @@ func (p *Publisher) Run() {
 
 				publishErr := p.syncAndPublish(tableCtx, tableName)
 				if publishErr == nil {
+					stats.Record(tableCtx, tablePublishSuccesses.M(1))
 					log.Printf("[%s] Successfully published\n", tableName)
 				} else {
 					stats.Record(tableCtx, tablePublishFailures.M(1))

@@ -23,6 +23,12 @@ var (
 		stats.UnitSeconds,
 	)
 
+	tablePublishSuccesses = stats.Int64(
+		"table_publish_failures_count",
+		"Number of successful publishes by table",
+		stats.UnitDimensionless,
+	)
+
 	tablePublishFailures = stats.Int64(
 		"table_publish_failures_count",
 		"Number of failed publishes by table",
@@ -59,6 +65,13 @@ func InitMetrics() func() {
 			Name:        "table_publish_count",
 			Description: "Total number of publishes by table",
 			Measure:     tablePublishLatency,
+			Aggregation: view.Count(),
+			TagKeys:     []tag.Key{keyDeploy, keyTable},
+		},
+		&view.View{
+			Name:        tablePublishSuccesses.Name(),
+			Description: tablePublishSuccesses.Description(),
+			Measure:     tablePublishSuccesses,
 			Aggregation: view.Count(),
 			TagKeys:     []tag.Key{keyDeploy, keyTable},
 		},
