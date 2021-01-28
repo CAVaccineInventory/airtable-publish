@@ -7,10 +7,15 @@ import (
 	"os/exec"
 
 	"github.com/CAVaccineInventory/airtable-export/pipeline/deploys"
+	beeline "github.com/honeycombio/beeline-go"
 )
 
 // uploadFile uploads a file from disk to a Google Cloud Storage bucket.
 func uploadFile(ctx context.Context, tableName string, sourceFile string) error {
+	ctx, span := beeline.StartSpan(ctx, "uploadFile")
+	defer span.Send()
+	beeline.AddField(ctx, "table", tableName)
+
 	bucket, err := deploys.GetExportBucket()
 	if err != nil {
 		return fmt.Errorf("[%s] failed to get destination bucket: %w", tableName, err)

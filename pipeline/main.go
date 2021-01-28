@@ -14,6 +14,8 @@ import (
 	"time"
 
 	"github.com/CAVaccineInventory/airtable-export/pipeline/deploys"
+	beeline "github.com/honeycombio/beeline-go"
+	"github.com/honeycombio/beeline-go/trace"
 	"github.com/honeycombio/beeline-go/wrappers/hnynethttp"
 	"go.opencensus.io/stats"
 	"go.opencensus.io/tag"
@@ -59,6 +61,10 @@ func (p *Publisher) Run() {
 
 func (p *Publisher) syncAndPublishRequest(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
+	span := trace.GetSpanFromContext(ctx)
+	span.AddField("handler.name", "syncAndPublishRequest")
+	beeline.AddFieldToTrace(ctx, "deploy", string(p.deploy))
+
 	ctx, _ = tag.New(ctx, tag.Insert(keyDeploy, string(p.deploy)))
 	startTime := time.Now()
 
@@ -108,15 +114,21 @@ func (p *Publisher) syncAndPublishRequest(w http.ResponseWriter, r *http.Request
 }
 
 func (p *Publisher) syncAndPublish(ctx context.Context, tableName string) error {
+	ctx, span := beeline.StartSpan(ctx, "sync-and-publish")
+	defer span.Send()
+	beeline.AddField(ctx, "table", tableName)
+
 	tableStartTime := time.Now()
 	ctx, _ = tag.New(ctx, tag.Insert(keyTable, tableName))
 
 	err := p.syncAndPublishActual(ctx, tableName)
 	if err == nil {
 		stats.Record(ctx, tablePublishSuccesses.M(1))
+		beeline.AddField(ctx, "success", 1)
 		log.Printf("[%s] Successfully published\n", tableName)
 	} else {
 		stats.Record(ctx, tablePublishFailures.M(1))
+		beeline.AddField(ctx, "failure", 1)
 		log.Printf("[%s] Failed to export and publish: %v\n", tableName, err)
 	}
 	stats.Record(ctx, tablePublishLatency.M(time.Since(tableStartTime).Seconds()))
@@ -175,6 +187,11 @@ func (p *Publisher) syncAndPublishActual(ctx context.Context, tableName string) 
 // healthStatus returns HTTP 200 if the last publish cycle succeeded,
 // and returns HTTP 500 if the last publish cycle failed.
 func (p *Publisher) healthStatus(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	span := trace.GetSpanFromContext(ctx)
+	span.AddField("handler.name", "healthcheck")
+	beeline.AddFieldToTrace(ctx, "deploy", string(p.deploy))
+
 	log.Println("Health check called.")
 	lastPublishSucceeded := p.lastPublishSucceeded
 	if !lastPublishSucceeded {

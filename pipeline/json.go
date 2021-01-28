@@ -6,9 +6,15 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+
+	beeline "github.com/honeycombio/beeline-go"
 )
 
 func ObjectFromFile(ctx context.Context, tableName string, filePath string) ([]map[string]interface{}, error) {
+	ctx, span := beeline.StartSpan(ctx, "object-from-file")
+	defer span.Send()
+	beeline.AddField(ctx, "table", tableName)
+
 	b, readErr := ioutil.ReadFile(filePath)
 	if readErr != nil {
 		return nil, fmt.Errorf("couldn't read file %s: %w", filePath, readErr)
