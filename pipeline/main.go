@@ -25,6 +25,7 @@ var tableNames = [...]string{"Locations", "Counties"}
 
 type Publisher struct {
 	lastPublishSucceeded bool // Make this thread safe if nontrivial multithreading comes up.
+	deploy               deploys.DeployType
 }
 
 // Takes the Google Cloud Storage bucket path as the first argument.
@@ -40,10 +41,16 @@ func (p *Publisher) Run() {
 	metricsCleanup := InitMetrics()
 	defer metricsCleanup()
 
+	deploy, err := deploys.GetDeploy()
+	if err != nil {
+		panic(err)
+	}
+	p.deploy = deploy
+
 	// Serve health status.
 	http.HandleFunc("/", p.healthStatus)
 	http.HandleFunc("/publish", p.syncAndPublishRequest)
-	err := http.ListenAndServe(":8080", nil)
+	err = http.ListenAndServe(":8080", nil)
 	if err != nil {
 		panic(err)
 	}
@@ -51,17 +58,12 @@ func (p *Publisher) Run() {
 
 func (p *Publisher) syncAndPublishRequest(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
+	ctx, _ = tag.New(ctx, tag.Insert(keyDeploy, string(p.deploy)))
+	startTime := time.Now()
 
 	if r.Method != http.MethodPost {
 		w.WriteHeader(http.StatusMethodNotAllowed)
 	}
-
-	deploy, err := deploys.GetDeploy()
-	if err != nil {
-		panic(err)
-	}
-	ctx, _ = tag.New(ctx, tag.Insert(keyDeploy, string(deploy)))
-	startTime := time.Now()
 	log.Println("Preparing to fetch and publish...")
 
 	// Every iteration gets its own timeout.  Update the README.md
