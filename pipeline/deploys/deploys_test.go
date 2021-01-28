@@ -1,4 +1,4 @@
-package locations
+package deploys
 
 import (
 	"os"
@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestLocations(t *testing.T) {
+func TestDeploys(t *testing.T) {
 	tests := map[string]struct {
 		wantError bool
 		deploy    DeployType

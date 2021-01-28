@@ -1,4 +1,4 @@
-package locations
+package deploys
 
 import (
 	"fmt"

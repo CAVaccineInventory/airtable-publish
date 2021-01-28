@@ -13,7 +13,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/CAVaccineInventory/airtable-export/pipeline/locations"
+	"github.com/CAVaccineInventory/airtable-export/pipeline/deploys"
 	"go.opencensus.io/stats"
 	"go.opencensus.io/tag"
 )
@@ -54,7 +54,7 @@ func (p *Publisher) syncAndPublishRequest(w http.ResponseWriter, r *http.Request
 		w.WriteHeader(http.StatusMethodNotAllowed)
 	}
 
-	deploy, err := locations.GetDeploy()
+	deploy, err := deploys.GetDeploy()
 	if err != nil {
 		panic(err)
 	}
@@ -145,7 +145,7 @@ func (p *Publisher) syncAndPublish(ctx context.Context, tableName string) error 
 		return fmt.Errorf("failed to sanitize json data: %w", err)
 	}
 
-	bucket, err := locations.GetExportBucket()
+	bucket, err := deploys.GetExportBucket()
 	if err != nil {
 		return fmt.Errorf("failed to get destination bucket: %w", err)
 	}

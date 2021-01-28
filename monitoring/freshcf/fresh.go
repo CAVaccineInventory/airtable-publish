@@ -12,7 +12,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/CAVaccineInventory/airtable-export/pipeline/locations"
+	"github.com/CAVaccineInventory/airtable-export/pipeline/deploys"
 )
 
 type ExportedJSONFileStats struct {
@@ -69,7 +69,7 @@ func getURLStats(url string) (ExportedJSONFileStats, error) {
 }
 
 func ExportJSON(w http.ResponseWriter, r *http.Request) {
-	baseURL, err := locations.GetExportBaseURL()
+	baseURL, err := deploys.GetExportBaseURL()
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprintf(w, "error determining base url: %v", err)
@@ -126,7 +126,7 @@ func CheckFreshness(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	baseURL, err := locations.GetExportBaseURL()
+	baseURL, err := deploys.GetExportBaseURL()
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprintf(w, "error determining base url: %v", err)
