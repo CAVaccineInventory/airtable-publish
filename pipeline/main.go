@@ -86,17 +86,17 @@ func (p *Publisher) syncAndPublishRequest(w http.ResponseWriter, r *http.Request
 			defer wg.Done()
 
 			tableStartTime := time.Now()
-			tableCtx, _ := tag.New(ctx, tag.Insert(keyTable, tableName))
+			ctx, _ := tag.New(ctx, tag.Insert(keyTable, tableName))
 
-			publishErr := p.syncAndPublish(tableCtx, tableName)
+			publishErr := p.syncAndPublish(ctx, tableName)
 			if publishErr == nil {
-				stats.Record(tableCtx, tablePublishSuccesses.M(1))
+				stats.Record(ctx, tablePublishSuccesses.M(1))
 				log.Printf("[%s] Successfully published\n", tableName)
 			} else {
-				stats.Record(tableCtx, tablePublishFailures.M(1))
+				stats.Record(ctx, tablePublishFailures.M(1))
 				log.Printf("[%s] Failed to export and publish: %v\n", tableName, publishErr)
 			}
-			stats.Record(tableCtx, tablePublishLatency.M(time.Since(tableStartTime).Seconds()))
+			stats.Record(ctx, tablePublishLatency.M(time.Since(tableStartTime).Seconds()))
 			publishOk <- publishErr == nil
 		}(tableName)
 	}
@@ -141,11 +141,11 @@ func (p *Publisher) syncAndPublish(ctx context.Context, tableName string) error 
 	}
 
 	log.Printf("[%s] Transforming data...\n", tableName)
-	jsonMap, err := ObjectFromFile(tableName, filePath)
+	jsonMap, err := ObjectFromFile(ctx, tableName, filePath)
 	if err != nil {
 		return fmt.Errorf("failed to parse json in %s: %w", filePath, err)
 	}
-	sanitizedData, err := Sanitize(jsonMap, tableName)
+	sanitizedData, err := Sanitize(ctx, jsonMap, tableName)
 	if err != nil {
 		return fmt.Errorf("failed to sanitize json data: %w", err)
 	}

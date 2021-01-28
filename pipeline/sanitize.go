@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -55,7 +56,7 @@ var allowKeys = map[string]map[string]int{
 	},
 }
 
-func Sanitize(jsonMap []map[string]interface{}, tableName string) (*bytes.Buffer, error) {
+func Sanitize(ctx context.Context, jsonMap []map[string]interface{}, tableName string) (*bytes.Buffer, error) {
 	keys, ok := allowKeys[tableName]
 
 	if !ok {

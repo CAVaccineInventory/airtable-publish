@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"testing"
 
@@ -17,11 +18,12 @@ func TestSanitize(t *testing.T) {
 		"Counties":  {testDataFile: "test_data/counties.json", badKeys: []string{"Internal notes"}},
 	}
 
+	ctx := context.Background()
 	for name, tc := range tests {
-		in, err := ObjectFromFile(name, tc.testDataFile)
+		in, err := ObjectFromFile(ctx, name, tc.testDataFile)
 		require.NoError(t, err)
 
-		got, err := Sanitize(in, name)
+		got, err := Sanitize(ctx, in, name)
 		require.NoError(t, err)
 
 		//  Basic sanity check
