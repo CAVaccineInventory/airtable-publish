@@ -24,6 +24,30 @@ Run](https://console.cloud.google.com/run?project=cavaccineinventory),
 and writes to [Google Cloud
 Storage](https://console.cloud.google.com/storage/browser/cavaccineinventory-sitedata).
 
+### Latencies
+
+The job runs every minute, and takes on average 45s to complete; it
+uploads with caching headers that instruct clients to cache the data
+for 2 minutes.
+
+For a JSON request that a browser requests:
+ - **Expected latency**: **140 seconds (2:20 min)**, with 30s due to
+   having finished the pipeline that long ago, 50s for being at p99
+   for how long before that it was published, and 60s for half of the
+   browser cache.
+ - **Maximum latency**: **300 seconds (5 min)**, with 60s from just
+   missing the current publish, the previous publish having just
+   beaten the 120s timeout, and all of that having filled the browser
+   cache 120s ago.
+ - **Minimal possible latency**: **45 seconds** from the pipeline just having
+   completed, and no browser cache.
+
+Note that the _maximum latency_ above is _if it is still publishing
+data._  If the pipeline hangs for longer than the 2 minute timeout,
+then it will not make forward progress, and no updates will be
+written.  Once the file is 10 minutes stale, the monitoring will page
+(see `monitoring/freshcf`).
+
 ### Deploys
 
 **The `main` branch auto-deploys to staging, the `prod` branch to
@@ -49,7 +73,9 @@ To deploy staging to production:
 
 3. Get that pull request reviewed and accepted.
 
-4. Merge the pull request _as a rebase_.  This should be the only option.
+4. Merge the pull request **as a merge**.  Merging it as a _rebase_
+   will cause divergent history between `main` and `prod` which
+   requires a force-push to fix.
 
 5. Monitor production; same checks as in staging, above:
    - [Monitoring](https://us-central1-cavaccineinventory.cloudfunctions.net/freshLocations)

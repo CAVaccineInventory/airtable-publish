@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"strconv"
 	"sync"
 	"time"
 
@@ -53,17 +54,21 @@ func (p *Publisher) syncAndPublishRequest(w http.ResponseWriter, r *http.Request
 		w.WriteHeader(http.StatusMethodNotAllowed)
 	}
 
-	deploy := os.Getenv("DEPLOY")
-	if deploy == "" {
-		deploy = "staging"
+	deploy, err := locations.GetDeploy()
+	if err != nil {
+		panic(err)
 	}
-	ctx, _ := tag.New(context.Background(), tag.Insert(keyDeploy, deploy))
+	ctx, _ := tag.New(context.Background(), tag.Insert(keyDeploy, string(deploy)))
 	startTime := time.Now()
 	log.Println("Preparing to fetch and publish...")
 
-	// Every iteration gets its own timeout.
-	// TODO: re-evaluate 10 minute timeout.
-	ctx, cxl := context.WithTimeout(ctx, 10*time.Minute)
+	// Every iteration gets its own timeout.  Update the README.md
+	// for new latencies if you adjust this.
+	timeoutMinutes, err := strconv.Atoi(os.Getenv("TIMEOUT"))
+	if err != nil {
+		timeoutMinutes = 2
+	}
+	ctx, cxl := context.WithTimeout(ctx, time.Duration(timeoutMinutes)*time.Minute)
 	defer cxl()
 
 	// Kick off ETL for each table in parallel.
@@ -137,8 +142,12 @@ func (p *Publisher) syncAndPublish(ctx context.Context, tableName string) error 
 		return fmt.Errorf("failed to sanitize json data: %w", err)
 	}
 
+	bucket, err := locations.GetExportBucket()
+	if err != nil {
+		return fmt.Errorf("failed to get destination bucket: %w", err)
+	}
 	localFile := path.Join(baseTempDir, tableName+".json")
-	destinationFile := locations.GetExportBucket() + "/" + tableName + ".json"
+	destinationFile := bucket + "/" + tableName + ".json"
 	log.Printf("[%s] Getting ready to publish to %s...\n", tableName, destinationFile)
 	f, err := os.Create(localFile)
 	if err != nil {
