@@ -30,7 +30,28 @@ func TestDeploys(t *testing.T) {
 				require.NoError(t, err)
 			}
 			require.Equal(t, deploy, tc.deploy)
+		})
+	}
+}
 
+func TestDeployBuckets(t *testing.T) {
+	tests := map[string]struct {
+		envVar        string
+		wantError     bool
+		deploy        DeployType
+		testingBucket string
+	}{
+		"prod":           {envVar: "prod", deploy: DeployProduction},
+		"staging":        {envVar: "staging", deploy: DeployStaging},
+		"testing":        {envVar: "testing", deploy: DeployTesting, wantError: true},
+		"testing_bucket": {envVar: "testing", deploy: DeployTesting, testingBucket: "test-bucket-name"},
+		"blank":          {envVar: "", deploy: DeployTesting, wantError: true},
+		"blank_bucket":   {envVar: "", deploy: DeployTesting, testingBucket: "test-bucket-name"},
+	}
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			os.Setenv("DEPLOY", tc.envVar)
+			os.Setenv("TESTING_BUCKET", tc.testingBucket)
 			bucket, err := GetExportBucket()
 			if tc.wantError {
 				require.Error(t, err)

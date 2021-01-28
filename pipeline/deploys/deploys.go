@@ -1,6 +1,7 @@
 package deploys
 
 import (
+	"errors"
 	"fmt"
 	"os"
 )
@@ -15,7 +16,7 @@ const (
 )
 
 var exportPaths = map[DeployType]string{
-	DeployTesting:    "cavaccineinventory-sitedata/airtable-sync-testing",
+	DeployTesting:    "", // Must be set by TESTING_BUCKET env var
 	DeployStaging:    "cavaccineinventory-sitedata/airtable-sync-staging",
 	DeployProduction: "cavaccineinventory-sitedata/airtable-sync",
 }
@@ -33,18 +34,35 @@ func GetDeploy() (DeployType, error) {
 	return deploy, nil
 }
 
-func GetExportBucket() (string, error) {
+func getPath() (string, error) {
 	deploy, err := GetDeploy()
 	if err != nil {
 		return "", err
 	}
-	return "gs://" + exportPaths[deploy], nil
+
+	if deploy != DeployTesting {
+		return exportPaths[deploy], nil
+	}
+
+	path := os.Getenv("TESTING_BUCKET")
+	if path == "" {
+		return "", errors.New("Set TESTING_BUCKET env var to the name of your bucket (see README.md)")
+	}
+	return path, nil
+}
+
+func GetExportBucket() (string, error) {
+	path, err := getPath()
+	if err != nil {
+		return "", err
+	}
+	return "gs://" + path, nil
 }
 
 func GetExportBaseURL() (string, error) {
-	deploy, err := GetDeploy()
+	path, err := getPath()
 	if err != nil {
 		return "", err
 	}
-	return exportBaseURL + exportPaths[deploy], nil
+	return exportBaseURL + path, nil
 }
