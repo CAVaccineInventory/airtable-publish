@@ -127,7 +127,10 @@ func (p *Publisher) syncAndPublish(ctx context.Context, tableName string) error 
 		return fmt.Errorf("failed to make in directory %s: %w", inDir, err)
 	}
 
+	start := time.Now()
 	filePath, err := fetchAirtableTable(ctx, inDir, tableName)
+	stats.Record(ctx, airtableFetchLatency.M(time.Since(start).Seconds()))
+
 	if err != nil {
 		return fmt.Errorf("failed to fetch from airtable: %w", err)
 	}
