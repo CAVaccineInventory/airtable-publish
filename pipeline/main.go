@@ -50,6 +50,8 @@ func (p *Publisher) Run() {
 }
 
 func (p *Publisher) syncAndPublishRequest(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
 	if r.Method != http.MethodPost {
 		w.WriteHeader(http.StatusMethodNotAllowed)
 	}
@@ -58,7 +60,7 @@ func (p *Publisher) syncAndPublishRequest(w http.ResponseWriter, r *http.Request
 	if err != nil {
 		panic(err)
 	}
-	ctx, _ := tag.New(context.Background(), tag.Insert(keyDeploy, string(deploy)))
+	ctx, _ = tag.New(ctx, tag.Insert(keyDeploy, string(deploy)))
 	startTime := time.Now()
 	log.Println("Preparing to fetch and publish...")
 
