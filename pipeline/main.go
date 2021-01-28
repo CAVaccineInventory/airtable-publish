@@ -149,13 +149,8 @@ func (p *Publisher) syncAndPublish(ctx context.Context, tableName string) error 
 		return fmt.Errorf("failed to sanitize json data: %w", err)
 	}
 
-	bucket, err := deploys.GetExportBucket()
-	if err != nil {
-		return fmt.Errorf("failed to get destination bucket: %w", err)
-	}
 	localFile := path.Join(baseTempDir, tableName+".json")
-	destinationFile := bucket + "/" + tableName + ".json"
-	log.Printf("[%s] Getting ready to publish to %s...\n", tableName, destinationFile)
+	log.Printf("[%s] Getting ready to publish...\n", tableName)
 	f, err := os.Create(localFile)
 	if err != nil {
 		return fmt.Errorf("failed to create local file %s: %w", localFile, err)
@@ -168,7 +163,7 @@ func (p *Publisher) syncAndPublish(ctx context.Context, tableName string) error 
 		return fmt.Errorf("failed to write sanitized json to %s: %w", localFile, err)
 	}
 
-	return uploadFile(ctx, localFile, destinationFile)
+	return uploadFile(ctx, tableName, localFile)
 }
 
 // healthStatus returns HTTP 200 if the last publish cycle succeeded,
