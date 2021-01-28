@@ -1,4 +1,4 @@
-package v1
+package apimeta
 
 type Metadata struct {
 	ApiVersion  ApiVersion
@@ -7,8 +7,8 @@ type Metadata struct {
 }
 
 type ApiVersion struct {
-	Major int
-	Minor int
+	Major     int
+	Minor     int
 	Stability string
 }
 

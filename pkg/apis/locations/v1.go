@@ -1,34 +1,50 @@
 package locations
 
 import (
-	"github.com/CAVaccineInventory/airtable-export/pkg/apidefinition"
-	metav1 "github.com/CAVaccineInventory/airtable-export/pkg/apis/metadata/v1"
+	"errors"
+	"github.com/CAVaccineInventory/airtable-export/pkg/apis/apimeta"
+	"github.com/CAVaccineInventory/airtable-export/pkg/filter"
 	"github.com/CAVaccineInventory/airtable-export/pkg/table"
 )
 
-type Object struct {
-	Metadata metav1.Metadata
-	Content  []map[string]interface{}
+var locationsAllowList = map[string]struct{}{
+	"Address":                             {},
+	"Appointment scheduling instructions": {},
+	"Availability Info":                   {},
+	"County":                              {},
+	"Has Report":                          {},
+	"Latest report":                       {},
+	"Latest report notes":                 {},
+	"Latest report yes?":                  {},
+	"Latitude":                            {},
+	"Location Type":                       {},
+	"Longitude":                           {},
+	"Name":                                {},
 }
 
-var LocationsV1 = apidefinition.Definition{
+// LocationsV1 defines the endpoint /locations/v1/locations.
+var LocationsV1 = apimeta.EndpointDefinition{
 	Group: group,
-	Version: 1,
-	Stability: "unstable",
-	// TODO: maybe TransFormfunc should be more freeform. I was originally imagining that table goes in, transofrmation happens, then metadata and HTML sanitization happens after.
-	// If this is to match a strict signature, it would need to accept a set of tables in the future. An API may well join tables.
-	TransformFunc: func(table table.Table) (Object, error) {
-		return Object{
-			Metadata: metav1.Metadata{
-				ApiVersion: metav1.ApiVersion{
-					Major: 1,
-					Minor: 0,
+	Kind:  "locations",
+	GenerateResponse: func(tables map[string]table.Table) (apimeta.List, error) {
+		locationsTable, found := tables["Locations"]
+		if !found {
+			return apimeta.List{}, errors.New("table not found")
+		}
+
+		filteredLocations := filter.FilterToAllowedKeys(locationsTable, locationsAllowList)
+
+		return apimeta.List{
+			Metadata: apimeta.Metadata{
+				ApiVersion: apimeta.ApiVersion{
+					Major:     1,
+					Minor:     0,
 					Stability: "unstable",
 				},
-				Contact: metav1.DefaultContact,
+				Contact:     apimeta.DefaultContact,
 				UsageNotice: "TODO",
 			},
-			Content: todo,
+			Content: filteredLocations,
 		}, nil
 	},
 }

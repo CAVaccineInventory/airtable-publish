@@ -5,6 +5,10 @@ import (
 	"fmt"
 	"github.com/CAVaccineInventory/airtable-export/pkg/apis/legacy"
 	"github.com/CAVaccineInventory/airtable-export/pkg/apis/locations"
+	"github.com/CAVaccineInventory/airtable-export/pkg/loadjson"
+	"github.com/CAVaccineInventory/airtable-export/pkg/sanitize"
+	"github.com/CAVaccineInventory/airtable-export/pkg/table"
+	"github.com/CAVaccineInventory/airtable-export/pkg/apis/apimeta"
 	"github.com/pkg/errors"
 	"log"
 	"net/http"
@@ -20,6 +24,10 @@ const airtableId = "appy2N9zQSnFRPcN8"
 // NOTE: Airtable reports a rate limit of 5 calls/second. Depending on how it's validated, we might hit this when adding more tables.
 // If this is a concern, slightly stagger the timing of each fetch call.
 var tableNames = [...]string{"Locations", "Counties"}
+
+var apiEndpints = []apimeta.EndpointDefinition{
+	locations.LocationsV1,
+}
 
 const tempDir = "airtable-raw"
 const readyDir = "airtable-publish"
@@ -63,7 +71,7 @@ func (p *Publisher) publishAll() {
 	log.Println("Preparing to fetch and publish...")
 
 	// Populate a map of table name -> table content.
-	tables := map[string][]map[string]interface{}{}
+	tables := map[string]table.Table{}
 	tablesMutex := sync.Mutex{}
 
 	// Fetch all required tables in parallel.
@@ -77,7 +85,7 @@ func (p *Publisher) publishAll() {
 				log.Printf("Failed to fetch table %s: %s\n", tableName, err)
 				return
 			}
-			tableObj, err := ObjectFromFile(filePath)
+			tableObj, err := loadjson.TableFromJson(filePath)
 			if err != nil {
 				log.Printf("Failed to marshal table %s: %s\n", tableName, err)
 				return
@@ -94,10 +102,37 @@ func (p *Publisher) publishAll() {
 	log.Println("All required tables fetched.")
 
 	// Generate all API views.
-	// TODO: each of these should upload, as part of the API generation or from a simple fileUpload(generationFuncion(...)).
 	// TODO: add a waitgroup to make publishAll wait until all api endpoints complete or time out.
+
+	// TODO: sanitize and upload.
 	legacyLocations := legacy.Locations(tables["Locations"])
-	locationsV1Locations := locations.LocationsV1
+	legacyCounties := legacy.Counties(tables["Counties"])
+
+	wg = sync.WaitGroup{}
+	for _, endpoint := range apiEndpints {
+		wg.Add(1)
+
+		// TODO: break this up
+		go func(endpointDef apimeta.EndpointDefinition) {
+			defer wg.Done()
+
+			unsanitizedResponse, err := endpointDef.GenerateResponse(tables)
+			if err != nil {
+				log.Printf("Failed to generate: %v", err)
+			}
+
+			sanitizedResponse, err := sanitize.Sanitize(unsanitizedResponse)
+			if err != nil {
+				// TODO: handle
+			}
+
+			// TODO: write json
+			// TODO: upload
+		}(endpoint)
+	}
+
+	wg.Wait()
+	log.Println("Finished publising data.")
 }
 
 // syncAndPublish fetches data from Airtable, does any necessary transforms/cleanup, then publishes the file to Google Cloud Storage.
@@ -109,8 +144,8 @@ func (p *Publisher) syncAndPublish(tableName string) error {
 	}
 
 	log.Println("Transforming data...")
-	jsonMap, err := ObjectFromFile(path.Join(rawFilePath))
-	sanitizedData, sanitizeErr := Sanitize(jsonMap, tableName)
+	jsonMap, err := loadjson.TableFromJson(path.Join(rawFilePath))
+	sanitizedData, sanitizeErr := sanitize.Sanitize(jsonMap)
 	if sanitizeErr != nil {
 		return errors.Wrap(sanitizeErr, "failed to sanitize json data")
 	}

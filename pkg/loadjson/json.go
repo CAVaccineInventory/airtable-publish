@@ -1,13 +1,14 @@
-package main
+package loadjson
 
 import (
 	"encoding/json"
+	"github.com/CAVaccineInventory/airtable-export/pkg/table"
 	"github.com/pkg/errors"
 	"io/ioutil"
 	"log"
 )
 
-func ObjectFromFile(filePath string) ([]map[string]interface{}, error) {
+func TableFromJson(filePath string) (table.Table, error) {
 	b, readErr := ioutil.ReadFile(filePath)
 	if readErr != nil {
 		return nil, errors.Wrapf(readErr, "couldn't read file %s", filePath)
