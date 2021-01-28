@@ -73,7 +73,9 @@ To deploy staging to production:
 
 3. Get that pull request reviewed and accepted.
 
-4. Merge the pull request _as a rebase_.  This should be the only option.
+4. Merge the pull request **as a merge**.  Merging it as a _rebase_
+   will cause divergent history between `main` and `prod` which
+   requires a force-push to fix.
 
 5. Monitor production; same checks as in staging, above:
    - [Monitoring](https://us-central1-cavaccineinventory.cloudfunctions.net/freshLocations)
