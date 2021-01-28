@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/CAVaccineInventory/airtable-export/pipeline/deploys"
+	"github.com/honeycombio/beeline-go/wrappers/hnynethttp"
 	"go.opencensus.io/stats"
 	"go.opencensus.io/tag"
 )
@@ -50,7 +51,7 @@ func (p *Publisher) Run() {
 	// Serve health status.
 	http.HandleFunc("/", p.healthStatus)
 	http.HandleFunc("/publish", p.syncAndPublishRequest)
-	err = http.ListenAndServe(":8080", nil)
+	err = http.ListenAndServe(":8080", hnynethttp.WrapHandler(http.DefaultServeMux))
 	if err != nil {
 		panic(err)
 	}

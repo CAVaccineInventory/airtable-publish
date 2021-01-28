@@ -87,13 +87,15 @@ To deploy staging to production:
 ## Secrets
 
 In production, these are fetched automatically from Google Cloud's Secrets Manager;
- - [airtable-key](https://console.cloud.google.com/security/secret-manager/secret/airtable-key/versions?project=cavaccineinventory)
- - [storage-upload-key](https://console.cloud.google.com/security/secret-manager/secret/storage-upload-key/versions?project=cavaccineinventory)
+ - [airtable-key](https://console.cloud.google.com/security/secret-manager/secret/airtable-key)
+ - [honeycomb-key](https://console.cloud.google.com/security/secret-manager/secret/honeycomb-key)
+ - [storage-upload-key](https://console.cloud.google.com/security/secret-manager/secret/storage-upload-key)
 
 ## Development
 
 In development:
  - You can look up your Airtable API key at https://airtable.com/account
+ - You can look up the testing Honeycomb API key at https://ui.honeycomb.io/teams/vaccinateca
  - Set up your own service account for testing:
     1. Create your own test workspace, if you do no have one already
     2. Create a Google Cloud service account in there

@@ -2,9 +2,11 @@ package main
 
 import (
 	"log"
+	"os"
 	"time"
 
 	"contrib.go.opencensus.io/exporter/stackdriver"
+	beeline "github.com/honeycombio/beeline-go"
 	"go.opencensus.io/stats"
 	"go.opencensus.io/stats/view"
 	"go.opencensus.io/tag"
@@ -46,6 +48,11 @@ var (
 )
 
 func InitMetrics() func() {
+	beeline.Init(beeline.Config{
+		WriteKey:    os.Getenv("HONEYCOMB_KEY"),
+		Dataset:     "pipeline",
+		ServiceName: "pipeline",
+	})
 	err := view.Register(
 		&view.View{
 			Name:        totalPublishLatency.Name(),
@@ -114,6 +121,8 @@ func InitMetrics() func() {
 	}
 
 	return func() {
+		beeline.Close()
+
 		exporter.Flush()
 		exporter.StopMetricsExporter()
 	}
