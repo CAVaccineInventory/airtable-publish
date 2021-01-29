@@ -4,7 +4,20 @@
 
 ## General Shape
 
-PagerDuty calls Probes hosted on GCF which return success or failure.
+PagerDuty (and Stackdriver) call Probes hosted on GCF which return success or
+failure.
+
+## Alerting
+
+### PagerDuty
+
+Checks every minute, and pages Vallery if the probe fails on production.
+
+### Google Cloud Monitoring (Stackdriver)
+
+Checks every minute, and posts to #operations if the probe fails in either staging or production.
+
+[stackdriver-to-discord](https://github.com/Courtsite/stackdriver-to-discord) is deployed as a Cloud Function, and receives a [webhook](https://console.cloud.google.com/monitoring/alerting/notifications?project=cavaccineinventory#_0rif_slack-add-button:~:text=Webhooks,ADD%20NEW) from Stackdriver.
 
 ## Wishlist
 
