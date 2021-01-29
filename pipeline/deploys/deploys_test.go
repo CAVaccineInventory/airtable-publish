@@ -19,7 +19,9 @@ func TestDeploys(t *testing.T) {
 		"":        {deploy: DeployTesting},
 		"bogus":   {deploy: DeployUnknown, wantError: true},
 	}
-
+	t.Cleanup(func() {
+		os.Unsetenv("DEPLOY")
+	})
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			os.Setenv("DEPLOY", name)
@@ -48,6 +50,10 @@ func TestDeployBuckets(t *testing.T) {
 		"blank":          {envVar: "", deploy: DeployTesting, wantError: true},
 		"blank_bucket":   {envVar: "", deploy: DeployTesting, testingBucket: "test-bucket-name"},
 	}
+	t.Cleanup(func() {
+		os.Unsetenv("DEPLOY")
+		os.Unsetenv("TESTING_BUCKET")
+	})
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			os.Setenv("DEPLOY", tc.envVar)
