@@ -13,6 +13,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/airtable"
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/deploys"
 	beeline "github.com/honeycombio/beeline-go"
 	"github.com/honeycombio/beeline-go/trace"
@@ -147,7 +148,7 @@ func (p *Publisher) syncAndPublishActual(ctx context.Context, tableName string) 
 	}
 
 	start := time.Now()
-	filePath, err := fetchAirtableTable(ctx, inDir, tableName)
+	filePath, err := airtable.Download(ctx, inDir, tableName)
 	stats.Record(ctx, airtableFetchLatency.M(time.Since(start).Seconds()))
 
 	if err != nil {

@@ -1,4 +1,4 @@
-package main
+package airtable
 
 import (
 	"context"
@@ -12,9 +12,10 @@ import (
 	beeline "github.com/honeycombio/beeline-go"
 )
 
-// fetchAirtableTable dumps a a table from Airtable as JSON on disk.
-func fetchAirtableTable(ctx context.Context, tempDir string, tableName string) (string, error) {
-	ctx, span := beeline.StartSpan(ctx, "fetch-airtable-table")
+// Download dumps a table from Airtable into JSON on disk, and returns
+// the path to it.
+func Download(ctx context.Context, tempDir string, tableName string) (string, error) {
+	ctx, span := beeline.StartSpan(ctx, "airtable.Download")
 	defer span.Send()
 	beeline.AddField(ctx, "table", tableName)
 
