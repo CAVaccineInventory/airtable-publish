@@ -85,18 +85,7 @@ func (p *Publisher) syncAndPublishRequest(w http.ResponseWriter, r *http.Request
 		go func(tableName string) {
 			defer wg.Done()
 
-			tableStartTime := time.Now()
-			ctx, _ := tag.New(ctx, tag.Insert(keyTable, tableName))
-
 			publishErr := p.syncAndPublish(ctx, tableName)
-			if publishErr == nil {
-				stats.Record(ctx, tablePublishSuccesses.M(1))
-				log.Printf("[%s] Successfully published\n", tableName)
-			} else {
-				stats.Record(ctx, tablePublishFailures.M(1))
-				log.Printf("[%s] Failed to export and publish: %v\n", tableName, publishErr)
-			}
-			stats.Record(ctx, tablePublishLatency.M(time.Since(tableStartTime).Seconds()))
 			publishOk <- publishErr == nil
 		}(tableName)
 	}
@@ -118,9 +107,25 @@ func (p *Publisher) syncAndPublishRequest(w http.ResponseWriter, r *http.Request
 	}
 }
 
+func (p *Publisher) syncAndPublish(ctx context.Context, tableName string) error {
+	tableStartTime := time.Now()
+	ctx, _ = tag.New(ctx, tag.Insert(keyTable, tableName))
+
+	err := p.syncAndPublishActual(ctx, tableName)
+	if err == nil {
+		stats.Record(ctx, tablePublishSuccesses.M(1))
+		log.Printf("[%s] Successfully published\n", tableName)
+	} else {
+		stats.Record(ctx, tablePublishFailures.M(1))
+		log.Printf("[%s] Failed to export and publish: %v\n", tableName, err)
+	}
+	stats.Record(ctx, tablePublishLatency.M(time.Since(tableStartTime).Seconds()))
+	return err
+}
+
 // syncAndPublish fetches data from Airtable, does any necessary transforms/cleanup, then publishes the file to Google Cloud Storage.
 // This should probably be broken up further.
-func (p *Publisher) syncAndPublish(ctx context.Context, tableName string) error {
+func (p *Publisher) syncAndPublishActual(ctx context.Context, tableName string) error {
 	baseTempDir, err := ioutil.TempDir("", tableName)
 	defer os.RemoveAll(baseTempDir)
 	if err != nil {
