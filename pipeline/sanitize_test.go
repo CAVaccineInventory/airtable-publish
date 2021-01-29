@@ -32,7 +32,7 @@ func TestSanitize(t *testing.T) {
 			t.Errorf("result contains @gmail.com")
 		}
 
-		locs := make([]map[string]interface{}, 0)
+		locs := make(airtable.Table, 0)
 		err = json.Unmarshal(got.Bytes(), &locs)
 		require.NoError(t, err)
 

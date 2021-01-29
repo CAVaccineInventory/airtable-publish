@@ -14,7 +14,9 @@ import (
 	beeline "github.com/honeycombio/beeline-go"
 )
 
-func ObjectFromFile(ctx context.Context, tableName string, filePath string) ([]map[string]interface{}, error) {
+type Table []map[string]interface{}
+
+func ObjectFromFile(ctx context.Context, tableName string, filePath string) (Table, error) {
 	ctx, span := beeline.StartSpan(ctx, "airtable.ObjectFromFile")
 	defer span.Send()
 	beeline.AddField(ctx, "table", tableName)
@@ -32,7 +34,7 @@ func ObjectFromFile(ctx context.Context, tableName string, filePath string) ([]m
 
 // Download downloads a table from Airtable, and returns the
 // unmarshaled data from it.
-func Download(ctx context.Context, tableName string) ([]map[string]interface{}, error) {
+func Download(ctx context.Context, tableName string) (Table, error) {
 	ctx, span := beeline.StartSpan(ctx, "airtable.Download")
 	defer span.Send()
 	beeline.AddField(ctx, "table", tableName)

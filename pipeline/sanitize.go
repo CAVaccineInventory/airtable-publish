@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/CAVaccineInventory/airtable-export/pipeline/airtable"
 	beeline "github.com/honeycombio/beeline-go"
 )
 
@@ -58,7 +59,7 @@ var allowKeys = map[string]map[string]int{
 	},
 }
 
-func Sanitize(ctx context.Context, jsonMap []map[string]interface{}, tableName string) (*bytes.Buffer, error) {
+func Sanitize(ctx context.Context, jsonMap airtable.Table, tableName string) (*bytes.Buffer, error) {
 	ctx, span := beeline.StartSpan(ctx, "sanitize")
 	defer span.Send()
 	beeline.AddField(ctx, "table", tableName)
