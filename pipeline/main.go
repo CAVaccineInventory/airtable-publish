@@ -168,7 +168,7 @@ func (p *Publisher) publishActual(ctx context.Context, tableName string) error {
 		return fmt.Errorf("failed to write sanitized json to %s: %w", localFile, err)
 	}
 
-	return uploadFile(ctx, tableName, localFile)
+	return storage.UploadToGCS(ctx, tableName, localFile)
 }
 
 // healthStatus returns HTTP 200 if the last publish cycle succeeded,
