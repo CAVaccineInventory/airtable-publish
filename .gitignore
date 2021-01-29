@@ -1,3 +1,2 @@
-airtable/
-sanitize/sanitize
-sanitize/tmp_test_output/
+/pipeline/pipeline
+/testing-key.json
