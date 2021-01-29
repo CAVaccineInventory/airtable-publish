@@ -13,8 +13,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/airtable"
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/deploys"
+	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/generator"
 	beeline "github.com/honeycombio/beeline-go"
 	"github.com/honeycombio/beeline-go/trace"
 	"github.com/honeycombio/beeline-go/wrappers/hnynethttp"
@@ -22,10 +22,11 @@ import (
 	"go.opencensus.io/tag"
 )
 
-var tableNames = [...]string{"Locations", "Counties"}
+var tableNames = []string{"Locations", "Counties"}
 
 type Publisher struct {
 	lastPublishSucceeded bool // Make this thread safe if nontrivial multithreading comes up.
+	tableManager         generator.FetchManager
 	deploy               deploys.DeployType
 }
 
@@ -80,8 +81,9 @@ func (p *Publisher) syncAndPublishRequest(w http.ResponseWriter, r *http.Request
 	ctx, cxl := context.WithTimeout(ctx, time.Duration(timeoutMinutes)*time.Minute)
 	defer cxl()
 
-	// Kick off ETL for each table in parallel.
-	// TODO: consider making each table pipeline independent, so a particularly "slow" table export or upload doesn't needlessly delay others.
+	p.tableManager = generator.FetchManager{}
+	p.tableManager.FetchAll(ctx, tableNames)
+
 	wg := sync.WaitGroup{}
 	publishOk := make(chan bool, len(tableNames)) // Add a buffer large enough to hold all results.
 	for _, tableName := range tableNames {
@@ -89,7 +91,7 @@ func (p *Publisher) syncAndPublishRequest(w http.ResponseWriter, r *http.Request
 		go func(tableName string) {
 			defer wg.Done()
 
-			publishErr := p.syncAndPublish(ctx, tableName)
+			publishErr := p.publish(ctx, tableName)
 			publishOk <- publishErr == nil
 		}(tableName)
 	}
@@ -111,15 +113,15 @@ func (p *Publisher) syncAndPublishRequest(w http.ResponseWriter, r *http.Request
 	}
 }
 
-func (p *Publisher) syncAndPublish(ctx context.Context, tableName string) error {
-	ctx, span := beeline.StartSpan(ctx, "sync-and-publish")
+func (p *Publisher) publish(ctx context.Context, tableName string) error {
+	ctx, span := beeline.StartSpan(ctx, "publish")
 	defer span.Send()
 	beeline.AddField(ctx, "table", tableName)
 
 	tableStartTime := time.Now()
 	ctx, _ = tag.New(ctx, tag.Insert(keyTable, tableName))
 
-	err := p.syncAndPublishActual(ctx, tableName)
+	err := p.publishActual(ctx, tableName)
 	if err == nil {
 		stats.Record(ctx, tablePublishSuccesses.M(1))
 		beeline.AddField(ctx, "success", 1)
@@ -135,10 +137,10 @@ func (p *Publisher) syncAndPublish(ctx context.Context, tableName string) error 
 
 // syncAndPublish fetches data from Airtable, does any necessary transforms/cleanup, then publishes the file to Google Cloud Storage.
 // This should probably be broken up further.
-func (p *Publisher) syncAndPublishActual(ctx context.Context, tableName string) error {
-	jsonMap, err := airtable.Download(ctx, tableName)
+func (p *Publisher) publishActual(ctx context.Context, tableName string) error {
+	jsonMap, err := p.tableManager.GetTable(ctx, tableName)
 	if err != nil {
-		return fmt.Errorf("failed to fetch from airtable: %w", err)
+		return fmt.Errorf("failed to fetch json data: %w", err)
 	}
 
 	log.Printf("[%s] Transforming data...\n", tableName)

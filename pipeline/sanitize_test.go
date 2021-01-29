@@ -6,7 +6,7 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/CAVaccineInventory/airtable-export/pipeline/airtable"
+	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/airtable"
 	"github.com/stretchr/testify/require"
 )
 

@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"contrib.go.opencensus.io/exporter/stackdriver"
-	"github.com/CAVaccineInventory/airtable-export/pipeline/airtable"
+	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/airtable"
 	beeline "github.com/honeycombio/beeline-go"
 	"go.opencensus.io/stats"
 	"go.opencensus.io/stats/view"
