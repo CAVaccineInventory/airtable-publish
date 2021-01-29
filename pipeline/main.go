@@ -136,9 +136,7 @@ func (p *Publisher) syncAndPublish(ctx context.Context, tableName string) error 
 // syncAndPublish fetches data from Airtable, does any necessary transforms/cleanup, then publishes the file to Google Cloud Storage.
 // This should probably be broken up further.
 func (p *Publisher) syncAndPublishActual(ctx context.Context, tableName string) error {
-	start := time.Now()
 	jsonMap, err := airtable.Download(ctx, tableName)
-	stats.Record(ctx, airtableFetchLatency.M(time.Since(start).Seconds()))
 	if err != nil {
 		return fmt.Errorf("failed to fetch from airtable: %w", err)
 	}

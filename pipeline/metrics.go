@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"contrib.go.opencensus.io/exporter/stackdriver"
+	"github.com/CAVaccineInventory/airtable-export/pipeline/airtable"
 	beeline "github.com/honeycombio/beeline-go"
 	"go.opencensus.io/stats"
 	"go.opencensus.io/stats/view"
@@ -22,12 +23,6 @@ var (
 	tablePublishLatency = stats.Float64(
 		"table_publish_latency_s",
 		"Latency to extract and publish each table",
-		stats.UnitSeconds,
-	)
-
-	airtableFetchLatency = stats.Float64(
-		"airtable_fetch_latency_s",
-		"Latency for the airtable-extract phase",
 		stats.UnitSeconds,
 	)
 
@@ -75,9 +70,9 @@ func InitMetrics() func() {
 			TagKeys: []tag.Key{keyDeploy, keyTable},
 		},
 		&view.View{
-			Name:        airtableFetchLatency.Name(),
-			Description: airtableFetchLatency.Description(),
-			Measure:     airtableFetchLatency,
+			Name:        airtable.FetchLatency.Name(),
+			Description: airtable.FetchLatency.Description(),
+			Measure:     airtable.FetchLatency,
 			Aggregation: view.Distribution(
 				7, 10, 13, 20, 26, 37, 73, 100, 145, 200,
 			),

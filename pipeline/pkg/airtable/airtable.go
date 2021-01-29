@@ -9,9 +9,11 @@ import (
 	"os"
 	"os/exec"
 	"path"
+	"time"
 
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/config"
 	beeline "github.com/honeycombio/beeline-go"
+	"go.opencensus.io/stats"
 )
 
 type Table []map[string]interface{}
@@ -49,8 +51,10 @@ func Download(ctx context.Context, tableName string) (Table, error) {
 	}
 
 	log.Printf("[%s] Shelling out to exporter...\n", tableName)
+	start := time.Now()
 	cmd := exec.CommandContext(ctx, "/usr/bin/airtable-export", "--json", tempDir, config.AirtableID, tableName, "--key", airtableSecret)
 	output, exportErr := cmd.CombinedOutput()
+	stats.Record(ctx, FetchLatency.M(time.Since(start).Seconds()))
 	if exportErr != nil {
 		log.Println("Output from failed airtable-export:\n" + string(output))
 		return nil, fmt.Errorf("failed to run airtable-export: %w", exportErr)
