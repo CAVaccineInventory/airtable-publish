@@ -2,7 +2,9 @@ package airtable
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
@@ -12,9 +14,25 @@ import (
 	beeline "github.com/honeycombio/beeline-go"
 )
 
-// Download dumps a table from Airtable into JSON on disk, and returns
-// the path to it.
-func Download(ctx context.Context, tempDir string, tableName string) (string, error) {
+func ObjectFromFile(ctx context.Context, tableName string, filePath string) ([]map[string]interface{}, error) {
+	ctx, span := beeline.StartSpan(ctx, "airtable.ObjectFromFile")
+	defer span.Send()
+	beeline.AddField(ctx, "table", tableName)
+
+	b, readErr := ioutil.ReadFile(filePath)
+	if readErr != nil {
+		return nil, fmt.Errorf("couldn't read file %s: %w", filePath, readErr)
+	}
+	log.Printf("[%s] Read %d bytes from disk (%s).\n", tableName, len(b), filePath)
+
+	jsonMap := make([]map[string](interface{}), 0)
+	marshalErr := json.Unmarshal([]byte(b), &jsonMap)
+	return jsonMap, marshalErr
+}
+
+// Download downloads a table from Airtable, and returns the
+// unmarshaled data from it.
+func Download(ctx context.Context, tempDir string, tableName string) ([]map[string]interface{}, error) {
 	ctx, span := beeline.StartSpan(ctx, "airtable.Download")
 	defer span.Send()
 	beeline.AddField(ctx, "table", tableName)
@@ -27,8 +45,13 @@ func Download(ctx context.Context, tempDir string, tableName string) (string, er
 	output, exportErr := cmd.CombinedOutput()
 	if exportErr != nil {
 		log.Println("Output from failed airtable-export:\n" + string(output))
-		return "", fmt.Errorf("failed to run airtable-export: %w", exportErr)
+		return nil, fmt.Errorf("failed to run airtable-export: %w", exportErr)
 	}
-	j := path.Join(tempDir, tableName+".json")
-	return j, nil
+	outputFile := path.Join(tempDir, tableName+".json")
+
+	jsonMap, err := ObjectFromFile(ctx, tableName, outputFile)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse json in %s: %w", outputFile, err)
+	}
+	return jsonMap, nil
 }

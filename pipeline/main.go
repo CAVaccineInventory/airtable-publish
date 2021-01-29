@@ -148,18 +148,13 @@ func (p *Publisher) syncAndPublishActual(ctx context.Context, tableName string) 
 	}
 
 	start := time.Now()
-	filePath, err := airtable.Download(ctx, inDir, tableName)
+	jsonMap, err := airtable.Download(ctx, inDir, tableName)
 	stats.Record(ctx, airtableFetchLatency.M(time.Since(start).Seconds()))
-
 	if err != nil {
 		return fmt.Errorf("failed to fetch from airtable: %w", err)
 	}
 
 	log.Printf("[%s] Transforming data...\n", tableName)
-	jsonMap, err := ObjectFromFile(ctx, tableName, filePath)
-	if err != nil {
-		return fmt.Errorf("failed to parse json in %s: %w", filePath, err)
-	}
 	sanitizedData, err := Sanitize(ctx, jsonMap, tableName)
 	if err != nil {
 		return fmt.Errorf("failed to sanitize json data: %w", err)

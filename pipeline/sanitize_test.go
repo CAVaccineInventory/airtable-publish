@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"testing"
 
+	"github.com/CAVaccineInventory/airtable-export/pipeline/airtable"
 	"github.com/stretchr/testify/require"
 )
 
@@ -20,7 +21,7 @@ func TestSanitize(t *testing.T) {
 
 	ctx := context.Background()
 	for name, tc := range tests {
-		in, err := ObjectFromFile(ctx, name, tc.testDataFile)
+		in, err := airtable.ObjectFromFile(ctx, name, tc.testDataFile)
 		require.NoError(t, err)
 
 		got, err := Sanitize(ctx, in, name)
