@@ -7,38 +7,13 @@ import (
 
 	"contrib.go.opencensus.io/exporter/stackdriver"
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/airtable"
+	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/generator"
 	beeline "github.com/honeycombio/beeline-go"
-	"go.opencensus.io/stats"
 	"go.opencensus.io/stats/view"
 	"go.opencensus.io/tag"
 )
 
 var (
-	totalPublishLatency = stats.Float64(
-		"total_publish_latency_s",
-		"Latency to extract and publish all measures",
-		stats.UnitSeconds,
-	)
-
-	tablePublishLatency = stats.Float64(
-		"table_publish_latency_s",
-		"Latency to extract and publish each table",
-		stats.UnitSeconds,
-	)
-
-	tablePublishSuccesses = stats.Int64(
-		"table_publish_successes_count",
-		"Number of successful publishes by table",
-		stats.UnitDimensionless,
-	)
-
-	tablePublishFailures = stats.Int64(
-		"table_publish_failures_count",
-		"Number of failed publishes by table",
-		stats.UnitDimensionless,
-	)
-
-	keyTable, _  = tag.NewKey("table")
 	keyDeploy, _ = tag.NewKey("deploy")
 )
 
@@ -50,9 +25,9 @@ func InitMetrics() func() {
 	})
 	err := view.Register(
 		&view.View{
-			Name:        totalPublishLatency.Name(),
-			Description: totalPublishLatency.Description(),
-			Measure:     totalPublishLatency,
+			Name:        generator.TotalPublishLatency.Name(),
+			Description: generator.TotalPublishLatency.Description(),
+			Measure:     generator.TotalPublishLatency,
 			// These are large latency buckets because
 			// fetches from Airtable take multiple seconds
 			Aggregation: view.Distribution(
@@ -61,13 +36,13 @@ func InitMetrics() func() {
 			TagKeys: []tag.Key{keyDeploy},
 		},
 		&view.View{
-			Name:        tablePublishLatency.Name(),
-			Description: tablePublishLatency.Description(),
-			Measure:     tablePublishLatency,
+			Name:        generator.TablePublishLatency.Name(),
+			Description: generator.TablePublishLatency.Description(),
+			Measure:     generator.TablePublishLatency,
 			Aggregation: view.Distribution(
 				7, 10, 13, 20, 26, 37, 73, 100, 145, 200,
 			),
-			TagKeys: []tag.Key{keyDeploy, keyTable},
+			TagKeys: []tag.Key{keyDeploy, generator.KeyTable},
 		},
 		&view.View{
 			Name:        airtable.FetchLatency.Name(),
@@ -76,28 +51,28 @@ func InitMetrics() func() {
 			Aggregation: view.Distribution(
 				7, 10, 13, 20, 26, 37, 73, 100, 145, 200,
 			),
-			TagKeys: []tag.Key{keyDeploy, keyTable},
+			TagKeys: []tag.Key{keyDeploy, generator.KeyTable},
 		},
 		&view.View{
 			Name:        "table_publish_count",
 			Description: "Total number of publishes by table",
-			Measure:     tablePublishLatency,
+			Measure:     generator.TablePublishLatency,
 			Aggregation: view.Count(),
-			TagKeys:     []tag.Key{keyDeploy, keyTable},
+			TagKeys:     []tag.Key{keyDeploy, generator.KeyTable},
 		},
 		&view.View{
-			Name:        tablePublishSuccesses.Name(),
-			Description: tablePublishSuccesses.Description(),
-			Measure:     tablePublishSuccesses,
+			Name:        generator.TablePublishSuccesses.Name(),
+			Description: generator.TablePublishSuccesses.Description(),
+			Measure:     generator.TablePublishSuccesses,
 			Aggregation: view.Count(),
-			TagKeys:     []tag.Key{keyDeploy, keyTable},
+			TagKeys:     []tag.Key{keyDeploy, generator.KeyTable},
 		},
 		&view.View{
-			Name:        tablePublishFailures.Name(),
-			Description: tablePublishFailures.Description(),
-			Measure:     tablePublishFailures,
+			Name:        generator.TablePublishFailures.Name(),
+			Description: generator.TablePublishFailures.Description(),
+			Measure:     generator.TablePublishFailures,
 			Aggregation: view.Count(),
-			TagKeys:     []tag.Key{keyDeploy, keyTable},
+			TagKeys:     []tag.Key{keyDeploy, generator.KeyTable},
 		},
 	)
 	if err != nil {

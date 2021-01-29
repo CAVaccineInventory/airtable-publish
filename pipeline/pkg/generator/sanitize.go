@@ -1,4 +1,4 @@
-package main
+package generator
 
 import (
 	"bytes"
@@ -60,7 +60,7 @@ var allowKeys = map[string]map[string]int{
 }
 
 func Sanitize(ctx context.Context, jsonMap airtable.Table, tableName string) (*bytes.Buffer, error) {
-	ctx, span := beeline.StartSpan(ctx, "sanitize")
+	ctx, span := beeline.StartSpan(ctx, "generator.Sanitize")
 	defer span.Send()
 	beeline.AddField(ctx, "table", tableName)
 
