@@ -32,7 +32,7 @@ func ObjectFromFile(ctx context.Context, tableName string, filePath string) ([]m
 
 // Download downloads a table from Airtable, and returns the
 // unmarshaled data from it.
-func Download(ctx context.Context, tempDir string, tableName string) ([]map[string]interface{}, error) {
+func Download(ctx context.Context, tableName string) ([]map[string]interface{}, error) {
 	ctx, span := beeline.StartSpan(ctx, "airtable.Download")
 	defer span.Send()
 	beeline.AddField(ctx, "table", tableName)
@@ -40,6 +40,12 @@ func Download(ctx context.Context, tempDir string, tableName string) ([]map[stri
 	airtableSecret := os.Getenv(config.AirtableSecretEnvKey)
 
 	// TODO: consider doing this in Go directly.
+	tempDir, err := ioutil.TempDir("", tableName)
+	defer os.RemoveAll(tempDir)
+	if err != nil {
+		return nil, fmt.Errorf("failed to make temp directory: %w", err)
+	}
+
 	log.Printf("[%s] Shelling out to exporter...\n", tableName)
 	cmd := exec.CommandContext(ctx, "/usr/bin/airtable-export", "--json", tempDir, config.AirtableID, tableName, "--key", airtableSecret)
 	output, exportErr := cmd.CombinedOutput()

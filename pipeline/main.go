@@ -136,19 +136,8 @@ func (p *Publisher) syncAndPublish(ctx context.Context, tableName string) error 
 // syncAndPublish fetches data from Airtable, does any necessary transforms/cleanup, then publishes the file to Google Cloud Storage.
 // This should probably be broken up further.
 func (p *Publisher) syncAndPublishActual(ctx context.Context, tableName string) error {
-	baseTempDir, err := ioutil.TempDir("", tableName)
-	defer os.RemoveAll(baseTempDir)
-	if err != nil {
-		return fmt.Errorf("failed to make base temp directory: %w", err)
-	}
-	inDir := path.Join(baseTempDir, "in")
-	err = os.Mkdir(inDir, 0644)
-	if err != nil {
-		return fmt.Errorf("failed to make in directory %s: %w", inDir, err)
-	}
-
 	start := time.Now()
-	jsonMap, err := airtable.Download(ctx, inDir, tableName)
+	jsonMap, err := airtable.Download(ctx, tableName)
 	stats.Record(ctx, airtableFetchLatency.M(time.Since(start).Seconds()))
 	if err != nil {
 		return fmt.Errorf("failed to fetch from airtable: %w", err)
@@ -160,7 +149,12 @@ func (p *Publisher) syncAndPublishActual(ctx context.Context, tableName string) 
 		return fmt.Errorf("failed to sanitize json data: %w", err)
 	}
 
-	localFile := path.Join(baseTempDir, tableName+".json")
+	tempDir, err := ioutil.TempDir("", tableName)
+	defer os.RemoveAll(tempDir)
+	if err != nil {
+		return fmt.Errorf("failed to make temp directory: %w", err)
+	}
+	localFile := path.Join(tempDir, tableName+".json")
 	log.Printf("[%s] Getting ready to publish...\n", tableName)
 	f, err := os.Create(localFile)
 	if err != nil {
