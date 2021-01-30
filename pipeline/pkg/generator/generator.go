@@ -15,11 +15,13 @@ import (
 )
 
 type PublishManager struct {
-	FetchManager
+	tables *airtable.Tables
 }
 
 func NewPublishManager() *PublishManager {
-	return &PublishManager{}
+	return &PublishManager{
+		tables: airtable.NewTables(),
+	}
 }
 
 type TableFetchFunc func(context.Context, string) (airtable.TableContent, error)
@@ -34,8 +36,6 @@ type unrolledEndpoint struct {
 func (pm *PublishManager) PublishAll(ctx context.Context, tableNames []string, endpoints EndpointMap) bool {
 	ctx, span := beeline.StartSpan(ctx, "generator.Publish")
 	defer span.Send()
-
-	pm.FetchAll(ctx, tableNames)
 
 	startTime := time.Now()
 	wg := sync.WaitGroup{}
@@ -92,7 +92,7 @@ func (pm *PublishManager) Publish(ctx context.Context, endpoint unrolledEndpoint
 
 func (pm *PublishManager) publishActual(ctx context.Context, endpoint unrolledEndpoint) error {
 	log.Printf("[%s] Transforming data...\n", endpoint.EndpointName)
-	sanitizedData, err := endpoint.Transform(ctx, pm.GetTable)
+	sanitizedData, err := endpoint.Transform(ctx, pm.tables.GetTable)
 	if err != nil {
 		return fmt.Errorf("failed to sanitize json data: %w", err)
 	}
