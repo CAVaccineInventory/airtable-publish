@@ -1,9 +1,7 @@
 package generator
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
 	"log"
 
@@ -79,12 +77,5 @@ func Sanitize(ctx context.Context, jsonMap airtable.Table, tableName string) (*b
 	}
 	log.Printf("[%s] Cleaned %d elements.\n", tableName, len(jsonMap))
 
-	unsanitizedJSON, err := json.Marshal(jsonMap)
-	if err != nil {
-		return nil, err
-	}
-	buf := &bytes.Buffer{}
-	json.HTMLEscape(buf, unsanitizedJSON)
-
-	return buf, nil
+	return jsonMap.Serialize()
 }

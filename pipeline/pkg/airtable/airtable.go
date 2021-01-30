@@ -1,6 +1,7 @@
 package airtable
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -17,6 +18,16 @@ import (
 )
 
 type Table []map[string]interface{}
+
+func (jd *Table) Serialize() (*bytes.Buffer, error) {
+	unsanitizedJSON, err := json.Marshal(jd)
+	if err != nil {
+		return nil, err
+	}
+	buf := &bytes.Buffer{}
+	json.HTMLEscape(buf, unsanitizedJSON)
+	return buf, nil
+}
 
 func ObjectFromFile(ctx context.Context, tableName string, filePath string) (Table, error) {
 	ctx, span := beeline.StartSpan(ctx, "airtable.ObjectFromFile")
