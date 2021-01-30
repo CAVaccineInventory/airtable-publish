@@ -21,9 +21,6 @@ import (
 	"go.opencensus.io/tag"
 )
 
-const airtableSecretEnvKey = "AIRTABLE_KEY"
-const airtableID = "appy2N9zQSnFRPcN8"
-
 var tableNames = [...]string{"Locations", "Counties"}
 
 type Publisher struct {
