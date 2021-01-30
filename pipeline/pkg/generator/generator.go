@@ -1,13 +1,9 @@
 package generator
 
 import (
-	"bufio"
 	"context"
 	"fmt"
-	"io/ioutil"
 	"log"
-	"os"
-	"path"
 	"sync"
 	"time"
 
@@ -87,29 +83,10 @@ func (pm *PublishManager) publishActual(ctx context.Context, tableName string) e
 	}
 
 	log.Printf("[%s] Transforming data...\n", tableName)
-	sanitizedData, err := Sanitize(ctx, jsonMap, tableName)
+	sanitizedData, err := Transform(ctx, jsonMap, tableName)
 	if err != nil {
 		return fmt.Errorf("failed to sanitize json data: %w", err)
 	}
 
-	tempDir, err := ioutil.TempDir("", tableName)
-	defer os.RemoveAll(tempDir)
-	if err != nil {
-		return fmt.Errorf("failed to make temp directory: %w", err)
-	}
-	localFile := path.Join(tempDir, tableName+".json")
-	log.Printf("[%s] Getting ready to publish...\n", tableName)
-	f, err := os.Create(localFile)
-	if err != nil {
-		return fmt.Errorf("failed to create local file %s: %w", localFile, err)
-	}
-	defer f.Close()
-
-	w := bufio.NewWriter(f)
-	_, err = w.Write(sanitizedData.Bytes())
-	if err != nil {
-		return fmt.Errorf("failed to write sanitized json to %s: %w", localFile, err)
-	}
-
-	return storage.UploadToGCS(ctx, tableName, localFile)
+	return storage.UploadToGCS(ctx, tableName, sanitizedData)
 }

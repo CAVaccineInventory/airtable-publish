@@ -57,8 +57,8 @@ var allowKeys = map[string]map[string]int{
 	},
 }
 
-func Sanitize(ctx context.Context, jsonMap airtable.Table, tableName string) (*bytes.Buffer, error) {
-	ctx, span := beeline.StartSpan(ctx, "generator.Sanitize")
+func Transform(ctx context.Context, jsonMap airtable.Table, tableName string) (airtable.Table, error) {
+	ctx, span := beeline.StartSpan(ctx, "generator.Transform")
 	defer span.Send()
 	beeline.AddField(ctx, "table", tableName)
 
@@ -77,5 +77,5 @@ func Sanitize(ctx context.Context, jsonMap airtable.Table, tableName string) (*b
 	}
 	log.Printf("[%s] Cleaned %d elements.\n", tableName, len(jsonMap))
 
-	return jsonMap.Serialize()
+	return jsonMap, nil
 }

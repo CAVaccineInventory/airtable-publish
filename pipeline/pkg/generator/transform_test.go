@@ -24,7 +24,10 @@ func TestSanitize(t *testing.T) {
 		in, err := airtable.ObjectFromFile(ctx, name, tc.testDataFile)
 		require.NoError(t, err)
 
-		got, err := Sanitize(ctx, in, name)
+		out, err := Transform(ctx, in, name)
+		require.NoError(t, err)
+
+		got, err := out.Serialize()
 		require.NoError(t, err)
 
 		//  Basic sanity check
