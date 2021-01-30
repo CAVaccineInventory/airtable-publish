@@ -2,9 +2,12 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
+
+	beeline "github.com/honeycombio/beeline-go"
 )
 
 /**
@@ -55,7 +58,11 @@ var allowKeys = map[string]map[string]int{
 	},
 }
 
-func Sanitize(jsonMap []map[string]interface{}, tableName string) (*bytes.Buffer, error) {
+func Sanitize(ctx context.Context, jsonMap []map[string]interface{}, tableName string) (*bytes.Buffer, error) {
+	ctx, span := beeline.StartSpan(ctx, "sanitize")
+	defer span.Send()
+	beeline.AddField(ctx, "table", tableName)
+
 	keys, ok := allowKeys[tableName]
 
 	if !ok {

@@ -2,9 +2,11 @@ package main
 
 import (
 	"log"
+	"os"
 	"time"
 
 	"contrib.go.opencensus.io/exporter/stackdriver"
+	beeline "github.com/honeycombio/beeline-go"
 	"go.opencensus.io/stats"
 	"go.opencensus.io/stats/view"
 	"go.opencensus.io/tag"
@@ -20,6 +22,12 @@ var (
 	tablePublishLatency = stats.Float64(
 		"table_publish_latency_s",
 		"Latency to extract and publish each table",
+		stats.UnitSeconds,
+	)
+
+	airtableFetchLatency = stats.Float64(
+		"airtable_fetch_latency_s",
+		"Latency for the airtable-extract phase",
 		stats.UnitSeconds,
 	)
 
@@ -40,6 +48,11 @@ var (
 )
 
 func InitMetrics() func() {
+	beeline.Init(beeline.Config{
+		WriteKey:    os.Getenv("HONEYCOMB_KEY"),
+		Dataset:     "pipeline",
+		ServiceName: "pipeline",
+	})
 	err := view.Register(
 		&view.View{
 			Name:        totalPublishLatency.Name(),
@@ -56,6 +69,15 @@ func InitMetrics() func() {
 			Name:        tablePublishLatency.Name(),
 			Description: tablePublishLatency.Description(),
 			Measure:     tablePublishLatency,
+			Aggregation: view.Distribution(
+				7, 10, 13, 20, 26, 37, 73, 100, 145, 200,
+			),
+			TagKeys: []tag.Key{keyDeploy, keyTable},
+		},
+		&view.View{
+			Name:        airtableFetchLatency.Name(),
+			Description: airtableFetchLatency.Description(),
+			Measure:     airtableFetchLatency,
 			Aggregation: view.Distribution(
 				7, 10, 13, 20, 26, 37, 73, 100, 145, 200,
 			),
@@ -99,6 +121,8 @@ func InitMetrics() func() {
 	}
 
 	return func() {
+		beeline.Close()
+
 		exporter.Flush()
 		exporter.StopMetricsExporter()
 	}

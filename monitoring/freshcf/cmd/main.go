@@ -11,6 +11,9 @@ import (
 )
 
 func main() {
+	metricsCleanup := freshcf.InitMetrics()
+	defer metricsCleanup()
+
 	ctx := context.Background()
 	if err := funcframework.RegisterHTTPFunctionContext(ctx, "/", freshcf.CheckFreshness); err != nil {
 		log.Fatalf("funcframework.RegisterHTTPFunctionContext /: %v\n", err)
@@ -18,6 +21,10 @@ func main() {
 
 	if err := funcframework.RegisterHTTPFunctionContext(ctx, "/json", freshcf.ExportJSON); err != nil {
 		log.Fatalf("funcframework.RegisterHTTPFunctionContext /json: %v\n", err)
+	}
+
+	if err := funcframework.RegisterHTTPFunctionContext(ctx, "/push", freshcf.PushMetrics); err != nil {
+		log.Fatalf("funcframework.RegisterHTTPFunctionContext /push: %v\n", err)
 	}
 
 	// Use PORT environment variable, or default to 8080.

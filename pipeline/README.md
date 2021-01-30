@@ -84,36 +84,43 @@ To deploy staging to production:
    - [Logs](https://console.cloud.google.com/run/detail/us-west1/airtable-export-prod/logs?project=cavaccineinventory)
    - [Service URL itself](https://airtable-export-prod-patvwfu2ya-uw.a.run.app/healthcheck)
 
-## Invocation
-
-### Environment variables
-
-* AIRTABLE_KEY: airtable API key
-
-### Secrets
+## Secrets
 
 In production, these are fetched automatically from Google Cloud's Secrets Manager;
- - [airtable-key](https://console.cloud.google.com/security/secret-manager/secret/airtable-key/versions?project=cavaccineinventory)
- - [storage-upload-key](https://console.cloud.google.com/security/secret-manager/secret/storage-upload-key/versions?project=cavaccineinventory)
-
-In development:
- - You can look up your Airtable API key at https://airtable.com/account
- - Create Google Cloud service account key, with write access to the
-   storage bucket; you should mount the file into the Docker image if
-   you need to upload as part of your QA cycle.
-
+ - [airtable-key](https://console.cloud.google.com/security/secret-manager/secret/airtable-key)
+ - [honeycomb-key](https://console.cloud.google.com/security/secret-manager/secret/honeycomb-key)
+ - [storage-upload-key](https://console.cloud.google.com/security/secret-manager/secret/storage-upload-key)
 
 ## Development
 
-Example docker invocation:
+In development:
+ - You can look up your Airtable API key at https://airtable.com/account
+ - You can look up the testing Honeycomb API key at https://ui.honeycomb.io/teams/vaccinateca
+ - Set up your own service account for testing:
+    1. Create your own test workspace, if you do no have one already
+    2. Create a Google Cloud service account in there
+    3. Grant it "Monitoring Metric Writer" and "Storage Object Admin" rights.
+    4. Download the key:
+
+       ```
+       gcloud iam service-accounts keys create testing-key.json --iam-account example@example.iam.gserviceaccount.com
+       ```
+
+ - Choose a unique bucket name to use
+ - Build and run in docker:
 
 ```
-docker build -t airtable-export
+docker build -t airtable-export .
 
 docker run \
   -e AIRTABLE_KEY=<key> \
-  -v <gcloud storage key>:/gcloud-key.json \
+  -e TESTING_BUCKET=<bucketname> \
+  -v "$(pwd)/testing-key.json:/testing-key.json" \
+  -p 8080:8080
   --rm -it airtable-export
+
+# In a separate shell:
+curl -vX POST http://localhost:8080/publish
 ```
 
 ## Testing

@@ -7,10 +7,16 @@ import (
 	"os"
 	"os/exec"
 	"path"
+
+	beeline "github.com/honeycombio/beeline-go"
 )
 
 // fetchAirtableTable dumps a a table from Airtable as JSON on disk.
 func fetchAirtableTable(ctx context.Context, tempDir string, tableName string) (string, error) {
+	ctx, span := beeline.StartSpan(ctx, "fetch-airtable-table")
+	defer span.Send()
+	beeline.AddField(ctx, "table", tableName)
+
 	airtableSecret := os.Getenv(airtableSecretEnvKey)
 
 	// TODO: consider doing this in Go directly.
