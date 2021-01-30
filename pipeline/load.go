@@ -6,7 +6,7 @@ import (
 	"log"
 	"os/exec"
 
-	"github.com/CAVaccineInventory/airtable-export/pipeline/deploys"
+	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/deploys"
 	beeline "github.com/honeycombio/beeline-go"
 )
 
