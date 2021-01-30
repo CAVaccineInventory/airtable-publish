@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/deploys"
+	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/endpoints"
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/generator"
 	beeline "github.com/honeycombio/beeline-go"
 	"github.com/honeycombio/beeline-go/trace"
@@ -75,7 +76,7 @@ func (p *Publisher) syncAndPublishRequest(w http.ResponseWriter, r *http.Request
 	defer cxl()
 
 	pm := generator.NewPublishManager()
-	p.lastPublishSucceeded = pm.PublishAll(ctx, tableNames)
+	p.lastPublishSucceeded = pm.PublishAll(ctx, tableNames, endpoints.AllEndpoints)
 	if !p.lastPublishSucceeded {
 		w.WriteHeader(http.StatusInternalServerError)
 	}

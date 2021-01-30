@@ -7,10 +7,11 @@ import (
 	"sync"
 	"time"
 
+	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/airtable"
+	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/deploys"
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/storage"
 	"github.com/honeycombio/beeline-go"
 	"go.opencensus.io/stats"
-	"go.opencensus.io/tag"
 )
 
 type PublishManager struct {
@@ -21,7 +22,16 @@ func NewPublishManager() *PublishManager {
 	return &PublishManager{}
 }
 
-func (pm *PublishManager) PublishAll(ctx context.Context, tableNames []string) bool {
+type TableFetchFunc func(context.Context, string) (airtable.Table, error)
+type EndpointFunc func(context.Context, TableFetchFunc) (airtable.Table, error)
+type EndpointMap map[string]EndpointFunc
+
+type unrolledEndpoint struct {
+	EndpointName string
+	Transform    EndpointFunc
+}
+
+func (pm *PublishManager) PublishAll(ctx context.Context, tableNames []string, endpoints EndpointMap) bool {
 	ctx, span := beeline.StartSpan(ctx, "generator.Publish")
 	defer span.Send()
 
@@ -29,15 +39,20 @@ func (pm *PublishManager) PublishAll(ctx context.Context, tableNames []string) b
 
 	startTime := time.Now()
 	wg := sync.WaitGroup{}
-	publishOk := make(chan bool, len(tableNames)) // Add a buffer large enough to hold all results.
-	for _, tableName := range tableNames {
+	publishOk := make(chan bool, len(endpoints))
+	for endpointName, transform := range endpoints {
 		wg.Add(1)
-		go func(tableName string) {
+
+		endpoint := unrolledEndpoint{
+			EndpointName: endpointName,
+			Transform:    transform,
+		}
+		go func(endpoint unrolledEndpoint) {
 			defer wg.Done()
 
-			publishErr := pm.Publish(ctx, tableName)
+			publishErr := pm.Publish(ctx, endpoint)
 			publishOk <- publishErr == nil
-		}(tableName)
+		}(endpoint)
 	}
 
 	log.Println("Waiting for all tables to finish publishing...")
@@ -54,39 +69,39 @@ func (pm *PublishManager) PublishAll(ctx context.Context, tableNames []string) b
 	return allPublishOk
 }
 
-func (pm *PublishManager) Publish(ctx context.Context, tableName string) error {
+func (pm *PublishManager) Publish(ctx context.Context, endpoint unrolledEndpoint) error {
 	ctx, span := beeline.StartSpan(ctx, "generator.Publish")
 	defer span.Send()
-	beeline.AddField(ctx, "table", tableName)
+	beeline.AddField(ctx, "endpoint", endpoint.EndpointName)
 
 	tableStartTime := time.Now()
-	ctx, _ = tag.New(ctx, tag.Insert(KeyTable, tableName))
 
-	err := pm.publishActual(ctx, tableName)
+	err := pm.publishActual(ctx, endpoint)
 	if err == nil {
 		stats.Record(ctx, TablePublishSuccesses.M(1))
 		beeline.AddField(ctx, "success", 1)
-		log.Printf("[%s] Successfully published\n", tableName)
+		log.Printf("[%s] Successfully published\n", endpoint.EndpointName)
 	} else {
 		stats.Record(ctx, TablePublishFailures.M(1))
 		beeline.AddField(ctx, "failure", 1)
-		log.Printf("[%s] Failed to export and publish: %v\n", tableName, err)
+		log.Printf("[%s] Failed to export and publish: %v\n", endpoint.EndpointName, err)
 	}
 	stats.Record(ctx, TablePublishLatency.M(time.Since(tableStartTime).Seconds()))
 	return err
 }
 
-func (pm *PublishManager) publishActual(ctx context.Context, tableName string) error {
-	jsonMap, err := pm.GetTable(ctx, tableName)
-	if err != nil {
-		return fmt.Errorf("failed to fetch json data: %w", err)
-	}
-
-	log.Printf("[%s] Transforming data...\n", tableName)
-	sanitizedData, err := Transform(ctx, jsonMap, tableName)
+func (pm *PublishManager) publishActual(ctx context.Context, endpoint unrolledEndpoint) error {
+	log.Printf("[%s] Transforming data...\n", endpoint.EndpointName)
+	sanitizedData, err := endpoint.Transform(ctx, pm.GetTable)
 	if err != nil {
 		return fmt.Errorf("failed to sanitize json data: %w", err)
 	}
 
-	return storage.UploadToGCS(ctx, tableName, sanitizedData)
+	bucket, err := deploys.GetExportBucket()
+	if err != nil {
+		return fmt.Errorf("failed to get destination bucket: %w", err)
+	}
+	destinationFile := bucket + "/" + endpoint.EndpointName + ".json"
+	log.Printf("[%s] Publishing to %s...\n", endpoint.EndpointName, destinationFile)
+	return storage.UploadToGCS(ctx, destinationFile, sanitizedData)
 }

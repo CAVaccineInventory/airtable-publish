@@ -1,12 +1,12 @@
-package generator
+package endpoints
 
 import (
 	"context"
 	"fmt"
-	"log"
 
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/airtable"
-	beeline "github.com/honeycombio/beeline-go"
+	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/generator"
+	"github.com/honeycombio/beeline-go"
 )
 
 /**
@@ -29,7 +29,7 @@ Okay, for those doing exporter stuff, for the following fields: "Name", "Address
  - perhaps we should give some of these better names and stick that in Locations-v2.json
 */
 
-var allowKeys = map[string]map[string]int{
+var legacyAllowKeys = map[string]map[string]int{
 	// Extracted from data.js using "get_required_fields_for_site.py".
 	"Locations": {
 		"Address":                             1,
@@ -57,25 +57,26 @@ var allowKeys = map[string]map[string]int{
 	},
 }
 
-func Transform(ctx context.Context, jsonMap airtable.Table, tableName string) (airtable.Table, error) {
-	ctx, span := beeline.StartSpan(ctx, "generator.Transform")
+func GenerateV1Locations(ctx context.Context, getTable generator.TableFetchFunc) (airtable.Table, error) {
+	ctx, span := beeline.StartSpan(ctx, "generator.GenerateV1Locations")
 	defer span.Send()
-	beeline.AddField(ctx, "table", tableName)
 
-	keys, ok := allowKeys[tableName]
-
-	if !ok {
-		return nil, fmt.Errorf("ERROR: unsupported kind of export: %s", tableName)
+	jsonMap, err := getTable(ctx, "Locations")
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch Locations table: %w", err)
 	}
+	RemoveDisallowedFields(jsonMap, legacyAllowKeys["Locations"])
+	return jsonMap, nil
+}
 
-	for i := range jsonMap {
-		for k := range jsonMap[i] {
-			if _, found := keys[k]; !found {
-				delete(jsonMap[i], k)
-			}
-		}
+func GenerateV1Counties(ctx context.Context, getTable generator.TableFetchFunc) (airtable.Table, error) {
+	ctx, span := beeline.StartSpan(ctx, "generator.GenerateV1Counties")
+	defer span.Send()
+
+	jsonMap, err := getTable(ctx, "Counties")
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch Locations table: %w", err)
 	}
-	log.Printf("[%s] Cleaned %d elements.\n", tableName, len(jsonMap))
-
+	RemoveDisallowedFields(jsonMap, legacyAllowKeys["Counties"])
 	return jsonMap, nil
 }

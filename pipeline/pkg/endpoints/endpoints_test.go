@@ -1,4 +1,4 @@
-package generator
+package endpoints
 
 import (
 	"bytes"
@@ -21,10 +21,10 @@ func TestSanitize(t *testing.T) {
 
 	ctx := context.Background()
 	for name, tc := range tests {
-		in, err := airtable.ObjectFromFile(ctx, name, tc.testDataFile)
-		require.NoError(t, err)
-
-		out, err := Transform(ctx, in, name)
+		getData := func(ctx context.Context, tableName string) (airtable.Table, error) {
+			return airtable.ObjectFromFile(ctx, name, tc.testDataFile)
+		}
+		out, err := AllEndpoints[name](ctx, getData)
 		require.NoError(t, err)
 
 		got, err := out.Serialize()
