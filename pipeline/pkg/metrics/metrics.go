@@ -1,4 +1,4 @@
-package main
+package metrics
 
 import (
 	"log"
@@ -14,10 +14,10 @@ import (
 )
 
 var (
-	keyDeploy, _ = tag.NewKey("deploy")
+	KeyDeploy, _ = tag.NewKey("deploy")
 )
 
-func InitMetrics() func() {
+func Init() func() {
 	beeline.Init(beeline.Config{
 		WriteKey:    os.Getenv("HONEYCOMB_KEY"),
 		Dataset:     "pipeline",
@@ -33,7 +33,7 @@ func InitMetrics() func() {
 			Aggregation: view.Distribution(
 				30, 40, 50, 60, 75, 100, 120, 150, 185, 230, 290,
 			),
-			TagKeys: []tag.Key{keyDeploy},
+			TagKeys: []tag.Key{KeyDeploy},
 		},
 		&view.View{
 			Name:        generator.TablePublishLatency.Name(),
@@ -42,7 +42,7 @@ func InitMetrics() func() {
 			Aggregation: view.Distribution(
 				7, 10, 13, 20, 26, 37, 73, 100, 145, 200,
 			),
-			TagKeys: []tag.Key{keyDeploy, generator.KeyTable},
+			TagKeys: []tag.Key{KeyDeploy, generator.KeyTable},
 		},
 		&view.View{
 			Name:        airtable.FetchLatency.Name(),
@@ -51,28 +51,28 @@ func InitMetrics() func() {
 			Aggregation: view.Distribution(
 				7, 10, 13, 20, 26, 37, 73, 100, 145, 200,
 			),
-			TagKeys: []tag.Key{keyDeploy, generator.KeyTable},
+			TagKeys: []tag.Key{KeyDeploy, generator.KeyTable},
 		},
 		&view.View{
 			Name:        "table_publish_count",
 			Description: "Total number of publishes by table",
 			Measure:     generator.TablePublishLatency,
 			Aggregation: view.Count(),
-			TagKeys:     []tag.Key{keyDeploy, generator.KeyTable},
+			TagKeys:     []tag.Key{KeyDeploy, generator.KeyTable},
 		},
 		&view.View{
 			Name:        generator.TablePublishSuccesses.Name(),
 			Description: generator.TablePublishSuccesses.Description(),
 			Measure:     generator.TablePublishSuccesses,
 			Aggregation: view.Count(),
-			TagKeys:     []tag.Key{keyDeploy, generator.KeyTable},
+			TagKeys:     []tag.Key{KeyDeploy, generator.KeyTable},
 		},
 		&view.View{
 			Name:        generator.TablePublishFailures.Name(),
 			Description: generator.TablePublishFailures.Description(),
 			Measure:     generator.TablePublishFailures,
 			Aggregation: view.Count(),
-			TagKeys:     []tag.Key{keyDeploy, generator.KeyTable},
+			TagKeys:     []tag.Key{KeyDeploy, generator.KeyTable},
 		},
 	)
 	if err != nil {

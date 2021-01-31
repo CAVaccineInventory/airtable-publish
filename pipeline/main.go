@@ -12,6 +12,7 @@ import (
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/deploys"
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/endpoints"
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/generator"
+	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/metrics"
 	beeline "github.com/honeycombio/beeline-go"
 	"github.com/honeycombio/beeline-go/trace"
 	"github.com/honeycombio/beeline-go/wrappers/hnynethttp"
@@ -35,7 +36,7 @@ func main() {
 
 // Run loops forever, publishing data on a regular basis.
 func (p *Publisher) Run() {
-	metricsCleanup := InitMetrics()
+	metricsCleanup := metrics.Init()
 	defer metricsCleanup()
 
 	deploy, err := deploys.GetDeploy()
@@ -59,7 +60,7 @@ func (p *Publisher) syncAndPublishRequest(w http.ResponseWriter, r *http.Request
 	span.AddField("handler.name", "syncAndPublishRequest")
 	beeline.AddFieldToTrace(ctx, "deploy", string(p.deploy))
 
-	ctx, _ = tag.New(ctx, tag.Insert(keyDeploy, string(p.deploy)))
+	ctx, _ = tag.New(ctx, tag.Insert(metrics.KeyDeploy, string(p.deploy)))
 
 	if r.Method != http.MethodPost {
 		w.WriteHeader(http.StatusMethodNotAllowed)
