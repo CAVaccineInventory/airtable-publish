@@ -7,7 +7,7 @@ COPY pipeline/go.* /
 RUN go mod download
 
 COPY pipeline/ /
-RUN go build
+RUN go build -o server ./cmd/server/main.go
 
 COPY entrypoint.sh /
 RUN chmod +x entrypoint.sh

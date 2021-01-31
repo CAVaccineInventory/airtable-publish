@@ -25,4 +25,4 @@ elif [ -d /testing-key.json ]; then
 fi
 
 echo "Starting exporter service..."
-./pipeline
+./server
