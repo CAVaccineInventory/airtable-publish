@@ -13,14 +13,14 @@ import (
 )
 
 type FetchManager struct {
-	tableData map[string]airtable.Table
+	tableData map[string]airtable.TableContent
 }
 
 func (a *FetchManager) FetchAll(ctx context.Context, tableNames []string) {
 	ctx, span := beeline.StartSpan(ctx, "generator.FetchAll")
 	defer span.Send()
 
-	a.tableData = make(map[string]airtable.Table)
+	a.tableData = make(map[string]airtable.TableContent)
 
 	wg := sync.WaitGroup{}
 	for _, tableName := range tableNames {
@@ -48,7 +48,7 @@ func (a *FetchManager) FetchAll(ctx context.Context, tableNames []string) {
 	log.Println("All tables finished fetching!")
 }
 
-func (a *FetchManager) GetTable(ctx context.Context, tableName string) (airtable.Table, error) {
+func (a *FetchManager) GetTable(ctx context.Context, tableName string) (airtable.TableContent, error) {
 	ctx, span := beeline.StartSpan(ctx, "generator.FetchTable")
 	defer span.Send()
 	beeline.AddField(ctx, "table", tableName)

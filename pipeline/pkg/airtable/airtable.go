@@ -17,9 +17,9 @@ import (
 	"go.opencensus.io/stats"
 )
 
-type Table []map[string]interface{}
+type TableContent []map[string]interface{}
 
-func (jd *Table) Serialize() (*bytes.Buffer, error) {
+func (jd *TableContent) Serialize() (*bytes.Buffer, error) {
 	unsanitizedJSON, err := json.Marshal(jd)
 	if err != nil {
 		return nil, err
@@ -29,7 +29,7 @@ func (jd *Table) Serialize() (*bytes.Buffer, error) {
 	return buf, nil
 }
 
-func ObjectFromFile(ctx context.Context, tableName string, filePath string) (Table, error) {
+func ObjectFromFile(ctx context.Context, tableName string, filePath string) (TableContent, error) {
 	ctx, span := beeline.StartSpan(ctx, "airtable.ObjectFromFile")
 	defer span.Send()
 	beeline.AddField(ctx, "table", tableName)
@@ -47,7 +47,7 @@ func ObjectFromFile(ctx context.Context, tableName string, filePath string) (Tab
 
 // Download downloads a table from Airtable, and returns the
 // unmarshaled data from it.
-func Download(ctx context.Context, tableName string) (Table, error) {
+func Download(ctx context.Context, tableName string) (TableContent, error) {
 	ctx, span := beeline.StartSpan(ctx, "airtable.Download")
 	defer span.Send()
 	beeline.AddField(ctx, "table", tableName)

@@ -57,7 +57,7 @@ var legacyAllowKeys = map[string]map[string]int{
 	},
 }
 
-func GenerateV1Locations(ctx context.Context, getTable generator.TableFetchFunc) (airtable.Table, error) {
+func GenerateV1Locations(ctx context.Context, getTable generator.TableFetchFunc) (airtable.TableContent, error) {
 	ctx, span := beeline.StartSpan(ctx, "generator.GenerateV1Locations")
 	defer span.Send()
 
@@ -69,7 +69,7 @@ func GenerateV1Locations(ctx context.Context, getTable generator.TableFetchFunc)
 	return jsonMap, nil
 }
 
-func GenerateV1Counties(ctx context.Context, getTable generator.TableFetchFunc) (airtable.Table, error) {
+func GenerateV1Counties(ctx context.Context, getTable generator.TableFetchFunc) (airtable.TableContent, error) {
 	ctx, span := beeline.StartSpan(ctx, "generator.GenerateV1Counties")
 	defer span.Send()
 

@@ -22,8 +22,8 @@ func NewPublishManager() *PublishManager {
 	return &PublishManager{}
 }
 
-type TableFetchFunc func(context.Context, string) (airtable.Table, error)
-type EndpointFunc func(context.Context, TableFetchFunc) (airtable.Table, error)
+type TableFetchFunc func(context.Context, string) (airtable.TableContent, error)
+type EndpointFunc func(context.Context, TableFetchFunc) (airtable.TableContent, error)
 type EndpointMap map[string]EndpointFunc
 
 type unrolledEndpoint struct {

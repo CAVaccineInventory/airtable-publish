@@ -21,7 +21,7 @@ func TestSanitize(t *testing.T) {
 
 	ctx := context.Background()
 	for name, tc := range tests {
-		getData := func(ctx context.Context, tableName string) (airtable.Table, error) {
+		getData := func(ctx context.Context, tableName string) (airtable.TableContent, error) {
 			return airtable.ObjectFromFile(ctx, name, tc.testDataFile)
 		}
 		out, err := AllEndpoints[name](ctx, getData)
@@ -35,7 +35,7 @@ func TestSanitize(t *testing.T) {
 			t.Errorf("result contains @gmail.com")
 		}
 
-		locs := make(airtable.Table, 0)
+		locs := make(airtable.TableContent, 0)
 		err = json.Unmarshal(got.Bytes(), &locs)
 		require.NoError(t, err)
 

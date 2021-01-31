@@ -14,7 +14,7 @@ import (
 	beeline "github.com/honeycombio/beeline-go"
 )
 
-func UploadToGCS(ctx context.Context, destinationFile string, transformedData airtable.Table) error {
+func UploadToGCS(ctx context.Context, destinationFile string, transformedData airtable.TableContent) error {
 	ctx, span := beeline.StartSpan(ctx, "storage.UploadToGCS")
 	defer span.Send()
 	beeline.AddField(ctx, "destinationFile", destinationFile)
