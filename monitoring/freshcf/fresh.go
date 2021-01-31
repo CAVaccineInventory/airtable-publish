@@ -32,6 +32,8 @@ func getURLStats(url string) (ExportedJSONFileStats, error) {
 	if err != nil {
 		return output, fmt.Errorf("fetching: %q: %w", url, err)
 	}
+	// Always clean up the response body.
+	defer resp.Body.Close()
 
 	// First, check if we got a successful HTTP response. If not,
 	// Last-Modified is not valid/useful.
@@ -49,7 +51,6 @@ func getURLStats(url string) (ExportedJSONFileStats, error) {
 	}
 
 	// get the contents.
-	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return output, fmt.Errorf("reading: %q: %w", url, err)
