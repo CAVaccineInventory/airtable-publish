@@ -62,6 +62,7 @@ func (p *Publisher) syncAndPublishRequest(w http.ResponseWriter, r *http.Request
 
 	if r.Method != http.MethodPost {
 		w.WriteHeader(http.StatusMethodNotAllowed)
+		return
 	}
 	log.Println("Preparing to fetch and publish...")
 
