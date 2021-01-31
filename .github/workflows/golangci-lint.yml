@@ -10,9 +10,6 @@ on:
 jobs:
   golangci:
     name: lint
-    strategy:
-      matrix:
-        dir: ["pipeline", "monitoring/freshcf"]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -20,7 +17,6 @@ jobs:
         uses: golangci/golangci-lint-action@v2
         with:
           version: v1.35
-          working-directory: ${{ matrix.dir }}
           args: -E golint,goimports,misspell
           # Optional: show only new issues if it's a pull request. The default value is `false`.
           # only-new-issues: true
