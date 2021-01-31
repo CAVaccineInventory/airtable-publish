@@ -19,8 +19,6 @@ import (
 	"go.opencensus.io/tag"
 )
 
-var tableNames = []string{"Locations", "Counties"}
-
 type Publisher struct {
 	lastPublishSucceeded bool // Make this thread safe if nontrivial multithreading comes up.
 	deploy               deploys.DeployType
@@ -77,7 +75,7 @@ func (p *Publisher) syncAndPublishRequest(w http.ResponseWriter, r *http.Request
 	defer cxl()
 
 	pm := generator.NewPublishManager()
-	p.lastPublishSucceeded = pm.PublishAll(ctx, tableNames, endpoints.AllEndpoints)
+	p.lastPublishSucceeded = pm.PublishAll(ctx, endpoints.AllEndpoints)
 	if !p.lastPublishSucceeded {
 		w.WriteHeader(http.StatusInternalServerError)
 	}

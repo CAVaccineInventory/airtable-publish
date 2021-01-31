@@ -33,7 +33,7 @@ type unrolledEndpoint struct {
 	Transform    EndpointFunc
 }
 
-func (pm *PublishManager) PublishAll(ctx context.Context, tableNames []string, endpoints EndpointMap) bool {
+func (pm *PublishManager) PublishAll(ctx context.Context, endpoints EndpointMap) bool {
 	ctx, span := beeline.StartSpan(ctx, "generator.Publish")
 	defer span.Send()
 
