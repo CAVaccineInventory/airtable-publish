@@ -45,10 +45,10 @@ func UploadToGCS(ctx context.Context, destinationFile string, transformedData ai
 
 	// Update the README.md for new latencies if you adjust the max-age.
 	cmd := exec.CommandContext(ctx, "gsutil", "-h", "Cache-Control:public,max-age=120", "cp", "-Z", localFile, destinationFile)
-	output, uploadErr := cmd.CombinedOutput()
-	if uploadErr != nil {
+	output, err := cmd.CombinedOutput()
+	if err != nil {
 		log.Println(string(output))
-		return fmt.Errorf("failed to upload json file %s to %s: %w", localFile, destinationFile, uploadErr)
+		return fmt.Errorf("failed to upload json file %s to %s: %w", localFile, destinationFile, err)
 	}
 	return nil
 }

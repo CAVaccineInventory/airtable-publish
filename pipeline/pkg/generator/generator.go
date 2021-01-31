@@ -50,8 +50,8 @@ func (pm *PublishManager) PublishAll(ctx context.Context, tableNames []string, e
 		go func(endpoint unrolledEndpoint) {
 			defer wg.Done()
 
-			publishErr := pm.Publish(ctx, endpoint)
-			publishOk <- publishErr == nil
+			err := pm.Publish(ctx, endpoint)
+			publishOk <- err == nil
 		}(endpoint)
 	}
 
