@@ -18,7 +18,7 @@ new container and does other magic.
 ## Local Development
 
 ``` shell
-go run cmd/main.go
+go run cmd/server/main.go
 curl http://localhost:8080/
 ```
 
