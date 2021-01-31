@@ -1,14 +1,13 @@
 package storage
 
 import (
-	"bufio"
 	"context"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
-	"path"
+	"path/filepath"
 
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/airtable"
 	beeline "github.com/honeycombio/beeline-go"
@@ -19,24 +18,19 @@ func UploadToGCS(ctx context.Context, destinationFile string, transformedData ai
 	defer span.Send()
 	beeline.AddField(ctx, "destinationFile", destinationFile)
 
+	serializedData, err := transformedData.Serialize()
+	if err != nil {
+		return fmt.Errorf("failed to write serialized json: %w", err)
+	}
+
 	tempDir, err := ioutil.TempDir("", "gcs-upload")
 	defer os.RemoveAll(tempDir)
 	if err != nil {
 		return fmt.Errorf("failed to make temp directory: %w", err)
 	}
-	localFile := path.Join(tempDir, "output.json")
-	f, err := os.Create(localFile)
-	if err != nil {
-		return fmt.Errorf("failed to create local file %s: %w", localFile, err)
-	}
-	defer f.Close()
+	localFile := filepath.Join(tempDir, "output.json")
 
-	w := bufio.NewWriter(f)
-	serializedData, err := transformedData.Serialize()
-	if err != nil {
-		return fmt.Errorf("failed to write serialized json: %w", err)
-	}
-	_, err = w.Write(serializedData.Bytes())
+	err = ioutil.WriteFile(localFile, serializedData.Bytes(), 0600)
 	if err != nil {
 		return fmt.Errorf("failed to write sanitized json to %s: %w", localFile, err)
 	}
