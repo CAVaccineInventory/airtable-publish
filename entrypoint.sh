@@ -24,5 +24,10 @@ elif [ -d /testing-key.json ]; then
 	exit 1
 fi
 
-echo "Starting exporter service..."
-./server
+COMMAND="${1:-server}"
+
+if [ ! -x "/$COMMAND" ]; then
+	echo "Unknown command: $COMMAND"
+	exit 1
+fi
+exec "/$COMMAND"

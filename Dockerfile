@@ -8,6 +8,7 @@ RUN go mod download
 
 COPY pipeline/ /
 RUN go build -o server ./cmd/server/main.go
+RUN go build -o once   ./cmd/once/main.go
 
 COPY entrypoint.sh /
 RUN chmod +x entrypoint.sh
