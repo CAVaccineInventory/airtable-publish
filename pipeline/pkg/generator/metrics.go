@@ -30,5 +30,6 @@ var (
 		stats.UnitDimensionless,
 	)
 
-	KeyTable, _ = tag.NewKey("table")
+	KeyTable, _    = tag.NewKey("table")
+	KeyEndpoint, _ = tag.NewKey("endpoint")
 )

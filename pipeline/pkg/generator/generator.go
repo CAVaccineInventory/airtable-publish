@@ -12,6 +12,7 @@ import (
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/storage"
 	"github.com/honeycombio/beeline-go"
 	"go.opencensus.io/stats"
+	"go.opencensus.io/tag"
 )
 
 type PublishManager struct {
@@ -75,6 +76,7 @@ func (pm *PublishManager) Publish(ctx context.Context, endpoint unrolledEndpoint
 	beeline.AddField(ctx, "endpoint", endpoint.EndpointName)
 
 	tableStartTime := time.Now()
+	ctx, _ = tag.New(ctx, tag.Insert(KeyEndpoint, endpoint.EndpointName))
 
 	err := pm.publishActual(ctx, endpoint)
 	if err == nil {
