@@ -15,13 +15,24 @@ import (
 	"go.opencensus.io/tag"
 )
 
+type StorageWriter func(ctx context.Context, destinationFile string, transformedData airtable.TableContent) error
+
 type PublishManager struct {
 	tables *airtable.Tables
+	store  StorageWriter
 }
 
 func NewPublishManager() *PublishManager {
 	return &PublishManager{
 		tables: airtable.NewTables(),
+		store:  storage.UploadToGCS,
+	}
+}
+
+func NewDebugPublishManager() *PublishManager {
+	return &PublishManager{
+		tables: airtable.NewTables(),
+		store:  storage.DebugToSTDERR,
 	}
 }
 
@@ -105,5 +116,5 @@ func (pm *PublishManager) publishActual(ctx context.Context, endpoint unrolledEn
 	}
 	destinationFile := bucket + "/" + endpoint.EndpointName + ".json"
 	log.Printf("[%s] Publishing to %s...\n", endpoint.EndpointName, destinationFile)
-	return storage.UploadToGCS(ctx, destinationFile, sanitizedData)
+	return pm.store(ctx, destinationFile, sanitizedData)
 }
