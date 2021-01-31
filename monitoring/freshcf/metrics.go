@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"sync"
 	"time"
 
 	"github.com/CAVaccineInventory/airtable-export/monitoring/freshcf/pkg/deploys"
@@ -46,7 +47,11 @@ var (
 
 var tableNames = [...]string{"Locations", "Counties"}
 
+var initOnce sync.Once
+
 func InitMetrics() func() {
+	log.Printf("Initializing metrics library")
+
 	err := view.Register(
 		&view.View{
 			Name:        lastModified.Name(),
@@ -99,6 +104,16 @@ func InitMetrics() func() {
 }
 
 func PushMetrics(w http.ResponseWriter, r *http.Request) {
+	// NOTE: when run in cloud functions main.go is not used and
+	// this function is called directly. So instead of
+	// initializing at startup, we initialize the metrics the
+	// first time we get a request. This also means there is no
+	// good time to call the cleanup function.
+	initOnce.Do(func() {
+		_ = InitMetrics()
+
+	})
+
 	deploy, err := deploys.GetDeploy()
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)

@@ -11,9 +11,6 @@ import (
 )
 
 func main() {
-	metricsCleanup := freshcf.InitMetrics()
-	defer metricsCleanup()
-
 	ctx := context.Background()
 	if err := funcframework.RegisterHTTPFunctionContext(ctx, "/", freshcf.CheckFreshness); err != nil {
 		log.Fatalf("funcframework.RegisterHTTPFunctionContext /: %v\n", err)
