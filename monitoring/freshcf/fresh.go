@@ -12,7 +12,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/CAVaccineInventory/airtable-export/monitoring/freshcf/pkg/deploys"
+	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/deploys"
 )
 
 type ExportedJSONFileStats struct {

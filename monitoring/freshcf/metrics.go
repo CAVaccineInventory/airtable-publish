@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/CAVaccineInventory/airtable-export/monitoring/freshcf/pkg/deploys"
+	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/deploys"
 
 	"contrib.go.opencensus.io/exporter/stackdriver"
 	"go.opencensus.io/stats"
