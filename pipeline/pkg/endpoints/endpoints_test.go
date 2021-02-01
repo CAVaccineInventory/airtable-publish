@@ -24,7 +24,9 @@ func TestSanitize(t *testing.T) {
 		getData := func(ctx context.Context, tableName string) (airtable.TableContent, error) {
 			return airtable.ObjectFromFile(ctx, name, tc.testDataFile)
 		}
-		out, err := AllEndpoints[name](ctx, getData)
+
+		fakeTables := airtable.NewFakeTables(getData)
+		out, err := AllEndpoints[name](ctx, fakeTables)
 		require.NoError(t, err)
 
 		got, err := out.Serialize()

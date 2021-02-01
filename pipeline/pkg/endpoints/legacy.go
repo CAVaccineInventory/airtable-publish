@@ -7,7 +7,6 @@ import (
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/filter"
 
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/airtable"
-	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/generator"
 	"github.com/honeycombio/beeline-go"
 )
 
@@ -31,11 +30,11 @@ Okay, for those doing exporter stuff, for the following fields: "Name", "Address
  - perhaps we should give some of these better names and stick that in Locations-v2.json
 */
 
-func GenerateV1Locations(ctx context.Context, getTable generator.TableFetchFunc) (airtable.TableContent, error) {
+func GenerateV1Locations(ctx context.Context, tables *airtable.Tables) (airtable.TableContent, error) {
 	ctx, span := beeline.StartSpan(ctx, "generator.GenerateV1Locations")
 	defer span.Send()
 
-	rawTable, err := getTable(ctx, "Locations")
+	rawTable, err := tables.GetTable(ctx, "Locations")
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch Locations table: %w", err)
 	}
@@ -58,11 +57,11 @@ func GenerateV1Locations(ctx context.Context, getTable generator.TableFetchFunc)
 	return filteredTable, nil
 }
 
-func GenerateV1Counties(ctx context.Context, getTable generator.TableFetchFunc) (airtable.TableContent, error) {
+func GenerateV1Counties(ctx context.Context, tables *airtable.Tables) (airtable.TableContent, error) {
 	ctx, span := beeline.StartSpan(ctx, "generator.GenerateV1Counties")
 	defer span.Send()
 
-	rawTable, err := getTable(ctx, "Counties")
+	rawTable, err := tables.GetTable(ctx, "Counties")
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch Counties table: %w", err)
 	}

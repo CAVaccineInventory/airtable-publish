@@ -37,7 +37,7 @@ func NewDebugPublishManager() *PublishManager {
 }
 
 type TableFetchFunc func(context.Context, string) (airtable.TableContent, error)
-type EndpointFunc func(context.Context, TableFetchFunc) (airtable.TableContent, error)
+type EndpointFunc func(context.Context, *airtable.Tables) (airtable.TableContent, error)
 type EndpointMap map[string]EndpointFunc
 
 type unrolledEndpoint struct {
@@ -46,12 +46,13 @@ type unrolledEndpoint struct {
 }
 
 func (pm *PublishManager) PublishAll(ctx context.Context, endpoints EndpointMap) bool {
-	ctx, span := beeline.StartSpan(ctx, "generator.Publish")
+	ctx, span := beeline.StartSpan(ctx, "generator.PublishEndpoint")
 	defer span.Send()
 
 	startTime := time.Now()
 	wg := sync.WaitGroup{}
 	publishOk := make(chan bool, len(endpoints))
+	sharedTablesCache := airtable.NewTables()
 	for endpointName, transform := range endpoints {
 		wg.Add(1)
 
@@ -62,7 +63,7 @@ func (pm *PublishManager) PublishAll(ctx context.Context, endpoints EndpointMap)
 		go func(endpoint unrolledEndpoint) {
 			defer wg.Done()
 
-			err := pm.Publish(ctx, endpoint)
+			err := pm.PublishEndpoint(ctx, sharedTablesCache, endpoint)
 			publishOk <- err == nil
 		}(endpoint)
 	}
@@ -81,15 +82,15 @@ func (pm *PublishManager) PublishAll(ctx context.Context, endpoints EndpointMap)
 	return allPublishOk
 }
 
-func (pm *PublishManager) Publish(ctx context.Context, endpoint unrolledEndpoint) error {
-	ctx, span := beeline.StartSpan(ctx, "generator.Publish")
+func (pm *PublishManager) PublishEndpoint(ctx context.Context, tables *airtable.Tables, endpoint unrolledEndpoint) error {
+	ctx, span := beeline.StartSpan(ctx, "generator.PublishEndpoint")
 	defer span.Send()
 	beeline.AddField(ctx, "endpoint", endpoint.EndpointName)
 
 	tableStartTime := time.Now()
 	ctx, _ = tag.New(ctx, tag.Insert(KeyEndpoint, endpoint.EndpointName))
 
-	err := pm.publishActual(ctx, endpoint)
+	err := pm.publishEndpointActual(ctx, tables, endpoint)
 	if err == nil {
 		stats.Record(ctx, TablePublishSuccesses.M(1))
 		beeline.AddField(ctx, "success", 1)
@@ -103,9 +104,9 @@ func (pm *PublishManager) Publish(ctx context.Context, endpoint unrolledEndpoint
 	return err
 }
 
-func (pm *PublishManager) publishActual(ctx context.Context, endpoint unrolledEndpoint) error {
+func (pm *PublishManager) publishEndpointActual(ctx context.Context, tables *airtable.Tables, endpoint unrolledEndpoint) error {
 	log.Printf("[%s] Transforming data...\n", endpoint.EndpointName)
-	sanitizedData, err := endpoint.Transform(ctx, pm.tables.GetTable)
+	sanitizedData, err := endpoint.Transform(ctx, tables)
 	if err != nil {
 		return fmt.Errorf("failed to sanitize json data: %w", err)
 	}
