@@ -30,7 +30,7 @@ func TestFilterToAllowedKeys(t *testing.T) {
 	}
 
 	for _, c := range cases {
-		actual := FilterToAllowedKeys(c.input, c.allowKeys)
+		actual := ToAllowedKeys(c.input, c.allowKeys)
 		if !reflect.DeepEqual(c.expect, actual) {
 			t.Errorf("Expected all and only allowed keys.\nGOT: %v\nEXPECTED: %v\n", actual, c.expect)
 		}

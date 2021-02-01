@@ -39,7 +39,7 @@ func GenerateV1Locations(ctx context.Context, getTable generator.TableFetchFunc)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch Locations table: %w", err)
 	}
-	filteredTable := filter.FilterToAllowedKeys(rawTable, []string{
+	filteredTable := filter.ToAllowedKeys(rawTable, []string{
 		"Locations",
 		"Address",
 		"Appointment scheduling instructions",
@@ -66,7 +66,7 @@ func GenerateV1Counties(ctx context.Context, getTable generator.TableFetchFunc) 
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch Counties table: %w", err)
 	}
-	filteredTable := filter.FilterToAllowedKeys(rawTable, []string{
+	filteredTable := filter.ToAllowedKeys(rawTable, []string{
 		"County",
 		"Vaccine info URL",
 		"Vaccine locations URL",

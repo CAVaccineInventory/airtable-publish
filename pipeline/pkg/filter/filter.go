@@ -2,10 +2,10 @@ package filter
 
 import "github.com/CAVaccineInventory/airtable-export/pipeline/pkg/airtable"
 
-// FilterToAllowedKeys takes a slice of KV objects, and a set of allowed key names.
+// ToAllowedKeys takes a slice of KV objects, and a set of allowed key names.
 // For each object in the list, it removes each KV pair where the key is not in allowedKeys,
 // then returns this result.
-func FilterToAllowedKeys(raw airtable.TableContent, allowedKeys []string) airtable.TableContent {
+func ToAllowedKeys(raw airtable.TableContent, allowedKeys []string) airtable.TableContent {
 	// Build a map for fast lookup.
 	allowedSet := map[string]struct{}{}
 	for _, key := range allowedKeys {
