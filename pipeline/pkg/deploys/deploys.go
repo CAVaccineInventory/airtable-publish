@@ -6,6 +6,10 @@ import (
 	"os"
 )
 
+type VersionType string
+
+const LegacyVersion VersionType = "LEGACY"
+
 type DeployType string
 
 const (
@@ -15,54 +19,81 @@ const (
 	DeployUnknown    DeployType = ""
 )
 
-var exportPaths = map[DeployType]string{
-	DeployTesting:    "", // Must be set by TESTING_BUCKET env var
-	DeployStaging:    "cavaccineinventory-sitedata/airtable-sync-staging",
-	DeployProduction: "cavaccineinventory-sitedata/airtable-sync",
+var deploys = map[DeployType]DeployConfig{
+	DeployTesting: {
+		LegacyBucket: Bucket{
+			// name is set below
+			Path: "legacy",
+		},
+		APIBucket: Bucket{
+			// name is set below
+			Path: "api",
+		},
+	},
+	DeployStaging: {
+		LegacyBucket: Bucket{
+			Name: "cavaccineinventory-sitedata",
+			Path: "airtable-sync-staging",
+		},
+		APIBucket: Bucket{
+			Name:     "vaccinataca-api-staging",
+			HostedAt: "staging-api.vaccinateca.com",
+		},
+	},
+	DeployProduction: {
+		LegacyBucket: Bucket{
+			Name: "cavaccineinventory-sitedata",
+			Path: "airtable-sync",
+		},
+		APIBucket: Bucket{
+			Name:     "vaccinataca-api",
+			HostedAt: "api.vaccinateca.com",
+		},
+	},
 }
-
-const exportBaseURL = "https://storage.googleapis.com/"
 
 func GetDeploy() (DeployType, error) {
 	deploy := DeployType(os.Getenv("DEPLOY"))
 	if deploy == DeployUnknown {
 		deploy = DeployTesting
 	}
-	if _, ok := exportPaths[deploy]; !ok {
+	if _, ok := deploys[deploy]; !ok {
 		return DeployUnknown, fmt.Errorf("Unknown deploy environment: %s", deploy)
 	}
 	return deploy, nil
 }
 
-func getPath() (string, error) {
+func getDeployConfig() (*DeployConfig, error) {
 	deploy, err := GetDeploy()
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-
+	config := deploys[deploy]
 	if deploy != DeployTesting {
-		return exportPaths[deploy], nil
+		return &config, nil
 	}
 
-	path := os.Getenv("TESTING_BUCKET")
-	if path == "" {
-		return "", errors.New("Set TESTING_BUCKET env var to the name of your bucket (see README.md)")
+	bucketName := os.Getenv("TESTING_BUCKET")
+	if bucketName == "" {
+		return nil, errors.New("Set TESTING_BUCKET env var to the name of your bucket (see README.md)")
 	}
-	return path, nil
+	config.LegacyBucket.Name = bucketName
+	config.APIBucket.Name = bucketName
+	return &config, nil
 }
 
-func GetUploadURL() (string, error) {
-	path, err := getPath()
+func GetUploadURL(version VersionType) (string, error) {
+	config, err := getDeployConfig()
 	if err != nil {
 		return "", err
 	}
-	return "gs://" + path, nil
+	return config.GetUploadURL(version), nil
 }
 
-func GetDownloadURL() (string, error) {
-	path, err := getPath()
+func GetDownloadURL(version VersionType) (string, error) {
+	config, err := getDeployConfig()
 	if err != nil {
 		return "", err
 	}
-	return exportBaseURL + path, nil
+	return config.GetDownloadURL(version), nil
 }

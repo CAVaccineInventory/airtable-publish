@@ -58,7 +58,7 @@ func TestDeployBuckets(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			os.Setenv("DEPLOY", tc.envVar)
 			os.Setenv("TESTING_BUCKET", tc.testingBucket)
-			bucket, err := GetUploadURL()
+			bucket, err := GetUploadURL(LegacyVersion)
 			if tc.wantError {
 				require.Error(t, err)
 				require.Equal(t, bucket, "")
@@ -69,7 +69,7 @@ func TestDeployBuckets(t *testing.T) {
 				}
 			}
 
-			url, err := GetDownloadURL()
+			url, err := GetDownloadURL(LegacyVersion)
 			if tc.wantError {
 				require.Error(t, err)
 				require.Equal(t, url, "")

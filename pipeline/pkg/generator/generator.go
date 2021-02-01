@@ -110,7 +110,7 @@ func (pm *PublishManager) publishActual(ctx context.Context, endpoint unrolledEn
 		return fmt.Errorf("failed to sanitize json data: %w", err)
 	}
 
-	bucket, err := deploys.GetUploadURL()
+	bucket, err := deploys.GetUploadURL(deploys.LegacyVersion)
 	if err != nil {
 		return fmt.Errorf("failed to get destination bucket: %w", err)
 	}
