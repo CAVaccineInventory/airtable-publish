@@ -20,6 +20,14 @@ func (ep *Endpoint) String() string {
 	return fmt.Sprintf("%s/%s", ep.Version, ep.Resource)
 }
 
+func (ep *Endpoint) URL() (string, error) {
+	baseURL, err := deploys.GetDownloadURL(ep.Version)
+	if err != nil {
+		return "", err
+	}
+	return baseURL + "/" + ep.Resource + ".json", nil
+}
+
 func AllEndpoints() []Endpoint {
 	totalSize := 0
 	for _, versionResources := range EndpointMap {
@@ -39,4 +47,17 @@ func AllEndpoints() []Endpoint {
 		}
 	}
 	return endpoints
+}
+
+func EndpointURLs() ([]string, error) {
+	eps := AllEndpoints()
+	endpointURLs := make([]string, len(eps))
+	for i, ep := range eps {
+		url, err := ep.URL()
+		if err != nil {
+			return nil, err
+		}
+		endpointURLs[i] = url
+	}
+	return endpointURLs, nil
 }

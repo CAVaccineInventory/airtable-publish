@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"os"
 	"testing"
 
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/airtable"
@@ -51,5 +52,33 @@ func TestSanitize(t *testing.T) {
 			}
 		}
 
+	}
+}
+
+func TestEndpoints(t *testing.T) {
+	t.Cleanup(func() {
+		os.Unsetenv("DEPLOY")
+	})
+	tests := map[string]struct {
+		deploy      string
+		containsURL string
+	}{
+		"Locations": {
+			deploy:      "prod",
+			containsURL: "https://storage.googleapis.com/cavaccineinventory-sitedata/airtable-sync/Locations.json",
+		},
+		"Counties": {
+			deploy:      "prod",
+			containsURL: "https://storage.googleapis.com/cavaccineinventory-sitedata/airtable-sync/Counties.json",
+		},
+	}
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			os.Setenv("DEPLOY", tc.deploy)
+			URLs, err := EndpointURLs()
+			require.NoError(t, err)
+
+			require.Contains(t, URLs, tc.containsURL)
+		})
 	}
 }
