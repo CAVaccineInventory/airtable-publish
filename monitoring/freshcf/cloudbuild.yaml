@@ -1,0 +1,56 @@
+steps:
+  - name: gcr.io/cloud-builders/docker
+    entrypoint: bash
+    args:
+      - "-c"
+      - "docker pull $_IMAGE_NAME:latest || exit 0"
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - "-t"
+      - "$_IMAGE_NAME:$COMMIT_SHA"
+      - "-t"
+      - "$_IMAGE_NAME:latest"
+      - "--cache-from"
+      - "$_IMAGE_NAME:latest"
+      - .
+      - "-f"
+      - "$DOCKERFILE_PATH"
+    id: Build
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - push
+      - "$_IMAGE_NAME:$COMMIT_SHA"
+    id: Push
+  - name: gcr.io/google.com/cloudsdktool/cloud-sdk
+    args:
+      - run
+      - services
+      - update
+      - "$_SERVICE_NAME-$_DEPLOY"
+      - "--platform=managed"
+      - "--image=$_IMAGE_NAME:$COMMIT_SHA"
+      - "--labels=commit-sha=$COMMIT_SHA,gcb-build-id=$BUILD_ID,deploy=$_DEPLOY"
+      - "--region=$_DEPLOY_REGION"
+      - "--set-env-vars=DEPLOY=$_DEPLOY"
+      - "--quiet"
+    id: Deploy
+    entrypoint: gcloud
+
+images:
+  - "$_IMAGE_NAME:$COMMIT_SHA"
+  - "$_IMAGE_NAME:latest"
+
+options:
+  dynamic_substitutions: true
+
+substitutions:
+  _SERVICE_NAME: freshcf
+  _GCR_HOSTNAME: us.gcr.io
+  _IMAGE_NAME: "${_GCR_HOSTNAME}/${PROJECT_ID}/${REPO_NAME}/${_SERVICE_NAME}"
+  _DEPLOY_REGION: us-west1
+  _DEPLOY: staging
+  _DOCKERFILE_PATH: monitoring/freshcf/Dockerfile
+
+tags:
+  - monitoring-freshcf

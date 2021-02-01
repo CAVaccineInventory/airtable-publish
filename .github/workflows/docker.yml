@@ -7,9 +7,15 @@ on:
     branches: [main]
 
 jobs:
-  build:
+  build-pipeline:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
       - name: Build docker
         run: docker build . --tag airtable-export
+  build-monitoring-freshcf:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Build docker
+        run: docker build -f monitoring/freshcf/Dockerfile .
