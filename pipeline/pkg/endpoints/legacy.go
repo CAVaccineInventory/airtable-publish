@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/filter"
+
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/airtable"
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/generator"
 	"github.com/honeycombio/beeline-go"
@@ -29,53 +31,51 @@ Okay, for those doing exporter stuff, for the following fields: "Name", "Address
  - perhaps we should give some of these better names and stick that in Locations-v2.json
 */
 
-var legacyAllowKeys = map[string]map[string]int{
-	"Locations": {
-		"Address":                             1,
-		"Appointment scheduling instructions": 1,
-		"Availability Info":                   1,
-		"County":                              1,
-		"Has Report":                          1,
-		"Latest report":                       1,
-		"Latest report notes":                 1,
-		"Latest report yes?":                  1,
-		"Latitude":                            1,
-		"Location Type":                       1,
-		"Longitude":                           1,
-		"Name":                                1,
-	},
-	"Counties": {
-		"County":                              1,
-		"Vaccine info URL":                    1,
-		"Vaccine locations URL":               1,
-		"Notes":                               1,
-		"Total reports":                       1,
-		"Yeses":                               1,
-		"Official volunteering opportunities": 1,
-		"Facebook Page":                       1,
-	},
-}
-
 func GenerateV1Locations(ctx context.Context, getTable generator.TableFetchFunc) (airtable.TableContent, error) {
 	ctx, span := beeline.StartSpan(ctx, "generator.GenerateV1Locations")
 	defer span.Send()
 
-	jsonMap, err := getTable(ctx, "Locations")
+	rawTable, err := getTable(ctx, "Locations")
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch Locations table: %w", err)
 	}
-	RemoveDisallowedFields(jsonMap, legacyAllowKeys["Locations"])
-	return jsonMap, nil
+	filteredTable := filter.FilterToAllowedKeys(rawTable, []string{
+		"Locations",
+		"Address",
+		"Appointment scheduling instructions",
+		"Availability Info",
+		"County",
+		"Has Report",
+		"Latest report",
+		"Latest report notes",
+		"Latest report yes?",
+		"Latitude",
+		"Location Type",
+		"Longitude",
+		"Name",
+	})
+
+	return filteredTable, nil
 }
 
 func GenerateV1Counties(ctx context.Context, getTable generator.TableFetchFunc) (airtable.TableContent, error) {
 	ctx, span := beeline.StartSpan(ctx, "generator.GenerateV1Counties")
 	defer span.Send()
 
-	jsonMap, err := getTable(ctx, "Counties")
+	rawTable, err := getTable(ctx, "Counties")
 	if err != nil {
-		return nil, fmt.Errorf("failed to fetch Locations table: %w", err)
+		return nil, fmt.Errorf("failed to fetch Counties table: %w", err)
 	}
-	RemoveDisallowedFields(jsonMap, legacyAllowKeys["Counties"])
-	return jsonMap, nil
+	filteredTable := filter.FilterToAllowedKeys(rawTable, []string{
+		"County",
+		"Vaccine info URL",
+		"Vaccine locations URL",
+		"Notes",
+		"Total reports",
+		"Yeses",
+		"Official volunteering opportunities",
+		"Facebook Page",
+	})
+
+	return filteredTable, nil
 }
