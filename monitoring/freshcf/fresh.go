@@ -58,15 +58,24 @@ func getURLStats(url string) (ExportedJSONFileStats, error) {
 	output.FileLengthBytes = len(body)
 
 	// parse the body
-	var jsonBody []interface{}
-	err = json.Unmarshal(body, &jsonBody)
+	var jsonData interface{}
+	err = json.Unmarshal(body, &jsonData)
 	if err != nil {
-		log.Printf("failed to parse JSON %v", err)
-	} else {
-		output.FileLengthJSONItems = len(jsonBody)
+		return output, err
+	}
+	if listData, ok := jsonData.([]interface{}); ok {
+		output.FileLengthJSONItems = len(listData)
+		return output, nil
 	}
 
-	return output, nil
+	if mapData, ok := jsonData.(map[string]interface{}); ok {
+		if listPart, ok := mapData["content"].([]interface{}); ok {
+			output.FileLengthJSONItems = len(listPart)
+			return output, nil
+		}
+	}
+
+	return output, errors.New("Unknown JSON structure")
 }
 
 func ExportJSON(w http.ResponseWriter, r *http.Request) {
