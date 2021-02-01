@@ -2,37 +2,21 @@
 package main
 
 import (
-	"context"
-	"log"
-	"os"
+	"net/http"
 
 	"github.com/CAVaccineInventory/airtable-export/monitoring/freshcf"
-	"github.com/GoogleCloudPlatform/functions-framework-go/funcframework"
 )
 
 func main() {
 	metricsCleanup := freshcf.InitMetrics()
 	defer metricsCleanup()
 
-	ctx := context.Background()
-	if err := funcframework.RegisterHTTPFunctionContext(ctx, "/", freshcf.CheckFreshness); err != nil {
-		log.Fatalf("funcframework.RegisterHTTPFunctionContext /: %v\n", err)
-	}
-
-	if err := funcframework.RegisterHTTPFunctionContext(ctx, "/json", freshcf.ExportJSON); err != nil {
-		log.Fatalf("funcframework.RegisterHTTPFunctionContext /json: %v\n", err)
-	}
-
-	if err := funcframework.RegisterHTTPFunctionContext(ctx, "/push", freshcf.PushMetrics); err != nil {
-		log.Fatalf("funcframework.RegisterHTTPFunctionContext /push: %v\n", err)
-	}
-
-	// Use PORT environment variable, or default to 8080.
-	port := "8080"
-	if envPort := os.Getenv("PORT"); envPort != "" {
-		port = envPort
-	}
-	if err := funcframework.Start(port); err != nil {
-		log.Fatalf("funcframework.Start: %v\n", err)
+	// Serve health status.
+	http.HandleFunc("/", freshcf.CheckFreshness)
+	http.HandleFunc("/json", freshcf.ExportJSON)
+	http.HandleFunc("/push", freshcf.PushMetrics)
+	err := http.ListenAndServe(":8080", nil)
+	if err != nil {
+		panic(err)
 	}
 }
