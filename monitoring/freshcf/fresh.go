@@ -70,7 +70,7 @@ func getURLStats(url string) (ExportedJSONFileStats, error) {
 }
 
 func ExportJSON(w http.ResponseWriter, r *http.Request) {
-	baseURL, err := deploys.GetExportBaseURL()
+	baseURL, err := deploys.GetDownloadURL()
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprintf(w, "error determining base url: %v", err)
@@ -127,7 +127,7 @@ func CheckFreshness(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	baseURL, err := deploys.GetExportBaseURL()
+	baseURL, err := deploys.GetDownloadURL()
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprintf(w, "error determining base url: %v", err)

@@ -58,28 +58,28 @@ func TestDeployBuckets(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			os.Setenv("DEPLOY", tc.envVar)
 			os.Setenv("TESTING_BUCKET", tc.testingBucket)
-			bucket, err := GetExportBucket()
+			bucket, err := GetUploadURL()
 			if tc.wantError {
 				require.Error(t, err)
 				require.Equal(t, bucket, "")
 			} else {
 				require.NoError(t, err)
 				if !strings.HasPrefix(bucket, "gs://") {
-					t.Errorf("Bucket does not start with gs://")
+					t.Errorf("Upload URL does not start with gs://")
 				}
 			}
 
-			url, err := GetExportBaseURL()
+			url, err := GetDownloadURL()
 			if tc.wantError {
 				require.Error(t, err)
 				require.Equal(t, url, "")
 			} else {
 				require.NoError(t, err)
 				if !strings.HasPrefix(url, "https://") {
-					t.Errorf("Bucket does not start with https://")
+					t.Errorf("Download URL does not start with https://")
 				}
 				if strings.HasSuffix(url, "/") {
-					t.Errorf("Bucket ends with /")
+					t.Errorf("Download URL ends with /")
 				}
 			}
 		})

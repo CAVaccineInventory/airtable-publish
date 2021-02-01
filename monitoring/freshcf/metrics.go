@@ -107,7 +107,7 @@ func PushMetrics(w http.ResponseWriter, r *http.Request) {
 	}
 	deployCtx, _ := tag.New(context.Background(), tag.Insert(keyDeploy, string(deploy)))
 
-	baseURL, err := deploys.GetExportBaseURL()
+	baseURL, err := deploys.GetDownloadURL()
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprintf(w, "error determining base url: %v", err)

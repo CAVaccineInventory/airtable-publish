@@ -51,7 +51,7 @@ func getPath() (string, error) {
 	return path, nil
 }
 
-func GetExportBucket() (string, error) {
+func GetUploadURL() (string, error) {
 	path, err := getPath()
 	if err != nil {
 		return "", err
@@ -59,7 +59,7 @@ func GetExportBucket() (string, error) {
 	return "gs://" + path, nil
 }
 
-func GetExportBaseURL() (string, error) {
+func GetDownloadURL() (string, error) {
 	path, err := getPath()
 	if err != nil {
 		return "", err
