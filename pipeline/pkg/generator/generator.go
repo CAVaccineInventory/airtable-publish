@@ -46,7 +46,7 @@ type unrolledEndpoint struct {
 }
 
 func (pm *PublishManager) PublishAll(ctx context.Context, endpoints EndpointMap) bool {
-	ctx, span := beeline.StartSpan(ctx, "generator.PublishEndpoint")
+	ctx, span := beeline.StartSpan(ctx, "generator.PublishAll")
 	defer span.Send()
 
 	startTime := time.Now()
