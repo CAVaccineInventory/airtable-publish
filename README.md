@@ -21,13 +21,10 @@ products (prod/staging times counties/locations).
 
 We use [golangci](https://golangci-lint.run/)'s linter wrapper.
 
-To run locally, from the root of whatever package you're checking (directory with go.mod in it) run:
+To run locally, run:
 
 ``` shell
 docker run --rm -v $(pwd):/app -w /app \
     golangci/golangci-lint:v1.35.2 golangci-lint run \
     -E golint,goimports,misspell
 ```
-
-(When adding a new package, please add a new entry to the matrix in
-`.github/workflows/golangci-lint.yml`)
