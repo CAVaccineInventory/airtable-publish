@@ -15,7 +15,7 @@ steps:
       - "$_IMAGE_NAME:latest"
       - .
       - "-f"
-      - "$DOCKERFILE_PATH"
+      - "$_DOCKERFILE_PATH"
     id: Build
   - name: gcr.io/cloud-builders/docker
     args:
