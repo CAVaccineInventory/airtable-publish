@@ -25,9 +25,9 @@ elif [ -d /testing-key.json ]; then
 fi
 
 COMMAND="${1:-server}"
-
+shift
 if [ ! -x "/$COMMAND" ]; then
 	echo "Unknown command: $COMMAND"
 	exit 1
 fi
-exec "/$COMMAND"
+exec "/$COMMAND" "$@"
