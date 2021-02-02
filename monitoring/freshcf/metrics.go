@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"sync"
 	"time"
 
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/deploys"
@@ -108,32 +109,39 @@ func PushMetrics(w http.ResponseWriter, r *http.Request) {
 	deployCtx, _ := tag.New(context.Background(), tag.Insert(keyDeploy, string(deploy)))
 
 	eps := endpoints.AllEndpoints()
+	wg := sync.WaitGroup{}
 	for _, ep := range eps {
-		tableCtx, _ := tag.New(deployCtx,
-			tag.Insert(keyVersion, string(ep.Version)),
-			tag.Insert(keyResource, ep.Resource))
-		url, err := ep.URL()
-		if err != nil {
-			log.Printf("error getting %v stats: %v", &ep, err)
-			continue
-		}
+		wg.Add(1)
+		go func(ep endpoints.Endpoint) {
+			defer wg.Done()
+			tableCtx, _ := tag.New(deployCtx,
+				tag.Insert(keyVersion, string(ep.Version)),
+				tag.Insert(keyResource, ep.Resource))
+			url, err := ep.URL()
+			if err != nil {
+				log.Printf("error getting %v stats: %v", &ep, err)
+				return
+			}
 
-		urlStats, err := getURLStats(url)
-		if err != nil {
-			log.Printf("error getting %v stats %q: %v", &ep, url, err)
-			continue
-			// XXX FUTURE report a count of errors
-		}
+			log.Printf("Fetching %s..", url)
+			urlStats, err := getURLStats(url)
+			if err != nil {
+				log.Printf("error getting %v stats %q: %v", &ep, url, err)
+				return
+				// XXX FUTURE report a count of errors
+			}
 
-		stats.Record(tableCtx, fileLengthBytes.M(int64(urlStats.FileLengthBytes)))
-		stats.Record(tableCtx, fileLengthJSONItems.M(int64(urlStats.FileLengthJSONItems)))
+			stats.Record(tableCtx, fileLengthBytes.M(int64(urlStats.FileLengthBytes)))
+			stats.Record(tableCtx, fileLengthJSONItems.M(int64(urlStats.FileLengthJSONItems)))
 
-		if !urlStats.LastModified.IsZero() {
-			stats.Record(tableCtx, lastModified.M(urlStats.LastModified.Unix()))
-			ago := time.Since(urlStats.LastModified).Seconds()
-			stats.Record(tableCtx, lastModifiedAge.M(ago))
-		}
+			if !urlStats.LastModified.IsZero() {
+				stats.Record(tableCtx, lastModified.M(urlStats.LastModified.Unix()))
+				ago := time.Since(urlStats.LastModified).Seconds()
+				stats.Record(tableCtx, lastModifiedAge.M(ago))
+			}
+		}(ep)
 	}
+	wg.Wait()
 
 	w.WriteHeader(http.StatusOK)
 	fmt.Fprintf(w, "done")
