@@ -18,21 +18,18 @@ import (
 type StorageWriter func(ctx context.Context, destinationFile string, transformedData airtable.TableContent) error
 
 type PublishManager struct {
-	tables *airtable.Tables
-	store  StorageWriter
+	store StorageWriter
 }
 
 func NewPublishManager() *PublishManager {
 	return &PublishManager{
-		tables: airtable.NewTables(),
-		store:  storage.UploadToGCS,
+		store: storage.UploadToGCS,
 	}
 }
 
 func NewDebugPublishManager() *PublishManager {
 	return &PublishManager{
-		tables: airtable.NewTables(),
-		store:  storage.DebugToSTDERR,
+		store: storage.DebugToSTDERR,
 	}
 }
 
