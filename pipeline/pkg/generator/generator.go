@@ -97,11 +97,16 @@ func (pm *PublishManager) PublishEndpoint(ctx context.Context, tables *airtable.
 
 func (pm *PublishManager) publishEndpointActual(ctx context.Context, tables *airtable.Tables, ep endpoints.Endpoint) error {
 	log.Printf("[%v] Transforming data...\n", &ep)
-	var sanitizedData interface{}
-	sanitizedData, err := ep.Transform(ctx, tables)
+	tableData, err := ep.Transform(ctx, tables)
 
 	if err != nil {
 		return fmt.Errorf("failed to sanitize json data: %w", err)
+	}
+
+	// Everything but the legacy code gets metadata around it
+	var sanitizedData interface{} = tableData
+	if ep.Version != deploys.LegacyVersion {
+		sanitizedData = metadata.Wrap(tableData)
 	}
 
 	bucket, err := deploys.GetUploadURL(ep.Version)
