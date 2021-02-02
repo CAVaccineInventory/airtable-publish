@@ -8,6 +8,7 @@ import (
 
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/airtable"
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/deploys"
+	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/storage"
 	"github.com/stretchr/testify/require"
 )
 
@@ -29,7 +30,7 @@ func TestSanitize(t *testing.T) {
 		out, err := EndpointMap[deploys.LegacyVersion][name](ctx, fakeTables)
 		require.NoError(t, err)
 
-		got, err := out.Serialize()
+		got, err := storage.Serialize(out)
 		require.NoError(t, err)
 
 		//  Basic sanity check

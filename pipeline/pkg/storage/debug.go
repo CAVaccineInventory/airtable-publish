@@ -5,16 +5,16 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/airtable"
+	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/endpoints/metadata"
 	beeline "github.com/honeycombio/beeline-go"
 )
 
-func DebugToSTDERR(ctx context.Context, destinationFile string, transformedData airtable.TableContent) error {
+func DebugToSTDERR(ctx context.Context, destinationFile string, transformedData metadata.JSONData) error {
 	ctx, span := beeline.StartSpan(ctx, "storage.Print")
 	defer span.Send()
 	beeline.AddField(ctx, "destinationFile", destinationFile)
 
-	serializedData, err := transformedData.Serialize()
+	serializedData, err := Serialize(transformedData)
 	if err != nil {
 		return fmt.Errorf("failed to write serialized json: %w", err)
 	}

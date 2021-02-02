@@ -9,16 +9,16 @@ import (
 	"os/exec"
 	"path/filepath"
 
-	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/airtable"
+	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/endpoints/metadata"
 	beeline "github.com/honeycombio/beeline-go"
 )
 
-func UploadToGCS(ctx context.Context, destinationFile string, transformedData airtable.TableContent) error {
+func UploadToGCS(ctx context.Context, destinationFile string, transformedData metadata.JSONData) error {
 	ctx, span := beeline.StartSpan(ctx, "storage.UploadToGCS")
 	defer span.Send()
 	beeline.AddField(ctx, "destinationFile", destinationFile)
 
-	serializedData, err := transformedData.Serialize()
+	serializedData, err := Serialize(transformedData)
 	if err != nil {
 		return fmt.Errorf("failed to write serialized json: %w", err)
 	}

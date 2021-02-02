@@ -10,13 +10,14 @@ import (
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/airtable"
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/deploys"
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/endpoints"
+	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/endpoints/metadata"
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/storage"
 	"github.com/honeycombio/beeline-go"
 	"go.opencensus.io/stats"
 	"go.opencensus.io/tag"
 )
 
-type StorageWriter func(ctx context.Context, destinationFile string, transformedData airtable.TableContent) error
+type StorageWriter func(ctx context.Context, destinationFile string, transformedData metadata.JSONData) error
 
 type PublishManager struct {
 	store StorageWriter
@@ -96,7 +97,9 @@ func (pm *PublishManager) PublishEndpoint(ctx context.Context, tables *airtable.
 
 func (pm *PublishManager) publishEndpointActual(ctx context.Context, tables *airtable.Tables, ep endpoints.Endpoint) error {
 	log.Printf("[%v] Transforming data...\n", &ep)
+	var sanitizedData interface{}
 	sanitizedData, err := ep.Transform(ctx, tables)
+
 	if err != nil {
 		return fmt.Errorf("failed to sanitize json data: %w", err)
 	}
