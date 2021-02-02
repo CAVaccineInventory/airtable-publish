@@ -31,5 +31,6 @@ var (
 	)
 
 	KeyTable, _    = tag.NewKey("table")
+	KeyVersion, _  = tag.NewKey("version")
 	KeyResource, _ = tag.NewKey("resource")
 )

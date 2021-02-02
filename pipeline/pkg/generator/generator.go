@@ -72,10 +72,13 @@ func (pm *PublishManager) PublishAll(ctx context.Context) bool {
 func (pm *PublishManager) PublishEndpoint(ctx context.Context, tables *airtable.Tables, ep endpoints.Endpoint) error {
 	ctx, span := beeline.StartSpan(ctx, "generator.PublishEndpoint")
 	defer span.Send()
+	beeline.AddField(ctx, "version", ep.Version)
 	beeline.AddField(ctx, "resource", ep.Resource)
 
 	tableStartTime := time.Now()
-	ctx, _ = tag.New(ctx, tag.Insert(KeyResource, ep.Resource))
+	ctx, _ = tag.New(ctx,
+		tag.Insert(KeyVersion, string(ep.Version)),
+		tag.Insert(KeyResource, ep.Resource))
 
 	err := pm.publishEndpointActual(ctx, tables, ep)
 	if err == nil {
@@ -98,7 +101,7 @@ func (pm *PublishManager) publishEndpointActual(ctx context.Context, tables *air
 		return fmt.Errorf("failed to sanitize json data: %w", err)
 	}
 
-	bucket, err := deploys.GetUploadURL(deploys.LegacyVersion)
+	bucket, err := deploys.GetUploadURL(ep.Version)
 	if err != nil {
 		return fmt.Errorf("failed to get destination bucket: %w", err)
 	}

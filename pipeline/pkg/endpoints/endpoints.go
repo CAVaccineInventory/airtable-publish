@@ -2,35 +2,48 @@ package endpoints
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/airtable"
+	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/deploys"
 )
 
 type endpointFunc func(context.Context, *airtable.Tables) (airtable.TableContent, error)
 
-var EndpointMap = map[string]endpointFunc{
-	"Locations": GenerateV1Locations,
-	"Counties":  GenerateV1Counties,
+var EndpointMap = map[deploys.VersionType]map[string]endpointFunc{
+	deploys.LegacyVersion: {
+		"Locations": GenerateV1Locations,
+		"Counties":  GenerateV1Counties,
+	},
 }
 
 type Endpoint struct {
+	Version   deploys.VersionType
 	Resource  string
 	Transform endpointFunc
 }
 
 func (ep *Endpoint) String() string {
-	return ep.Resource
+	return fmt.Sprintf("%s/%s", ep.Version, ep.Resource)
 }
 
 func AllEndpoints() []Endpoint {
-	endpoints := make([]Endpoint, len(EndpointMap))
+	totalSize := 0
+	for _, versionResources := range EndpointMap {
+		totalSize += len(versionResources)
+	}
+
+	endpoints := make([]Endpoint, totalSize)
 	i := 0
-	for resource, transform := range EndpointMap {
-		endpoints[i] = Endpoint{
-			Resource:  resource,
-			Transform: transform,
+	for version, versionResources := range EndpointMap {
+		for resource, transform := range versionResources {
+			endpoints[i] = Endpoint{
+				Version:   version,
+				Resource:  resource,
+				Transform: transform,
+			}
+			i++
 		}
-		i++
 	}
 	return endpoints
 }

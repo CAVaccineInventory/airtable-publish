@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/airtable"
+	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/deploys"
 	"github.com/stretchr/testify/require"
 )
 
@@ -24,9 +25,8 @@ func TestSanitize(t *testing.T) {
 		getData := func(ctx context.Context, tableName string) (airtable.TableContent, error) {
 			return airtable.ObjectFromFile(ctx, name, tc.testDataFile)
 		}
-
 		fakeTables := airtable.NewFakeTables(getData)
-		out, err := EndpointMap[name](ctx, fakeTables)
+		out, err := EndpointMap[deploys.LegacyVersion][name](ctx, fakeTables)
 		require.NoError(t, err)
 
 		got, err := out.Serialize()
