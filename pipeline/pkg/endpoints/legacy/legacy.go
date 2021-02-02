@@ -1,4 +1,4 @@
-package endpoints
+package legacy
 
 import (
 	"context"
@@ -30,8 +30,8 @@ Okay, for those doing exporter stuff, for the following fields: "Name", "Address
  - perhaps we should give some of these better names and stick that in Locations-v2.json
 */
 
-func GenerateV0Locations(ctx context.Context, tables *airtable.Tables) (airtable.TableContent, error) {
-	ctx, span := beeline.StartSpan(ctx, "generator.GenerateV0Locations")
+func Locations(ctx context.Context, tables *airtable.Tables) (airtable.TableContent, error) {
+	ctx, span := beeline.StartSpan(ctx, "endpoints.legacy.Locations")
 	defer span.Send()
 
 	rawTable, err := tables.GetTable(ctx, "Locations")
@@ -57,8 +57,8 @@ func GenerateV0Locations(ctx context.Context, tables *airtable.Tables) (airtable
 	return filteredTable, nil
 }
 
-func GenerateV0Counties(ctx context.Context, tables *airtable.Tables) (airtable.TableContent, error) {
-	ctx, span := beeline.StartSpan(ctx, "generator.GenerateV0Counties")
+func Counties(ctx context.Context, tables *airtable.Tables) (airtable.TableContent, error) {
+	ctx, span := beeline.StartSpan(ctx, "endpoints.legacy.Counties")
 	defer span.Send()
 
 	rawTable, err := tables.GetTable(ctx, "Counties")

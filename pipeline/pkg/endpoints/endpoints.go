@@ -6,14 +6,15 @@ import (
 
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/airtable"
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/deploys"
+	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/endpoints/legacy"
 )
 
 type endpointFunc func(context.Context, *airtable.Tables) (airtable.TableContent, error)
 
 var EndpointMap = map[deploys.VersionType]map[string]endpointFunc{
 	deploys.LegacyVersion: {
-		"Locations": GenerateV0Locations,
-		"Counties":  GenerateV0Counties,
+		"Locations": legacy.Locations,
+		"Counties":  legacy.Counties,
 	},
 }
 
