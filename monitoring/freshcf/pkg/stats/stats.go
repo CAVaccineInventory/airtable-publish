@@ -77,9 +77,10 @@ func GetURLStats(url string) (ExportedJSONFileStats, error) {
 }
 
 type Response struct {
-	URL   string
-	Stats ExportedJSONFileStats
-	Err   error
+	Endpoint endpoints.Endpoint
+	URL      string
+	Stats    ExportedJSONFileStats
+	Err      error
 }
 
 func AllResponses() chan Response {
@@ -93,13 +94,13 @@ func AllResponses() chan Response {
 			url, err := ep.URL()
 			if err != nil {
 				log.Printf("error getting %v stats: %v", &ep, err)
-				resultChan <- Response{URL: url, Stats: ExportedJSONFileStats{}, Err: err}
+				resultChan <- Response{Endpoint: ep, URL: url, Stats: ExportedJSONFileStats{}, Err: err}
 				return
 			}
 
 			log.Printf("Fetching %s..", url)
 			stats, err := GetURLStats(url)
-			resultChan <- Response{URL: url, Stats: stats, Err: err}
+			resultChan <- Response{Endpoint: ep, URL: url, Stats: stats, Err: err}
 		}(ep)
 	}
 	wg.Wait()
