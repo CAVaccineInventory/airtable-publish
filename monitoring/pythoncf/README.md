@@ -87,13 +87,13 @@ This is what causes the functions to run once every minute to push stats to moni
 This only needs to be done once, after the functions are set up.
 
 ```
-gcloud scheduler jobs create http gcsfileStatsLocationsProd --schedule='* * * * *' --uri=https://us-central1-cavaccineinventory.cloudfunctions.net/gcsfileStatsLocationsProd
+gcloud scheduler jobs create http gcsfileStatsLocationsProd --project cavaccineinventory --schedule='* * * * *' --uri=https://us-central1-cavaccineinventory.cloudfunctions.net/gcsfileStatsLocationsProd
 
-gcloud scheduler jobs create http gcsfileStatsCountiesProd --schedule='* * * * *' --uri=https://us-central1-cavaccineinventory.cloudfunctions.net/gcsfileStatsCountiesProd
+gcloud scheduler jobs create http gcsfileStatsCountiesProd --project cavaccineinventory --schedule='* * * * *' --uri=https://us-central1-cavaccineinventory.cloudfunctions.net/gcsfileStatsCountiesProd
 
-gcloud scheduler jobs create http gcsfileStatsLocationsStaging --schedule='* * * * *' --uri=https://us-central1-cavaccineinventory.cloudfunctions.net/gcsfileStatsLocationsStaging
+gcloud scheduler jobs create http gcsfileStatsLocationsStaging --project cavaccineinventory --schedule='* * * * *' --uri=https://us-central1-cavaccineinventory.cloudfunctions.net/gcsfileStatsLocationsStaging
 
-gcloud scheduler jobs create http gcsfileStatsCountiesStaging --schedule='* * * * *' --uri=https://us-central1-cavaccineinventory.cloudfunctions.net/gcsfileStatsCountiesStaging
+gcloud scheduler jobs create http gcsfileStatsCountiesStaging --project cavaccineinventory --schedule='* * * * *' --uri=https://us-central1-cavaccineinventory.cloudfunctions.net/gcsfileStatsCountiesStaging
 
 ```
 
