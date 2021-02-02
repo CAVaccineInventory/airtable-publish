@@ -12,8 +12,8 @@ type endpointFunc func(context.Context, *airtable.Tables) (airtable.TableContent
 
 var EndpointMap = map[deploys.VersionType]map[string]endpointFunc{
 	deploys.LegacyVersion: {
-		"Locations": GenerateV1Locations,
-		"Counties":  GenerateV1Counties,
+		"Locations": GenerateV0Locations,
+		"Counties":  GenerateV0Counties,
 	},
 }
 
