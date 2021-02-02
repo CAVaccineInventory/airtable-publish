@@ -6,8 +6,11 @@ import (
 	"os"
 )
 
+// Versions are, practically, numbers, but we use strings for
+// potential extensibility.
 type VersionType string
 
+// "Legacy" versions are ones which predate the CDN domain and bucket.
 const LegacyVersion VersionType = "LEGACY"
 
 type DeployType string
@@ -19,6 +22,10 @@ const (
 	DeployUnknown    DeployType = ""
 )
 
+// Describes which deploys go where; in the legacy version, they're in
+// the same bucket but separate directories; in the non-legacy
+// version, they're in the top level of separate buckets, at separate
+// domains names.
 var deploys = map[DeployType]DeployConfig{
 	DeployTesting: {
 		LegacyBucket: Bucket{
@@ -52,6 +59,7 @@ var deploys = map[DeployType]DeployConfig{
 	},
 }
 
+// Reads the DEPLOY environment variable; defaults to DeployTesting if unset.
 func GetDeploy() (DeployType, error) {
 	deploy := DeployType(os.Getenv("DEPLOY"))
 	if deploy == DeployUnknown {
@@ -63,6 +71,8 @@ func GetDeploy() (DeployType, error) {
 	return deploy, nil
 }
 
+// Fills out the bucket information from the TESTING_BUCKET
+// environment variable if in testing.
 func getDeployConfig() (*DeployConfig, error) {
 	deploy, err := GetDeploy()
 	if err != nil {
@@ -82,6 +92,8 @@ func getDeployConfig() (*DeployConfig, error) {
 	return &config, nil
 }
 
+// Returns the gs:// URL that files in the bucket can be uploaded to,
+// for the given API version; never ends with a `/`.
 func GetUploadURL(version VersionType) (string, error) {
 	config, err := getDeployConfig()
 	if err != nil {
@@ -90,6 +102,8 @@ func GetUploadURL(version VersionType) (string, error) {
 	return config.GetUploadURL(version), nil
 }
 
+// Returns the https:// URL that files in the bucket can be read from,
+// for the given API version; never ends with a `/`.
 func GetDownloadURL(version VersionType) (string, error) {
 	config, err := getDeployConfig()
 	if err != nil {

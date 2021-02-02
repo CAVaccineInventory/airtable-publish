@@ -18,6 +18,7 @@ import (
 
 type TableContent []map[string]interface{}
 
+// Unmarshals and returns JSON stored at the given filePath.
 func ObjectFromFile(ctx context.Context, tableName string, filePath string) (TableContent, error) {
 	ctx, span := beeline.StartSpan(ctx, "airtable.ObjectFromFile")
 	defer span.Send()

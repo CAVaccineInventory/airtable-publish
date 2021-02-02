@@ -13,6 +13,8 @@ import (
 	beeline "github.com/honeycombio/beeline-go"
 )
 
+// Uploads to GCS, after gzip'ing and setting a cache-control header.
+// Uses the command-line `gsutil` tool.
 func UploadToGCS(ctx context.Context, destinationFile string, transformedData metadata.JSONData) error {
 	ctx, span := beeline.StartSpan(ctx, "storage.UploadToGCS")
 	defer span.Send()

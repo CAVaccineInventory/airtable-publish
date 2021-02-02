@@ -17,6 +17,9 @@ var (
 	KeyDeploy, _ = tag.NewKey("deploy")
 )
 
+// Set up Honeycomb and Stackdriver (via OpenCensus) metric logging.
+// Returns a cleanup function which should be called before exit, to
+// push any final metrics.
 func Init() func() {
 	beeline.Init(beeline.Config{
 		WriteKey:    os.Getenv("HONEYCOMB_KEY"),

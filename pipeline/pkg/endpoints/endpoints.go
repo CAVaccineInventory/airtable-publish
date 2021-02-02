@@ -10,6 +10,8 @@ import (
 
 type endpointFunc func(context.Context, *airtable.Tables) (airtable.TableContent, error)
 
+// Endpoint stores the data transform for a given version and resource
+// path.
 type Endpoint struct {
 	Version   deploys.VersionType
 	Resource  string
@@ -20,6 +22,7 @@ func (ep *Endpoint) String() string {
 	return fmt.Sprintf("%s/%s", ep.Version, ep.Resource)
 }
 
+// The download URL of the endpoint, based on the deploy, version, and resource.
 func (ep *Endpoint) URL() (string, error) {
 	baseURL, err := deploys.GetDownloadURL(ep.Version)
 	if err != nil {
@@ -28,6 +31,7 @@ func (ep *Endpoint) URL() (string, error) {
 	return baseURL + "/" + ep.Resource + ".json", nil
 }
 
+// Returns a list of Endpoints, based flattening the EndpointMap.
 func AllEndpoints() []Endpoint {
 	totalSize := 0
 	for _, versionResources := range EndpointMap {
@@ -49,6 +53,7 @@ func AllEndpoints() []Endpoint {
 	return endpoints
 }
 
+// Maps the URL() method over AllEndpoints.
 func EndpointURLs() ([]string, error) {
 	eps := AllEndpoints()
 	endpointURLs := make([]string, len(eps))

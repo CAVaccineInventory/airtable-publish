@@ -17,24 +17,29 @@ import (
 	"go.opencensus.io/tag"
 )
 
+// A function which can be used to output the transformed data; see pkg/storage/
 type StorageWriter func(ctx context.Context, destinationFile string, transformedData metadata.JSONData) error
 
 type PublishManager struct {
 	store StorageWriter
 }
 
+// Publishes by uploading to GCS
 func NewPublishManager() *PublishManager {
 	return &PublishManager{
 		store: storage.UploadToGCS,
 	}
 }
 
+// Uses storage.DebugToStderr to not need upload credentials
 func NewDebugPublishManager() *PublishManager {
 	return &PublishManager{
 		store: storage.DebugToSTDERR,
 	}
 }
 
+// In parallel, calls PublishEndpoint on each; if any has an error,
+// returns false.
 func (pm *PublishManager) PublishAll(ctx context.Context) bool {
 	ctx, span := beeline.StartSpan(ctx, "generator.PublishAll")
 	defer span.Send()
@@ -70,6 +75,9 @@ func (pm *PublishManager) PublishAll(ctx context.Context) bool {
 	return allPublishOk
 }
 
+// Calls the transformation in the endpoint, using the tables object
+// to JIT-fetch from Airtable, and stores the transformed data
+// (usually, to GCS).
 func (pm *PublishManager) PublishEndpoint(ctx context.Context, tables *airtable.Tables, ep endpoints.Endpoint) error {
 	ctx, span := beeline.StartSpan(ctx, "generator.PublishEndpoint")
 	defer span.Send()
