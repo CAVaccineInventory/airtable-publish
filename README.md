@@ -1,5 +1,19 @@
 # airtable-export
 
+## Access
+* Github committer team: [site-data-committers](https://github.com/orgs/CAVaccineInventory/teams/site-data-committers)
+* Discord channels:
+    * #data-publishing
+    * #operations (infrastructure and production)
+* Google Cloud access managers: @Vallery, @Robert S, @Alex V
+    * Logs
+    * Monitoring
+    * Deployments
+    * Storage buckets (for serving the "API")
+* Honeycomb access: [self-request](https://ui.honeycomb.io/join_team/vaccinateca)
+* Pagerduty access managers: @Vallery
+
+
 ## How This Works
 
 `airtable-export` is a worker that periodically fetches data from
