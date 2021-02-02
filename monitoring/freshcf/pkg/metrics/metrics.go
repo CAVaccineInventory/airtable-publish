@@ -1,10 +1,14 @@
 package metrics
 
 import (
+	"fmt"
 	"log"
+	"os"
 	"time"
 
 	"contrib.go.opencensus.io/exporter/stackdriver"
+	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/deploys"
+	"github.com/honeycombio/beeline-go"
 	"go.opencensus.io/stats"
 	"go.opencensus.io/stats/view"
 	"go.opencensus.io/tag"
@@ -41,7 +45,16 @@ var (
 )
 
 func Init() func() {
-	err := view.Register(
+	deploy, err := deploys.GetDeploy()
+	if err != nil {
+		log.Fatal(err)
+	}
+	beeline.Init(beeline.Config{
+		WriteKey:    os.Getenv("HONEYCOMB_KEY"),
+		Dataset:     fmt.Sprintf("freshcf-%s", deploy),
+		ServiceName: "freshcf",
+	})
+	err = view.Register(
 		&view.View{
 			Name:        LastModified.Name(),
 			Description: LastModified.Description(),

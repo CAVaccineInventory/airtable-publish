@@ -6,6 +6,7 @@ import (
 
 	"github.com/CAVaccineInventory/airtable-export/monitoring/freshcf/pkg/handlers"
 	"github.com/CAVaccineInventory/airtable-export/monitoring/freshcf/pkg/metrics"
+	"github.com/honeycombio/beeline-go/wrappers/hnynethttp"
 )
 
 func main() {
@@ -16,7 +17,7 @@ func main() {
 	http.HandleFunc("/", handlers.Health)
 	http.HandleFunc("/json", handlers.ExportJSON)
 	http.HandleFunc("/push", handlers.PushMetrics)
-	err := http.ListenAndServe(":8080", nil)
+	err := http.ListenAndServe(":8080", hnynethttp.WrapHandler(http.DefaultServeMux))
 	if err != nil {
 		panic(err)
 	}
