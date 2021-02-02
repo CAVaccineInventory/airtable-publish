@@ -5,10 +5,11 @@ import (
 	"net/http"
 
 	"github.com/CAVaccineInventory/airtable-export/monitoring/freshcf"
+	"github.com/CAVaccineInventory/airtable-export/monitoring/freshcf/pkg/metrics"
 )
 
 func main() {
-	metricsCleanup := freshcf.InitMetrics()
+	metricsCleanup := metrics.Init()
 	defer metricsCleanup()
 
 	// Serve health status.
