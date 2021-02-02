@@ -38,13 +38,7 @@ func UploadToGCS(ctx context.Context, destinationFile string, transformedData ai
 	// TODO: consider doing this in Go directly. But last I recall, the Go SDK was a bit fussy with Go modules...
 
 	// Update the README.md for new latencies if you adjust the max-age.
-	cmd := exec.CommandContext(ctx,
-		"gsutil",
-		"-h", "Cache-Control:public,max-age=120",
-		"cp",
-		"-a", "public-read",
-		"-Z",
-		localFile, destinationFile)
+	cmd := exec.CommandContext(ctx, "gsutil", "-h", "Cache-Control:public,max-age=120", "cp", "-Z", localFile, destinationFile)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		log.Println(string(output))
