@@ -31,5 +31,5 @@ var (
 	)
 
 	KeyTable, _    = tag.NewKey("table")
-	KeyEndpoint, _ = tag.NewKey("endpoint")
+	KeyResource, _ = tag.NewKey("resource")
 )

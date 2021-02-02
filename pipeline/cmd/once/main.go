@@ -5,7 +5,6 @@ import (
 	"flag"
 	"os"
 
-	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/endpoints"
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/generator"
 )
 
@@ -20,7 +19,7 @@ func main() {
 	} else {
 		pm = generator.NewPublishManager()
 	}
-	ok := pm.PublishAll(context.Background(), endpoints.AllEndpoints)
+	ok := pm.PublishAll(context.Background())
 	if !ok {
 		os.Exit(1)
 	}

@@ -26,7 +26,7 @@ func TestSanitize(t *testing.T) {
 		}
 
 		fakeTables := airtable.NewFakeTables(getData)
-		out, err := AllEndpoints[name](ctx, fakeTables)
+		out, err := EndpointMap[name](ctx, fakeTables)
 		require.NoError(t, err)
 
 		got, err := out.Serialize()

@@ -9,6 +9,7 @@ import (
 
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/airtable"
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/deploys"
+	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/endpoints"
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/storage"
 	"github.com/honeycombio/beeline-go"
 	"go.opencensus.io/stats"
@@ -33,36 +34,25 @@ func NewDebugPublishManager() *PublishManager {
 	}
 }
 
-type TableFetchFunc func(context.Context, string) (airtable.TableContent, error)
-type EndpointFunc func(context.Context, *airtable.Tables) (airtable.TableContent, error)
-type EndpointMap map[string]EndpointFunc
-
-type unrolledEndpoint struct {
-	EndpointName string
-	Transform    EndpointFunc
-}
-
-func (pm *PublishManager) PublishAll(ctx context.Context, endpoints EndpointMap) bool {
+func (pm *PublishManager) PublishAll(ctx context.Context) bool {
 	ctx, span := beeline.StartSpan(ctx, "generator.PublishAll")
 	defer span.Send()
 
+	eps := endpoints.AllEndpoints()
+
 	startTime := time.Now()
 	wg := sync.WaitGroup{}
-	publishOk := make(chan bool, len(endpoints))
+	publishOk := make(chan bool, len(eps))
 	sharedTablesCache := airtable.NewTables()
-	for endpointName, transform := range endpoints {
+	for _, ep := range eps {
 		wg.Add(1)
 
-		endpoint := unrolledEndpoint{
-			EndpointName: endpointName,
-			Transform:    transform,
-		}
-		go func(endpoint unrolledEndpoint) {
+		go func(ep endpoints.Endpoint) {
 			defer wg.Done()
 
-			err := pm.PublishEndpoint(ctx, sharedTablesCache, endpoint)
+			err := pm.PublishEndpoint(ctx, sharedTablesCache, ep)
 			publishOk <- err == nil
-		}(endpoint)
+		}(ep)
 	}
 
 	log.Println("Waiting for all tables to finish publishing...")
@@ -79,31 +69,31 @@ func (pm *PublishManager) PublishAll(ctx context.Context, endpoints EndpointMap)
 	return allPublishOk
 }
 
-func (pm *PublishManager) PublishEndpoint(ctx context.Context, tables *airtable.Tables, endpoint unrolledEndpoint) error {
+func (pm *PublishManager) PublishEndpoint(ctx context.Context, tables *airtable.Tables, ep endpoints.Endpoint) error {
 	ctx, span := beeline.StartSpan(ctx, "generator.PublishEndpoint")
 	defer span.Send()
-	beeline.AddField(ctx, "endpoint", endpoint.EndpointName)
+	beeline.AddField(ctx, "resource", ep.Resource)
 
 	tableStartTime := time.Now()
-	ctx, _ = tag.New(ctx, tag.Insert(KeyEndpoint, endpoint.EndpointName))
+	ctx, _ = tag.New(ctx, tag.Insert(KeyResource, ep.Resource))
 
-	err := pm.publishEndpointActual(ctx, tables, endpoint)
+	err := pm.publishEndpointActual(ctx, tables, ep)
 	if err == nil {
 		stats.Record(ctx, TablePublishSuccesses.M(1))
 		beeline.AddField(ctx, "success", 1)
-		log.Printf("[%s] Successfully published\n", endpoint.EndpointName)
+		log.Printf("[%v] Successfully published\n", &ep)
 	} else {
 		stats.Record(ctx, TablePublishFailures.M(1))
 		beeline.AddField(ctx, "failure", 1)
-		log.Printf("[%s] Failed to export and publish: %v\n", endpoint.EndpointName, err)
+		log.Printf("[%v] Failed to export and publish: %v\n", &ep, err)
 	}
 	stats.Record(ctx, TablePublishLatency.M(time.Since(tableStartTime).Seconds()))
 	return err
 }
 
-func (pm *PublishManager) publishEndpointActual(ctx context.Context, tables *airtable.Tables, endpoint unrolledEndpoint) error {
-	log.Printf("[%s] Transforming data...\n", endpoint.EndpointName)
-	sanitizedData, err := endpoint.Transform(ctx, tables)
+func (pm *PublishManager) publishEndpointActual(ctx context.Context, tables *airtable.Tables, ep endpoints.Endpoint) error {
+	log.Printf("[%v] Transforming data...\n", &ep)
+	sanitizedData, err := ep.Transform(ctx, tables)
 	if err != nil {
 		return fmt.Errorf("failed to sanitize json data: %w", err)
 	}
@@ -112,7 +102,7 @@ func (pm *PublishManager) publishEndpointActual(ctx context.Context, tables *air
 	if err != nil {
 		return fmt.Errorf("failed to get destination bucket: %w", err)
 	}
-	destinationFile := bucket + "/" + endpoint.EndpointName + ".json"
-	log.Printf("[%s] Publishing to %s...\n", endpoint.EndpointName, destinationFile)
+	destinationFile := bucket + "/" + ep.Resource + ".json"
+	log.Printf("[%v] Publishing to %s...\n", &ep, destinationFile)
 	return pm.store(ctx, destinationFile, sanitizedData)
 }
