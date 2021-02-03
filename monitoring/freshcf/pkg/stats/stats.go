@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/endpoints"
+	"github.com/honeycombio/beeline-go"
 )
 
 type ExportedJSONFileStats struct {
@@ -24,7 +25,30 @@ type ExportedJSONFileStats struct {
 // ability. error will be true if there was a fatal error along the
 // way, in which case values that are not meaningful given the error
 // will be 0.
-func GetURLStats(url string) (ExportedJSONFileStats, error) {
+func getURLStatsResult(ctx context.Context, ep endpoints.Endpoint) Response {
+	ctx, span := beeline.StartSpan(ctx, "stats.GetURLStats")
+	defer span.Send()
+
+	beeline.AddField(ctx, "version", ep.Version)
+	beeline.AddField(ctx, "resource", ep.Resource)
+
+	url, err := ep.URL()
+	if err != nil {
+		log.Printf("error getting %v stats: %v", &ep, err)
+		beeline.AddField(ctx, "error", err)
+		return Response{Endpoint: ep, URL: url, Stats: ExportedJSONFileStats{}, Err: err}
+	}
+
+	beeline.AddField(ctx, "url", url)
+	log.Printf("Fetching %s..", url)
+	stats, err := GetURLStats(ctx, url)
+	if err != nil {
+		beeline.AddField(ctx, "error", err)
+	}
+	return Response{Endpoint: ep, URL: url, Stats: stats, Err: err}
+}
+
+func GetURLStats(ctx context.Context, url string) (ExportedJSONFileStats, error) {
 	output := ExportedJSONFileStats{}
 
 	resp, err := http.Get(url)
@@ -85,6 +109,9 @@ type Response struct {
 }
 
 func AllResponses(ctx context.Context) chan Response {
+	ctx, span := beeline.StartSpan(ctx, "stats.AllResponses")
+	defer span.Send()
+
 	eps := endpoints.AllEndpoints()
 	resultChan := make(chan Response, len(eps))
 	wg := sync.WaitGroup{}
@@ -92,16 +119,7 @@ func AllResponses(ctx context.Context) chan Response {
 		wg.Add(1)
 		go func(ep endpoints.Endpoint) {
 			defer wg.Done()
-			url, err := ep.URL()
-			if err != nil {
-				log.Printf("error getting %v stats: %v", &ep, err)
-				resultChan <- Response{Endpoint: ep, URL: url, Stats: ExportedJSONFileStats{}, Err: err}
-				return
-			}
-
-			log.Printf("Fetching %s..", url)
-			stats, err := GetURLStats(url)
-			resultChan <- Response{Endpoint: ep, URL: url, Stats: stats, Err: err}
+			resultChan <- getURLStatsResult(ctx, ep)
 		}(ep)
 	}
 	wg.Wait()
