@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"time"
 
 	"contrib.go.opencensus.io/exporter/stackdriver"
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/airtable"
+	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/config"
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/deploys"
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/generator"
 	beeline "github.com/honeycombio/beeline-go"
@@ -88,10 +88,7 @@ func Init() func() {
 		log.Fatalf("Failed to register the view: %v", err)
 	}
 
-	exporter, err := stackdriver.NewExporter(stackdriver.Options{
-		ProjectID:         "cavaccineinventory",
-		ReportingInterval: 60 * time.Second,
-	})
+	exporter, err := stackdriver.NewExporter(config.StackdriverOptions("pipeline"))
 	if err != nil {
 		log.Fatal(err)
 	}

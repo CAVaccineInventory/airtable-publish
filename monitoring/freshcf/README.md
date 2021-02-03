@@ -24,16 +24,15 @@ Deploys take ~2 minutes to complete, and are controlled through
 [Google Cloud
 Build](https://console.cloud.google.com/cloud-build/triggers).
 
+For safety, `prod-monitoring` never advances past `prod`; this means
+we cannot ever page for an endpoint which has not begun publishing
+yet.  The script below handles that restriction for you.
+
 To deploy staging to production:
 
-1. [Create a pull request from `main` into `prod-monitoring`](https://github.com/CAVaccineInventory/airtable-export/compare/prod-monitoring...main?quick_pull=1&title=[DEPLOY]+%28summarize%20here%29)
-   - Describe the key changes in the summary, and any notes in the body.
+1. Announce a push in #operations, and get a :thumbsup: from someone.
 
-2. Get that pull request reviewed and accepted.
-
-3. Merge the pull request **as a merge**.  Merging it as a _rebase_
-   will cause divergent history between `main` and `prod` which
-   requires a force-push to fix.
+2. Run `scripts/deploy.sh monitoring`
 
 
 ## Local Development

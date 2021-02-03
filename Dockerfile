@@ -1,9 +1,8 @@
 FROM gcr.io/google.com/cloudsdktool/cloud-sdk:alpine
 
-RUN apk add --no-cache py3-pip go jq && \
-	pip3 install airtable-export
+RUN apk add --no-cache go
 
-# Cache the download of dependent modules.  
+# Cache the download of dependent modules.
 # Only copy the go.* files so source code changes don't result in new downloads.
 COPY ./go.* /src/
 WORKDIR /src
