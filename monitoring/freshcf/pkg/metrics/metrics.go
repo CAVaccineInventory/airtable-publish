@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"contrib.go.opencensus.io/exporter/stackdriver"
+	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/config"
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/deploys"
 	"github.com/honeycombio/beeline-go"
 	"go.opencensus.io/stats"
@@ -89,7 +90,7 @@ func Init() func() {
 	}
 
 	exporter, err := stackdriver.NewExporter(stackdriver.Options{
-		ProjectID:         "cavaccineinventory",
+		ProjectID:         config.GoogleProjectID,
 		ReportingInterval: 60 * time.Second,
 	})
 	if err != nil {
