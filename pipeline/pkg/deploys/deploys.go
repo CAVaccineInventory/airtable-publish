@@ -43,7 +43,7 @@ var deploys = map[DeployType]DeployConfig{
 			Path: "airtable-sync-staging",
 		},
 		APIBucket: Bucket{
-			Name:     "vaccinataca-api-staging",
+			Name:     "vaccinateca-api-staging",
 			HostedAt: "staging-api.vaccinateca.com",
 		},
 	},
@@ -53,7 +53,7 @@ var deploys = map[DeployType]DeployConfig{
 			Path: "airtable-sync",
 		},
 		APIBucket: Bucket{
-			Name:     "vaccinataca-api",
+			Name:     "vaccinateca-api",
 			HostedAt: "api.vaccinateca.com",
 		},
 	},
