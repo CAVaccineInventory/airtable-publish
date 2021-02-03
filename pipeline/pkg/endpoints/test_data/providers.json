@@ -1,0 +1,287 @@
+[
+    {
+        "Phase": [
+            "Not currently vaccinating"
+        ],
+        "Provider": "Sam's Pharmacy",
+        "Provider network type": "Pharmacy",
+        "Public Notes": "This information was double checked on 2021-01-18\n\n",
+        "Vaccine info URL": "https://corporate.samsclub.com/member-update-steps-were-taking-in-response-to-covid-19",
+        "airtable_createdTime": "2021-01-18T03:58:00.000Z",
+        "airtable_id": "rec2G6j5wu5gri77g"
+    },
+    {
+        "Phase": [
+            "Vaccinating health care workers",
+            "Vaccinating 75+"
+        ],
+        "Provider": "Kaiser Permanente",
+        "Provider network type": "Hospital",
+        "Public Notes": "As of 2021-01-17: Vaccinating healthcare workers by appointment. Patients will receive contact by letter or by email, it will take time to offer everyone an appointment\n\n",
+        "Vaccine info URL": "https://mydoctor.kaiserpermanente.org/covid-19/covid-19-vaccine",
+        "airtable_createdTime": "2021-01-18T03:56:28.000Z",
+        "airtable_id": "rec4OacL3zjqLaBqY"
+    },
+    {
+        "Appointments URL": "https://www.sutterhealth.org/for-patients/health-alerts/covid-19-vaccine",
+        "Phase": [
+            "Vaccinating 75+"
+        ],
+        "Provider": "Sutter Health",
+        "Provider network type": "Hospital",
+        "Public Notes": "Sutter patients can book appointments by signing into My Health Online using the sign-in button here: <https://www.sutterhealth.org/for-patients/health-alerts/covid-19-vaccine>\n\nOnce you choose a date and location to book an appointment, you can also choose to be added to a waitlist in case an earlier spot opens up.\n\n",
+        "Vaccine info URL": "https://www.sutterhealth.org/for-patients/health-alerts/covid-19-vaccine",
+        "airtable_createdTime": "2021-01-25T16:18:04.000Z",
+        "airtable_id": "rec5DV4DNGdWDMquu"
+    },
+    {
+        "Phase": [
+            "Vaccinating 65+"
+        ],
+        "Provider": "Sav-on Pharmacy",
+        "Provider network type": "Pharmacy",
+        "Public Notes": "Appointments are typically booked out online until more supply arrives but people might cancel. Availability and eligibility is managed on a county-by-county basis but we know of at least a few counties where 65+ vaccinations have begun.\n\nSame pharmacy chain as Von's, Safeway, Sav-on. \n",
+        "Vaccine info URL": "http://mhealthsystem.com/cvd####  where #### is replaced by the store number",
+        "airtable_createdTime": "2021-01-18T03:58:13.000Z",
+        "airtable_id": "recB3eVZ3t6gTZg5n"
+    },
+    {
+        "airtable_createdTime": "2021-01-25T16:21:06.000Z",
+        "airtable_id": "recH6JcBCWCs0sLBf"
+    },
+    {
+        "Phase": [
+            "Not currently vaccinating"
+        ],
+        "Provider": "Walmart",
+        "Provider network type": "Pharmacy",
+        "Public Notes": "Most locations anticipate starting to get supply in February.\n",
+        "Vaccine info URL": "https://corporate.walmart.com/covid-vaccine",
+        "airtable_createdTime": "2021-01-18T03:55:15.000Z",
+        "airtable_id": "recHdfz54RnV9NckR"
+    },
+    {
+        "Appointments URL": "https://mhealthappointments.com/",
+        "Phase": [
+            "Not currently vaccinating"
+        ],
+        "Provider": "Albertson's Pharmacy",
+        "Provider network type": "Pharmacy",
+        "Public Notes": "As of 2021-01-18: Not currently vaccinating but you can sign up to be notified when it is at this link:  <https://www.albertsons.com/my-vaccine-communication.html>\n\n",
+        "Vaccine info URL": "https://www.albertsons.com/pharmacy/covid-19.html",
+        "airtable_createdTime": "2021-01-18T03:58:40.000Z",
+        "airtable_id": "recImxzlTSTVz7meQ"
+    },
+    {
+        "Appointments URL": "https://www.ucsfhealth.org/vaccination",
+        "Phase": [
+            "Vaccinating 75+",
+            "Vaccinating health care workers"
+        ],
+        "Provider": "UCSF",
+        "Provider network type": "Hospital",
+        "Public Notes": "As of 2021-01-17: **Vaccinating Now: By appointment via MyChart only**\n\u00a0Phase 1A: Health care workers\n\u00a0UCSF patients age 75 and over\t\n",
+        "Vaccine info URL": "https://coronavirus.ucsf.edu/vaccines",
+        "airtable_createdTime": "2021-01-18T03:55:28.000Z",
+        "airtable_id": "recJzaX5zclC6pwTl"
+    },
+    {
+        "Phase": [
+            "Not currently vaccinating"
+        ],
+        "Provider": "Walgreens",
+        "Provider network type": "Pharmacy",
+        "Public Notes": "As of 2021-01-18: Not currently vaccinating (\"delivering vaccinations to long-term care facilities and we'll have vaccines for the public sometime in 2021.\")\n",
+        "Vaccine info URL": "https://www.walgreens.com/topic/promotion/covid-vaccine.jsp",
+        "airtable_createdTime": "2021-01-18T03:55:08.000Z",
+        "airtable_id": "recKMdplNPLCwFMua"
+    },
+    {
+        "Phase": [
+            "Not currently vaccinating"
+        ],
+        "Provider": "Save Mart Pharmacy",
+        "Provider network type": "Pharmacy",
+        "Public Notes": "As of 2021-01-18: It seems the store is not yet administering the vaccine but will be soon at these locations \n\nhttps://fox40.com/news/local-news/grocery-store-chain-helps-expand-covid-19-vaccination-sites-in-sacramento-stanislaus-counties/\n\n",
+        "airtable_createdTime": "2021-01-18T03:58:19.000Z",
+        "airtable_id": "recKNEDBUWM1IXwF9"
+    },
+    {
+        "Phase": [
+            "Not currently vaccinating"
+        ],
+        "Provider": "The Medicine Shoppe",
+        "Provider network type": "Pharmacy",
+        "Public Notes": "Website out of date - As of 2021-01-18 <https://www.medicineshoppe.com/coronavirus> claims there is no vaccine in existence\t\n\n",
+        "airtable_createdTime": "2021-01-18T03:58:29.000Z",
+        "airtable_id": "recL6J9nNdt52LGBv"
+    },
+    {
+        "Appointments URL": "https://www.elcaminohealth.org/covid-19-resource-center/schedule/vaccine",
+        "Phase": [
+            "Vaccinating health care workers",
+            "Vaccinating 75+"
+        ],
+        "Provider": "El Camino Health",
+        "Provider network type": "Hospital",
+        "Public Notes": "(as of Jan 18): No walkins permitted, please use the website instead of calling. appointment only. Vaccines will be administered beginning January 19th, Monday \u2013 Friday from 8:00 a.m. \u2013 4:15 p.m\n",
+        "Vaccine info URL": "https://www.elcaminohealth.org/covid-19-resource-center/vaccine-information",
+        "Vaccine locations URL": "https://www.elcaminohealth.org/locations",
+        "airtable_createdTime": "2021-01-18T06:12:39.000Z",
+        "airtable_id": "recMuxZ6lf0M4wzI2"
+    },
+    {
+        "Appointments URL": "https://www.ralphs.com/rx/guest/get-vaccinated",
+        "Phase": [
+            "Vaccinating health care workers",
+            "Vaccinating 65+"
+        ],
+        "Provider": "Ralph's Pharmacy",
+        "Provider network type": "Pharmacy",
+        "Public Notes": "Website says Limited quantities available now at most locations\n\n",
+        "Vaccine info URL": "https://www.ralphs.com/i/coronavirus-update/vaccine",
+        "airtable_createdTime": "2021-01-18T03:57:36.000Z",
+        "airtable_id": "recN5zutK3efQf1f9"
+    },
+    {
+        "Phase": [
+            "Unknown"
+        ],
+        "Provider": "Rite-Aid Pharmacy",
+        "Provider network type": "Pharmacy",
+        "Public Notes": "As of 2021-01-18: The vaccine will note be available to Rite-Aid Phase 2\n\n",
+        "Vaccine info URL": "https://www.riteaid.com/Covid-19",
+        "airtable_createdTime": "2021-01-18T03:57:52.000Z",
+        "airtable_id": "recPPKwiDAPGruO9u"
+    },
+    {
+        "Appointments URL": "https://mhealthappointments.com/",
+        "Phase": [
+            "Vaccinating 65+"
+        ],
+        "Provider": "Safeway",
+        "Provider network type": "Pharmacy",
+        "Public Notes": "Appointments are typically booked out online until more supply arrives but people might cancel. Availability and eligibility is managed on a county-by-county basis but we know of at least a few counties where 65+ vaccinations have begun.\n\nSame pharmacy chain as Von's, Safeway, Sav-on. \n",
+        "Vaccine info URL": "http://mhealthsystem.com/cvd####  where #### is replaced by the store number",
+        "airtable_createdTime": "2021-01-18T03:55:22.000Z",
+        "airtable_id": "recRMqc5LyYA5khcy"
+    },
+    {
+        "Appointments URL": "https://www.sutterhealth.org/for-patients/health-alerts/covid-19-vaccine",
+        "Phase": [
+            "Vaccinating 75+"
+        ],
+        "Provider": "Sutter",
+        "Provider network type": "Hospital",
+        "Public Notes": "Sutter patients can book appointments by signing into My Health Online using the sign-in button here: <https://www.sutterhealth.org/for-patients/health-alerts/covid-19-vaccine>\n\nOnce you choose a date and location to book an appointment, you can also choose to be added to a waitlist in case an earlier spot opens up.\n",
+        "Vaccine info URL": "https://www.sutterhealth.org/for-patients/health-alerts/covid-19-vaccine",
+        "airtable_createdTime": "2021-01-18T03:51:09.000Z",
+        "airtable_id": "recSSwXhF9F3Krv8W"
+    },
+    {
+        "Appointments URL": "https://mhealthappointments.com/",
+        "Phase": [
+            "Vaccinating 65+"
+        ],
+        "Provider": "Von's",
+        "Provider network type": "Pharmacy",
+        "Public Notes": "Appointments are typically booked out online until more supply arrives but people might cancel. Availability and eligibility is managed on a county-by-county basis but we know of at least a few counties where 65+ vaccinations have begun. \n\nSame pharmacy chain as Von's, Safeway, Sav-on. \n",
+        "Vaccine info URL": "http://mhealthsystem.com/cvd####  where #### is replaced by the store number)",
+        "airtable_createdTime": "2021-01-18T03:54:24.000Z",
+        "airtable_id": "recSnMrHoR5f4eSfE"
+    },
+    {
+        "Phase": [
+            "Unknown"
+        ],
+        "Provider": "Blue Cross Blue Shield of CA",
+        "Provider network type": "Health Plan",
+        "Public Notes": "\n",
+        "Vaccine info URL": "https://www.blueshieldca.com/bsca/bsc/wcm/connect/sites/Sites_Content_EN/coronavirus/vaccine-faqs",
+        "airtable_createdTime": "2021-01-18T06:10:55.000Z",
+        "airtable_id": "recaEHL19VRr2MaT1"
+    },
+    {
+        "airtable_createdTime": "2021-01-25T16:23:35.000Z",
+        "airtable_id": "reccFbPvOa56PXk3l"
+    },
+    {
+        "Appointments URL": "https://myhealth.stanfordhealthcare.org/#/appointments/apptmake",
+        "Phase": [
+            "Vaccinating health care workers",
+            "Vaccinating 75+"
+        ],
+        "Provider": "Stanford Health Care",
+        "Provider network type": "Hospital",
+        "Public Notes": "[1/20] Established patients of Stanford Health Care who meet the following criteria may schedule a vaccination via [MyHealth](https://myhealth.stanfordhealthcare.org/#/appointments/apptmake) or by calling 650-498-9000.\n\n- Residents of Santa Clara County and San Mateo County age 65 and over.\n- Residents of Alameda County and Contra Costa County age 65 and over.\n- Health care workers who are patients of Stanford Health Care and/or work in Santa Clara County, San Mateo County or Alameda County: If you are a health care worker not necessarily employed or contracted by Stanford Health Care, you are eligible for vaccination at this time.\nFor more information, visit [https://stanfordhealthcare.org/discover/covid-19-resource-center/patient-care/safety-health-vaccine-planning.html](https://stanfordhealthcare.org/discover/covid-19-resource-center/patient-care/safety-health-vaccine-planning.html?ecid=ecc-olm-na-na-all-na-Dec20-surl_covid19updates)).\n",
+        "Vaccine info URL": "https://stanfordhealthcare.org/discover/covid-19-resource-center/patient-care/safety-health-vaccine-planning.html?ecid=ecc-olm-na-na-all-na-Dec20-surl_covid19updates",
+        "Vaccine locations URL": "https://stanfordhealthcare.org/discover/covid-19-resource-center/patient-care/safety-health-vaccine-planning.html?ecid=ecc-olm-na-na-all-na-Dec20-surl_covid19updates)",
+        "airtable_createdTime": "2021-01-18T06:12:11.000Z",
+        "airtable_id": "recde0nSOAhIbnOwn"
+    },
+    {
+        "Phase": [
+            "Vaccinating health care workers"
+        ],
+        "Provider": "One Medical",
+        "Provider network type": "Other",
+        "Public Notes": "(as of Jan 15) mostly prioritizing Phase 1a only. only allowing self-booking for app and web portal. very limited quantities.\n",
+        "Vaccine info URL": "https://www.onemedical.com/blog/live-well/updates-covid-19-vaccinations-efforts-your-area",
+        "airtable_createdTime": "2021-01-18T06:11:47.000Z",
+        "airtable_id": "reckyDfrqjTM27CgO"
+    },
+    {
+        "Phase": [
+            "Not currently vaccinating"
+        ],
+        "Provider": "Raley's Pharmacy",
+        "Provider network type": "Pharmacy",
+        "Public Notes": "This information was double checked on 2021-01-18\n\n\n",
+        "airtable_createdTime": "2021-01-18T03:57:29.000Z",
+        "airtable_id": "reclvFVOFSJNaQCNK"
+    },
+    {
+        "Appointments URL": "https://www.cvs.com/vaccine/intake/store/cvd-schedule?icid=covidvaccine-hb-schedule",
+        "Phase": [
+            "Not currently vaccinating"
+        ],
+        "Provider": "CVS",
+        "Provider network type": "Pharmacy",
+        "Public Notes": "CVS is not currently offering the COVID Vaccine in California\n\n",
+        "Vaccine info URL": "https://www.cvs.com/immunizations/covid-19-vaccine",
+        "airtable_createdTime": "2021-01-18T03:45:47.000Z",
+        "airtable_id": "recnnxsQHkx4l7V80"
+    },
+    {
+        "Phase": [
+            "Vaccinating 75+"
+        ],
+        "Provider": "John Muir Health",
+        "Provider network type": "Hospital",
+        "Public Notes": "As of 2021-01-15: John Muir patients 75+ are eligible at the time. John Muir will be distributing to all their patients, including those outside of Contra Costa. They do not have a registry or waitlist. \n\nThey will begin contacting John Muir Health patients in this age group the week of 1/18 to schedule a vaccine appointment. They will be contacting patients in a variety of ways including MyChart messages, email, text messages and phone calls. Each patient will be initially contacted using one of these methods only. This outreach will likely take a number of weeks. \n\nJohn Muir has a COVID-19 hotline with recorded information at 925-952-2300. \n\nAs of 1/22, their vaccine clinics are operating 12 hours per day, five days per week. Vaccine supply is currently allocated by the county and the provider is currently able to offer 3,000 vaccination appointments per week.\n",
+        "Vaccine info URL": "https://www.johnmuirhealth.com/patients-and-visitors/coronavirus/covid-vaccine.html#vaccine-info",
+        "airtable_createdTime": "2021-01-18T03:54:37.000Z",
+        "airtable_id": "recpmxzduDvlnP9qD"
+    },
+    {
+        "Phase": [
+            "Not currently vaccinating"
+        ],
+        "Provider": "Costco Pharmacy",
+        "Provider network type": "Pharmacy",
+        "Public Notes": "This information was double checked on 2021-01-18\n\n",
+        "Vaccine info URL": "https://www.costco.com/covid-vaccine.html",
+        "airtable_createdTime": "2021-01-18T03:55:16.000Z",
+        "airtable_id": "recsiKWQK5zbpqUj5"
+    },
+    {
+        "Phase": [
+            "Not currently vaccinating"
+        ],
+        "Provider": "Lucky Pharmacy",
+        "Provider network type": "Pharmacy",
+        "Public Notes": "This information was double checked on 2021-01-18\n",
+        "airtable_createdTime": "2021-01-18T03:57:22.000Z",
+        "airtable_id": "recyq0ZnLhX26FHmr"
+    }
+]

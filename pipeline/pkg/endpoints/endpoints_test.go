@@ -15,11 +15,35 @@ import (
 
 func TestSanitize(t *testing.T) {
 	tests := map[string]struct {
+		endpointFunc endpointFunc
 		testDataFile string
 		badKeys      []string
 	}{
-		"Locations": {testDataFile: "test_data/locations_reduced.json", badKeys: []string{"Last report author", "Internal notes"}},
-		"Counties":  {testDataFile: "test_data/counties.json", badKeys: []string{"Internal notes"}},
+		"Locations": {
+			endpointFunc: EndpointMap[deploys.LegacyVersion]["Locations"],
+			testDataFile: "test_data/locations_reduced.json",
+			badKeys:      []string{"Last report author", "Internal notes"},
+		},
+		"Counties": {
+			endpointFunc: EndpointMap[deploys.LegacyVersion]["Counties"],
+			testDataFile: "test_data/counties.json",
+			badKeys:      []string{"Internal notes"},
+		},
+		"Locations-V1": {
+			endpointFunc: EndpointMap[deploys.VersionType("1")]["locations"],
+			testDataFile: "test_data/locations_reduced.json",
+			badKeys:      []string{"Last report author", "Internal notes"},
+		},
+		"Counties-V1": {
+			endpointFunc: EndpointMap[deploys.VersionType("1")]["counties"],
+			testDataFile: "test_data/counties.json",
+			badKeys:      []string{"Internal notes"},
+		},
+		"Providers-V1": {
+			endpointFunc: EndpointMap[deploys.VersionType("1")]["providers"],
+			testDataFile: "test_data/providers.json",
+			badKeys:      []string{"airtable_id"},
+		},
 	}
 
 	ctx := context.Background()
@@ -28,7 +52,7 @@ func TestSanitize(t *testing.T) {
 			return airtable.ObjectFromFile(ctx, name, tc.testDataFile)
 		}
 		fakeTables := airtable.NewFakeTables(getData)
-		out, err := EndpointMap[deploys.LegacyVersion][name](ctx, fakeTables)
+		out, err := tc.endpointFunc(ctx, fakeTables)
 		require.NoError(t, err)
 
 		got, err := storage.Serialize(out)
