@@ -10,9 +10,11 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
+	"sync"
 	"time"
 
-	"github.com/CAVaccineInventory/airtable-export/pipeline/deploys"
+	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/endpoints"
 )
 
 type ExportedJSONFileStats struct {
@@ -32,6 +34,8 @@ func getURLStats(url string) (ExportedJSONFileStats, error) {
 	if err != nil {
 		return output, fmt.Errorf("fetching: %q: %w", url, err)
 	}
+	// Always clean up the response body.
+	defer resp.Body.Close()
 
 	// First, check if we got a successful HTTP response. If not,
 	// Last-Modified is not valid/useful.
@@ -49,7 +53,6 @@ func getURLStats(url string) (ExportedJSONFileStats, error) {
 	}
 
 	// get the contents.
-	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return output, fmt.Errorf("reading: %q: %w", url, err)
@@ -57,37 +60,74 @@ func getURLStats(url string) (ExportedJSONFileStats, error) {
 	output.FileLengthBytes = len(body)
 
 	// parse the body
-	var jsonBody []interface{}
-	err = json.Unmarshal(body, &jsonBody)
+	var jsonData interface{}
+	err = json.Unmarshal(body, &jsonData)
 	if err != nil {
-		log.Printf("failed to parse JSON %v", err)
-	} else {
-		output.FileLengthJSONItems = len(jsonBody)
+		return output, err
+	}
+	if listData, ok := jsonData.([]interface{}); ok {
+		output.FileLengthJSONItems = len(listData)
+		return output, nil
 	}
 
-	return output, nil
+	if mapData, ok := jsonData.(map[string]interface{}); ok {
+		if listPart, ok := mapData["content"].([]interface{}); ok {
+			output.FileLengthJSONItems = len(listPart)
+			return output, nil
+		}
+	}
+
+	return output, errors.New("Unknown JSON structure")
+}
+
+type StatsResponse struct {
+	url   string
+	stats ExportedJSONFileStats
+	err   error
+}
+
+func AllResponses() chan StatsResponse {
+	eps := endpoints.AllEndpoints()
+	resultChan := make(chan StatsResponse, len(eps))
+	wg := sync.WaitGroup{}
+	for _, ep := range eps {
+		wg.Add(1)
+		go func(ep endpoints.Endpoint) {
+			defer wg.Done()
+			url, err := ep.URL()
+			if err != nil {
+				log.Printf("error getting %v stats: %v", &ep, err)
+				resultChan <- StatsResponse{url: url, stats: ExportedJSONFileStats{}, err: err}
+				return
+			}
+
+			log.Printf("Fetching %s..", url)
+			stats, err := getURLStats(url)
+			resultChan <- StatsResponse{url: url, stats: stats, err: err}
+		}(ep)
+	}
+	wg.Wait()
+	return resultChan
 }
 
 func ExportJSON(w http.ResponseWriter, r *http.Request) {
-	baseURL, err := deploys.GetExportBaseURL()
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintf(w, "error determining base url: %v", err)
-		return
+	resultChan := AllResponses()
+
+	results := make(map[string]ExportedJSONFileStats)
+	for len(resultChan) != 0 {
+		result := <-resultChan
+		if result.err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			fmt.Fprintf(w, "error getting stats for %s: %v", result.url, result.err)
+			return
+		}
+		results[result.url] = result.stats
 	}
 
-	url := baseURL + "/Locations.json"
-	stats, err := getURLStats(url)
+	jsonBytes, err := json.Marshal(results)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintf(w, "error getting stats %q: %v", url, err)
-		return
-	}
-
-	jsonBytes, err := json.Marshal(stats)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintf(w, "error marshalling json %q: %v", url, err)
+		fmt.Fprintf(w, "error marshalling json: %v", err)
 		return
 	}
 
@@ -126,46 +166,43 @@ func CheckFreshness(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	baseURL, err := deploys.GetExportBaseURL()
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintf(w, "error determining base url: %v", err)
-		return
+	resultChan := AllResponses()
+	errs := make([]string, 0)
+	for len(resultChan) != 0 {
+		result := <-resultChan
+		if result.err != nil {
+			errs = append(errs, fmt.Sprintf("%s\nerror fetching: %s", result.url, result.err))
+			continue
+		}
+
+		stats := result.stats
+		if stats.LastModified.IsZero() {
+			errs = append(errs, fmt.Sprintf("%s\ninvalid last modified header", result.url))
+			continue
+		}
+
+		ago := int(time.Since(stats.LastModified).Seconds())
+		if ago > thresholdAge {
+			errs = append(errs, fmt.Sprintf("%s\nlast modified is too old: %d < %d", result.url, ago, thresholdAge))
+			continue
+		}
+
+		if stats.FileLengthBytes < thresholdLength {
+			errs = append(errs, fmt.Sprintf("%s\nfile body too short: %d < %d", result.url, stats.FileLengthBytes, thresholdLength))
+			continue
+		}
+
+		if stats.FileLengthJSONItems < thresholdItems {
+			errs = append(errs, fmt.Sprintf("%s\njson list too short: %d < %d", result.url, stats.FileLengthJSONItems, thresholdItems))
+			continue
+		}
 	}
 
-	url := baseURL + "/Locations.json"
-	stats, err := getURLStats(url)
-	if err != nil {
+	if len(errs) > 0 {
 		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintf(w, "error getting stats %q: %v", url, err)
-		return
+		fmt.Fprintf(w, "Errors:\n\n%v", strings.Join(errs, "\n\n"))
+	} else {
+		w.WriteHeader(http.StatusOK)
+		fmt.Fprintf(w, "OK")
 	}
-
-	if stats.LastModified.IsZero() {
-		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintf(w, "invalid last modified header")
-		return
-	}
-
-	ago := int(time.Since(stats.LastModified).Seconds())
-	if ago > thresholdAge {
-		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintf(w, "last modified is too old: %d < %d", ago, thresholdAge)
-		return
-	}
-
-	if stats.FileLengthBytes < thresholdLength {
-		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintf(w, "file body too short: %d < %d", stats.FileLengthBytes, thresholdLength)
-		return
-	}
-
-	if stats.FileLengthJSONItems < thresholdItems {
-		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintf(w, "json list too short: %d < %d", stats.FileLengthJSONItems, thresholdItems)
-		return
-	}
-
-	w.WriteHeader(http.StatusOK)
-	fmt.Fprintf(w, "OK")
 }

@@ -5,9 +5,11 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"sync"
 	"time"
 
-	"github.com/CAVaccineInventory/airtable-export/pipeline/deploys"
+	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/deploys"
+	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/endpoints"
 
 	"contrib.go.opencensus.io/exporter/stackdriver"
 	"go.opencensus.io/stats"
@@ -40,11 +42,10 @@ var (
 		stats.UnitDimensionless,
 	)
 
-	keyTable, _  = tag.NewKey("table")
-	keyDeploy, _ = tag.NewKey("deploy")
+	keyDeploy, _   = tag.NewKey("deploy")
+	keyVersion, _  = tag.NewKey("version")
+	keyResource, _ = tag.NewKey("resource")
 )
-
-var tableNames = [...]string{"Locations", "Counties"}
 
 func InitMetrics() func() {
 	err := view.Register(
@@ -53,28 +54,28 @@ func InitMetrics() func() {
 			Description: lastModified.Description(),
 			Measure:     lastModified,
 			Aggregation: view.LastValue(),
-			TagKeys:     []tag.Key{keyDeploy, keyTable},
+			TagKeys:     []tag.Key{keyDeploy, keyVersion, keyResource},
 		},
 		&view.View{
 			Name:        lastModifiedAge.Name(),
 			Description: lastModifiedAge.Description(),
 			Measure:     lastModifiedAge,
 			Aggregation: view.LastValue(),
-			TagKeys:     []tag.Key{keyDeploy, keyTable},
+			TagKeys:     []tag.Key{keyDeploy, keyVersion, keyResource},
 		},
 		&view.View{
 			Name:        fileLengthBytes.Name(),
 			Description: fileLengthBytes.Description(),
 			Measure:     fileLengthBytes,
 			Aggregation: view.LastValue(),
-			TagKeys:     []tag.Key{keyDeploy, keyTable},
+			TagKeys:     []tag.Key{keyDeploy, keyVersion, keyResource},
 		},
 		&view.View{
 			Name:        fileLengthJSONItems.Name(),
 			Description: fileLengthJSONItems.Description(),
 			Measure:     fileLengthJSONItems,
 			Aggregation: view.LastValue(),
-			TagKeys:     []tag.Key{keyDeploy, keyTable},
+			TagKeys:     []tag.Key{keyDeploy, keyVersion, keyResource},
 		},
 	)
 	if err != nil {
@@ -107,33 +108,40 @@ func PushMetrics(w http.ResponseWriter, r *http.Request) {
 	}
 	deployCtx, _ := tag.New(context.Background(), tag.Insert(keyDeploy, string(deploy)))
 
-	baseURL, err := deploys.GetExportBaseURL()
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintf(w, "error determining base url: %v", err)
-		return
+	eps := endpoints.AllEndpoints()
+	wg := sync.WaitGroup{}
+	for _, ep := range eps {
+		wg.Add(1)
+		go func(ep endpoints.Endpoint) {
+			defer wg.Done()
+			tableCtx, _ := tag.New(deployCtx,
+				tag.Insert(keyVersion, string(ep.Version)),
+				tag.Insert(keyResource, ep.Resource))
+			url, err := ep.URL()
+			if err != nil {
+				log.Printf("error getting %v stats: %v", &ep, err)
+				return
+			}
+
+			log.Printf("Fetching %s..", url)
+			urlStats, err := getURLStats(url)
+			if err != nil {
+				log.Printf("error getting %v stats %q: %v", &ep, url, err)
+				return
+				// XXX FUTURE report a count of errors
+			}
+
+			stats.Record(tableCtx, fileLengthBytes.M(int64(urlStats.FileLengthBytes)))
+			stats.Record(tableCtx, fileLengthJSONItems.M(int64(urlStats.FileLengthJSONItems)))
+
+			if !urlStats.LastModified.IsZero() {
+				stats.Record(tableCtx, lastModified.M(urlStats.LastModified.Unix()))
+				ago := time.Since(urlStats.LastModified).Seconds()
+				stats.Record(tableCtx, lastModifiedAge.M(ago))
+			}
+		}(ep)
 	}
-
-	for _, tableName := range tableNames {
-		tableCtx, _ := tag.New(deployCtx, tag.Insert(keyTable, tableName))
-
-		url := fmt.Sprintf("%v/%v.json", baseURL, tableName)
-		urlStats, err := getURLStats(url)
-
-		if err != nil {
-			log.Printf("error getting %q stats %q: %v", tableName, url, err)
-			// XXX FUTURE report a count of errors
-		}
-
-		stats.Record(tableCtx, fileLengthBytes.M(int64(urlStats.FileLengthBytes)))
-		stats.Record(tableCtx, fileLengthJSONItems.M(int64(urlStats.FileLengthJSONItems)))
-
-		if !urlStats.LastModified.IsZero() {
-			stats.Record(tableCtx, lastModified.M(urlStats.LastModified.Unix()))
-			ago := time.Since(urlStats.LastModified).Seconds()
-			stats.Record(tableCtx, lastModifiedAge.M(ago))
-		}
-	}
+	wg.Wait()
 
 	w.WriteHeader(http.StatusOK)
 	fmt.Fprintf(w, "done")

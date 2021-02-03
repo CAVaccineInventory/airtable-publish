@@ -117,10 +117,7 @@ docker run \
   -e TESTING_BUCKET=<bucketname> \
   -v "$(pwd)/testing-key.json:/testing-key.json" \
   -p 8080:8080
-  --rm -it airtable-export
-
-# In a separate shell:
-curl -vX POST http://localhost:8080/publish
+  --rm -it airtable-export /entrypoint.sh once
 ```
 
 ## Testing
@@ -128,10 +125,3 @@ curl -vX POST http://localhost:8080/publish
 ```
 go test -v ./...
 ```
-
-## Fields in use by the 'site' repo
-
-Run `pipenv run ./get_required_fields_for_site.py ../../site/assets/js/data.js`
-
-inside the `sanitize` directory. Adjust the path to `data.js` according to where
-you have the file.

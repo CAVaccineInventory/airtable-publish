@@ -1,5 +1,19 @@
 # airtable-export
 
+## Access
+* Github committer team: [site-data-committers](https://github.com/orgs/CAVaccineInventory/teams/site-data-committers)
+* Discord channels:
+    * #data-publishing
+    * #operations (infrastructure and production)
+* Google Cloud access managers: @Vallery, @Robert S, @Alex V
+    * Logs
+    * Monitoring
+    * Deployments
+    * Storage buckets (for serving the "API")
+* Honeycomb access: [self-request](https://ui.honeycomb.io/join_team/vaccinateca)
+* Pagerduty access managers: @Vallery
+
+
 ## How This Works
 
 `airtable-export` is a worker that periodically fetches data from
@@ -21,13 +35,10 @@ products (prod/staging times counties/locations).
 
 We use [golangci](https://golangci-lint.run/)'s linter wrapper.
 
-To run locally, from the root of whatever package you're checking (directory with go.mod in it) run:
+To run locally, run:
 
 ``` shell
 docker run --rm -v $(pwd):/app -w /app \
     golangci/golangci-lint:v1.35.2 golangci-lint run \
     -E golint,goimports,misspell
 ```
-
-(When adding a new package, please add a new entry to the matrix in
-`.github/workflows/golangci-lint.yml`)
