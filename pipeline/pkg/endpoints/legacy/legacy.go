@@ -39,7 +39,6 @@ func Locations(ctx context.Context, tables *airtable.Tables) (airtable.TableCont
 		return nil, fmt.Errorf("failed to fetch Locations table: %w", err)
 	}
 	filteredTable := filter.ToAllowedKeys(rawTable, []string{
-		"Locations",
 		"Address",
 		"Appointment scheduling instructions",
 		"Availability Info",
