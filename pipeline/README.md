@@ -46,16 +46,16 @@ uploads with caching headers that instruct clients to cache the data
 for 2 minutes.
 
 For a JSON request that a browser requests:
- - **Expected latency**: **140 seconds (2:20 min)**, with 30s due to
-   having finished the pipeline that long ago, 50s for being at p99
+ - **Expected latency**: **130 seconds (2:10 min)**, with 30s due to
+   having finished the pipeline that long ago, 40s for being at p75
    for how long before that it was published, and 60s for half of the
    browser cache.
  - **Maximum latency**: **300 seconds (5 min)**, with 60s from just
    missing the current publish, the previous publish having just
    beaten the 120s timeout, and all of that having filled the browser
    cache 120s ago.
- - **Minimal possible latency**: **45 seconds** from the pipeline just having
-   completed, and no browser cache.
+ - **Minimal possible latency**: **30 seconds** from the pipeline just
+   having completed in minimum observed time, and no browser cache.
 
 Note that the _maximum latency_ above is _if it is still publishing
 data._  If the pipeline hangs for longer than the 2 minute timeout,
