@@ -18,7 +18,7 @@ RUN go build -o /once   ./pipeline/cmd/once/main.go
 
 # Setup runtime environment
 COPY entrypoint.sh /
-RUN chmod +x entrypoint.sh
+RUN chmod +x /entrypoint.sh
 
-CMD ["sh", "entrypoint.sh"]
+CMD ["/entrypoint.sh"]
 EXPOSE 8080

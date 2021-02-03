@@ -5,6 +5,7 @@ import (
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/endpoints/counties"
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/endpoints/legacy"
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/endpoints/locations"
+	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/endpoints/providers"
 )
 
 // EndpointMap is a map of an API version, to all endpoints in that version.
@@ -28,5 +29,6 @@ var EndpointMap = map[deploys.VersionType]map[string]endpointFunc{
 	deploys.VersionType("1"): {
 		"locations": locations.V1,
 		"counties":  counties.V1,
+		"providers": providers.V1,
 	},
 }

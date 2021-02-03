@@ -36,6 +36,16 @@ steps:
       - "--quiet"
     id: Deploy
     entrypoint: gcloud
+  - name: gcr.io/cloud-builders/gcloud
+    entrypoint: "bash"
+    args:
+      [
+        "./scripts/honeytag.sh",
+        "freshcf-$_DEPLOY",
+        "Deploy $SHORT_SHA",
+        "https://github.com/CAVaccineInventory/airtable-export/commits/$COMMIT_SHA",
+      ]
+    id: "Add Honeycomb deploy marker"
 
 images:
   - "$_IMAGE_NAME:$COMMIT_SHA"

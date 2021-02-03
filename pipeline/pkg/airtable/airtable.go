@@ -26,12 +26,18 @@ func ObjectFromFile(ctx context.Context, tableName string, filePath string) (Tab
 
 	b, err := ioutil.ReadFile(filePath)
 	if err != nil {
-		return nil, fmt.Errorf("couldn't read file %s: %w", filePath, err)
+		err = fmt.Errorf("couldn't read file %s: %w", filePath, err)
+		beeline.AddField(ctx, "error", err)
+		return nil, err
 	}
 	log.Printf("[%s] Read %d bytes from disk (%s).\n", tableName, len(b), filePath)
 
 	jsonMap := make([]map[string](interface{}), 0)
 	err = json.Unmarshal([]byte(b), &jsonMap)
+	if err != nil {
+		beeline.AddField(ctx, "error", err)
+		return nil, err
+	}
 	return jsonMap, err
 }
 
@@ -48,7 +54,9 @@ func Download(ctx context.Context, tableName string) (TableContent, error) {
 	tempDir, err := ioutil.TempDir("", tableName)
 	defer os.RemoveAll(tempDir)
 	if err != nil {
-		return nil, fmt.Errorf("failed to make temp directory: %w", err)
+		err = fmt.Errorf("failed to make temp directory: %w", err)
+		beeline.AddField(ctx, "error", err)
+		return nil, err
 	}
 
 	log.Printf("[%s] Shelling out to exporter...\n", tableName)
@@ -58,13 +66,17 @@ func Download(ctx context.Context, tableName string) (TableContent, error) {
 	stats.Record(ctx, FetchLatency.M(time.Since(start).Seconds()))
 	if err != nil {
 		log.Println("Output from failed airtable-export:\n" + string(output))
-		return nil, fmt.Errorf("failed to run airtable-export: %w", err)
+		err = fmt.Errorf("failed to run airtable-export: %w", err)
+		beeline.AddField(ctx, "error", err)
+		return nil, err
 	}
 	outputFile := path.Join(tempDir, tableName+".json")
 
 	jsonMap, err := ObjectFromFile(ctx, tableName, outputFile)
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse json in %s: %w", outputFile, err)
+		err = fmt.Errorf("failed to parse json in %s: %w", outputFile, err)
+		beeline.AddField(ctx, "error", err)
+		return nil, err
 	}
 	return jsonMap, nil
 }

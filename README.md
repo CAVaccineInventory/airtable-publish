@@ -19,11 +19,15 @@
 `airtable-export` is a worker that periodically fetches data from
 Airtable, runs it through a sanitization pass (including but not
 limited to removing superfluous or sensitive keys), then uploads the
-results.
+results.  The data is written in multiple formats to multiple places
+(e.g. https://api.vaccinateca.com/v1/ as well as the legacy
+https://storage.googleapis.com/cavaccineinventory-sitedata/airtable-sync/Locations.json).
+A staging and a production deploy exist, which write to different
+places.
 
 `monitoring` is a black-box monitoring of the output of that, which is
-used to page on failures.  One is deployed for each of the four output
-products (prod/staging times counties/locations).
+used to page on failures.  One is deployed for each of prod and
+staging; they each monitor all of the URLs which that deploy writes to.
 
 ## Layout
 

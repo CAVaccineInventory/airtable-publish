@@ -1,12 +1,14 @@
 package metrics
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"time"
 
 	"contrib.go.opencensus.io/exporter/stackdriver"
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/airtable"
+	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/deploys"
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/generator"
 	beeline "github.com/honeycombio/beeline-go"
 	"go.opencensus.io/stats/view"
@@ -21,12 +23,16 @@ var (
 // Returns a cleanup function which should be called before exit, to
 // push any final metrics.
 func Init() func() {
+	deploy, err := deploys.GetDeploy()
+	if err != nil {
+		log.Fatal(err)
+	}
 	beeline.Init(beeline.Config{
 		WriteKey:    os.Getenv("HONEYCOMB_KEY"),
-		Dataset:     "pipeline",
+		Dataset:     fmt.Sprintf("pipeline-%s", deploy),
 		ServiceName: "pipeline",
 	})
-	err := view.Register(
+	err = view.Register(
 		&view.View{
 			Name:        generator.TotalPublishLatency.Name(),
 			Description: generator.TotalPublishLatency.Description(),

@@ -70,6 +70,11 @@ func (pm *PublishManager) PublishAll(ctx context.Context) bool {
 			break
 		}
 	}
+	if allPublishOk {
+		beeline.AddField(ctx, "success", 1)
+	} else {
+		beeline.AddField(ctx, "failure", 1)
+	}
 	stats.Record(ctx, TotalPublishLatency.M(time.Since(startTime).Seconds()))
 	log.Println("All tables finished publishing.")
 	return allPublishOk
@@ -97,6 +102,7 @@ func (pm *PublishManager) PublishEndpoint(ctx context.Context, tables *airtable.
 	} else {
 		stats.Record(ctx, TablePublishFailures.M(1))
 		beeline.AddField(ctx, "failure", 1)
+		beeline.AddField(ctx, "error", err)
 		log.Printf("[%v] Failed to export and publish: %v\n", &ep, err)
 	}
 	stats.Record(ctx, TablePublishLatency.M(time.Since(tableStartTime).Seconds()))
