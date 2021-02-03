@@ -1,6 +1,7 @@
 package stats
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -83,7 +84,7 @@ type Response struct {
 	Err      error
 }
 
-func AllResponses() chan Response {
+func AllResponses(ctx context.Context) chan Response {
 	eps := endpoints.AllEndpoints()
 	resultChan := make(chan Response, len(eps))
 	wg := sync.WaitGroup{}

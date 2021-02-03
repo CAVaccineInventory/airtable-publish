@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"net/http"
@@ -21,13 +20,13 @@ func PushMetrics(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "error determining deploy: %v", err)
 		return
 	}
-	deployCtx, _ := tag.New(context.Background(), tag.Insert(metrics.KeyDeploy, string(deploy)))
+	ctx, _ := tag.New(r.Context(), tag.Insert(metrics.KeyDeploy, string(deploy)))
 
-	resultChan := freshstats.AllResponses()
+	resultChan := freshstats.AllResponses(ctx)
 	for len(resultChan) != 0 {
 		result := <-resultChan
 		ep := result.Endpoint
-		tableCtx, _ := tag.New(deployCtx,
+		tableCtx, _ := tag.New(ctx,
 			tag.Insert(metrics.KeyVersion, string(ep.Version)),
 			tag.Insert(metrics.KeyResource, ep.Resource))
 		if result.Err != nil {

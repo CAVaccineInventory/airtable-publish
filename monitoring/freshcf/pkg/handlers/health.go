@@ -38,7 +38,7 @@ func Health(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	resultChan := stats.AllResponses()
+	resultChan := stats.AllResponses(r.Context())
 	errs := make([]string, 0)
 	for len(resultChan) != 0 {
 		result := <-resultChan

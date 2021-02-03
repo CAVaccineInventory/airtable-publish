@@ -10,7 +10,7 @@ import (
 )
 
 func ExportJSON(w http.ResponseWriter, r *http.Request) {
-	resultChan := stats.AllResponses()
+	resultChan := stats.AllResponses(r.Context())
 
 	results := make(map[string]stats.ExportedJSONFileStats)
 	for len(resultChan) != 0 {
