@@ -83,16 +83,11 @@ To deploy staging to production:
      should show no warnings or failures.
    - [Service URL itself](https://airtable-export-staging-patvwfu2ya-uw.a.run.app/healthcheck)
 
-2. [Create a pull request from `main` into `prod`](https://github.com/CAVaccineInventory/airtable-export/compare/prod...main?quick_pull=1&title=[DEPLOY]+%28summarize%20here%29)
-   - Describe the key changes in the summary, and any notes in the body.
+2. Announce a push in #operations, and get a :thumbsup: from someone.
 
-3. Get that pull request reviewed and accepted.
+3. Run `scripts/deploy.sh`
 
-4. Merge the pull request **as a merge**.  Merging it as a _rebase_
-   will cause divergent history between `main` and `prod` which
-   requires a force-push to fix.
-
-5. Monitor production; same checks as in staging, above:
+4. Monitor production; same checks as in staging, above:
    - [Monitoring](https://freshcf-prod-patvwfu2ya-uw.a.run.app/)
      will page if it is not `OK`
    - [Dashboard](https://console.cloud.google.com/monitoring/dashboards/builder/75b273d3-6724-48d0-8dad-0922f6207f79)
