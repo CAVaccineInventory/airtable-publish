@@ -10,9 +10,9 @@ the results.
 It fetches data using [the `airtable-export` Python
 package](https://github.com/simonw/airtable-export)
 
-It exposes current health status at `:8080`.
-This can be used to programmatically confirm if the most recent publish
-iteration succeeded.
+It exposes current health status at `:8080`.  This can be used to
+programmatically confirm if the most recent publish iteration
+succeeded.
 
 This tool exists because Airtable's API isn't feasible/safe to expose to client
 Javascript, and Airtable has harsh rate limits.
@@ -20,9 +20,24 @@ Javascript, and Airtable has harsh rate limits.
 ## Production
 
 The service runs on [Google Cloud
-Run](https://console.cloud.google.com/run?project=cavaccineinventory),
-and writes to [Google Cloud
-Storage](https://console.cloud.google.com/storage/browser/cavaccineinventory-sitedata).
+Run](https://console.cloud.google.com/run), and writes to multiple
+Google Cloud Storage buckets:
+ - https://console.cloud.google.com/storage/browser/cavaccineinventory-sitedata
+ - https://console.cloud.google.com/storage/browser/vaccinateca-api
+ - https://console.cloud.google.com/storage/browser/vaccinateca-api-staging
+ 
+The former is served directly from
+https://storage.googleapis.com/cavaccineinventory-sitedata/airtable-sync/Locations.json,
+the latter two are served through a
+[CDN](https://console.cloud.google.com/net-services/cdn/details/api-vaccinateca-com)
+and
+[loadbalancer](https://console.cloud.google.com/net-services/loadbalancing/details/http/api-vaccinateca-com)
+that serve https://api.vaccinateca.com/ and
+https://staging-api.vaccinateca.com/
+
+It is run every minute by hitting `/publish` with a [Cloud
+Scheduler](https://console.cloud.google.com/cloudscheduler).
+
 
 ### Latencies
 
@@ -55,16 +70,16 @@ production.**
 
 Deploys take ~2 minutes to complete, and are controlled through
 [Google Cloud
-Build](https://console.cloud.google.com/cloud-build/triggers?project=cavaccineinventory).
+Build](https://console.cloud.google.com/cloud-build/triggers).
 
 To deploy staging to production:
 
 1. Verify that staging is happy (ordered below from broad to fiddly):
-   - [Staging monitoring](https://us-central1-cavaccineinventory.cloudfunctions.net/freshLocationsStaging)
+   - [Staging monitoring](https://freshcf-staging-patvwfu2ya-uw.a.run.app/)
      should be `OK`
-   - [Dashboard](https://console.cloud.google.com/monitoring/dashboards/builder/75b273d3-6724-48d0-8dad-0922f6207f79?project=cavaccineinventory)
-     should most publishes taking <60s, no failures, and 0.02 success/sec.
-   - [Logs](https://console.cloud.google.com/run/detail/us-west1/airtable-export-staging/logs?project=cavaccineinventory)
+   - [Dashboard](https://console.cloud.google.com/monitoring/dashboards/builder/75b273d3-6724-48d0-8dad-0922f6207f79)
+     should most publishes taking <60s, no failures.
+   - [Logs](https://console.cloud.google.com/run/detail/us-west1/airtable-export-staging/logs)
      should show no warnings or failures.
    - [Service URL itself](https://airtable-export-staging-patvwfu2ya-uw.a.run.app/healthcheck)
 
@@ -78,10 +93,10 @@ To deploy staging to production:
    requires a force-push to fix.
 
 5. Monitor production; same checks as in staging, above:
-   - [Monitoring](https://us-central1-cavaccineinventory.cloudfunctions.net/freshLocations)
+   - [Monitoring](https://freshcf-prod-patvwfu2ya-uw.a.run.app/)
      will page if it is not `OK`
-   - [Dashboard](https://console.cloud.google.com/monitoring/dashboards/builder/75b273d3-6724-48d0-8dad-0922f6207f79?project=cavaccineinventory)
-   - [Logs](https://console.cloud.google.com/run/detail/us-west1/airtable-export-prod/logs?project=cavaccineinventory)
+   - [Dashboard](https://console.cloud.google.com/monitoring/dashboards/builder/75b273d3-6724-48d0-8dad-0922f6207f79)
+   - [Logs](https://console.cloud.google.com/run/detail/us-west1/airtable-export-prod/logs)
    - [Service URL itself](https://airtable-export-prod-patvwfu2ya-uw.a.run.app/healthcheck)
 
 ## Secrets
