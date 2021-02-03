@@ -40,7 +40,7 @@ steps:
     entrypoint: "bash"
     args:
       [
-        "./scripts/honeytag.sh",
+        "./scripts/cd/honeytag.sh",
         "freshcf-$_DEPLOY",
         "Deploy $SHORT_SHA",
         "https://github.com/CAVaccineInventory/airtable-export/commits/$COMMIT_SHA",
