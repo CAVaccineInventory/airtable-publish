@@ -1,19 +1,39 @@
 # freshcf
 
-A cloud function for testing freshness of Locations.json.
+A worker for testing freshness of Locations.json; runs as a Cloud Run
+deploy for each of
+[staging](https://console.cloud.google.com/run/detail/us-west1/freshcf-staging)
+and
+[prod](https://console.cloud.google.com/run/detail/us-west1/freshcf-prod).
 
-Returns 200 if everything is ok.  Returns 500 otherwise.
+Returns 200 if everything is ok; returns 500 and a text description
+otherwise, suitable for using with a simple prober service that can
+look at response code.
 
-Suitable for using with a simple prober service that can look at response code.
+ - The `/` URL returns a status code
+ - The `/json` URL returns metadata about all of the endpoints it is monitoring, as JSON.
+ - The `/push` URL, when POST'd to every minute by Cloud Scheduler,
+   pushes metrics about the published JSON to Stackdriver.
 
 ## Deployment
 
-From this directory, running `./deploy.sh` will examine the branch you
-are on (`main` or `prod`) and deploy (to `staging` or `prod`
-respectively).
+**The `main` branch auto-deploys to staging, the `prod-monitoring`
+(*not* `prod`!) branch to production.**
 
-Deployment can take up to two minutes, as under the hood it builds a
-new container and does other magic.
+Deploys take ~2 minutes to complete, and are controlled through
+[Google Cloud
+Build](https://console.cloud.google.com/cloud-build/triggers).
+
+For safety, `prod-monitoring` never advances past `prod`; this means
+we cannot ever page for an endpoint which has not begun publishing
+yet.  The script below handles that restriction for you.
+
+To deploy staging to production:
+
+1. Announce a push in #operations, and get a :thumbsup: from someone.
+
+2. Run `scripts/deploy.sh monitoring`
+
 
 ## Local Development
 
@@ -22,18 +42,6 @@ go run cmd/server/main.go
 curl http://localhost:8080/
 ```
 
-## Functions Framework
-
-References:
-
-* https://cloud.google.com/functions/docs/functions-framework
-* https://github.com/GoogleCloudPlatform/functions-framework-go
-
 ## Potential Future Development
 
 * Add `threshold` as a query parameter.
-* Support probing multiple URLs.  This could be some sort of query parameter
-  (maybe to a lookup table) or by using multiple entry points and independent cloud functions.
-* Reduce the amount of memory configured for the function.  Microoptimization,
-  probably would save some cents.
-  

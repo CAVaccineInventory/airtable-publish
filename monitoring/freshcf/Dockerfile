@@ -15,6 +15,8 @@ COPY ./ /src
 RUN go build -o /freshcf ./monitoring/freshcf/cmd/server/main.go
 
 # Setup runtime environment
+COPY entrypoint.sh /
+RUN chmod +x /entrypoint.sh
 
-CMD ["/freshcf"]
+CMD ["/entrypoint.sh", "freshcf"]
 EXPOSE 8080

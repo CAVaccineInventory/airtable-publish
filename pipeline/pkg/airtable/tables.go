@@ -3,6 +3,8 @@ package airtable
 import (
 	"context"
 	"sync"
+
+	beeline "github.com/honeycombio/beeline-go"
 )
 
 // Tables allows just-in-time table fetching and caching from Airtable.
@@ -26,17 +28,23 @@ func NewTables() *Tables {
 // GetTable does a thread-safe, just-in-time fetch of a table.
 // The result is cached for the lifetime of the Tables object..
 func (t *Tables) GetTable(ctx context.Context, tableName string) (TableContent, error) {
+	ctx, span := beeline.StartSpan(ctx, "airtable.GetTable")
+	defer span.Send()
+	beeline.AddField(ctx, "table", tableName)
 	// Acquire the lock for the table in question, in order to fetch exactly once or wait for that fetch.
 	tableLock := t.getTableLock(tableName)
 	tableLock.Lock()
 	defer tableLock.Unlock()
 
 	if table, found := t.tables[tableName]; found {
+		beeline.AddField(ctx, "fetched", 0)
 		return table, nil
 	}
 
+	beeline.AddField(ctx, "fetched", 1)
 	table, err := t.fetchFunc(ctx, tableName)
 	if err != nil {
+		beeline.AddField(ctx, "error", err)
 		return TableContent{}, err
 	}
 	t.tables[tableName] = table

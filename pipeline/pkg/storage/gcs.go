@@ -22,19 +22,25 @@ func UploadToGCS(ctx context.Context, destinationFile string, transformedData me
 
 	serializedData, err := Serialize(transformedData)
 	if err != nil {
-		return fmt.Errorf("failed to write serialized json: %w", err)
+		err = fmt.Errorf("failed to write serialized json: %w", err)
+		beeline.AddField(ctx, "error", err)
+		return err
 	}
 
 	tempDir, err := ioutil.TempDir("", "gcs-upload")
 	defer os.RemoveAll(tempDir)
 	if err != nil {
-		return fmt.Errorf("failed to make temp directory: %w", err)
+		err = fmt.Errorf("failed to make temp directory: %w", err)
+		beeline.AddField(ctx, "error", err)
+		return err
 	}
 	localFile := filepath.Join(tempDir, "output.json")
 
 	err = ioutil.WriteFile(localFile, serializedData.Bytes(), 0600)
 	if err != nil {
-		return fmt.Errorf("failed to write sanitized json to %s: %w", localFile, err)
+		err = fmt.Errorf("failed to write sanitized json to %s: %w", localFile, err)
+		beeline.AddField(ctx, "error", err)
+		return err
 	}
 
 	// TODO: consider doing this in Go directly. But last I recall, the Go SDK was a bit fussy with Go modules...
@@ -43,8 +49,10 @@ func UploadToGCS(ctx context.Context, destinationFile string, transformedData me
 	cmd := exec.CommandContext(ctx, "gsutil", "-h", "Cache-Control:public,max-age=120", "cp", "-Z", localFile, destinationFile)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
+		err = fmt.Errorf("failed to upload json file %s to %s: %w", localFile, destinationFile, err)
 		log.Println(string(output))
-		return fmt.Errorf("failed to upload json file %s to %s: %w", localFile, destinationFile, err)
+		beeline.AddField(ctx, "error", err)
+		return err
 	}
 	return nil
 }
