@@ -7,12 +7,17 @@ import (
 	beeline "github.com/honeycombio/beeline-go"
 )
 
+type tableFetchResults struct {
+	table TableContent
+	err   error
+}
+
 // Tables allows just-in-time table fetching and caching from Airtable.
 // It is not intended for long-term use, as data is fetched and cached exactly once.
 type Tables struct {
-	mainLock   sync.RWMutex            // mainLock protects tableLocks.
-	tableLocks map[string]*sync.Mutex  // tableLocks contains a lock for each table, to prevent races to populate a table.
-	tables     map[string]TableContent // Tables contains a map of table name to table content.
+	mainLock   sync.RWMutex                 // mainLock protects tableLocks.
+	tableLocks map[string]*sync.Mutex       // tableLocks contains a lock for each table, to prevent races to populate a table.
+	tables     map[string]tableFetchResults // Tables contains a map of table name to (table content or error).
 	fetchFunc  func(context.Context, string) (TableContent, error)
 }
 
@@ -20,7 +25,7 @@ func NewTables() *Tables {
 	return &Tables{
 		mainLock:   sync.RWMutex{},
 		tableLocks: map[string]*sync.Mutex{},
-		tables:     map[string]TableContent{},
+		tables:     map[string]tableFetchResults{},
 		fetchFunc:  Download,
 	}
 }
@@ -36,19 +41,21 @@ func (t *Tables) GetTable(ctx context.Context, tableName string) (TableContent, 
 	tableLock.Lock()
 	defer tableLock.Unlock()
 
-	if table, found := t.tables[tableName]; found {
+	if fetchResult, found := t.tables[tableName]; found {
 		beeline.AddField(ctx, "fetched", 0)
-		return table, nil
+		return fetchResult.table, fetchResult.err
 	}
 
 	beeline.AddField(ctx, "fetched", 1)
 	table, err := t.fetchFunc(ctx, tableName)
 	if err != nil {
 		beeline.AddField(ctx, "error", err)
-		return TableContent{}, err
 	}
-	t.tables[tableName] = table
-	return table, nil
+	t.tables[tableName] = tableFetchResults{
+		table: table,
+		err:   err,
+	}
+	return table, err
 }
 
 // Returns the lock for the specified table.
