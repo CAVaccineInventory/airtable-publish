@@ -10,6 +10,7 @@
     * Monitoring
     * Deployments
     * Storage buckets (for serving the "API")
+* Airtable access
 * Honeycomb access: [self-request](https://ui.honeycomb.io/join_team/vaccinateca)
 * Pagerduty access managers: @Vallery
 

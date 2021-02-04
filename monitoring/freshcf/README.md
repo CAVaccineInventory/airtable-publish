@@ -38,8 +38,12 @@ To deploy staging to production:
 ## Local Development
 
 ``` shell
-go run cmd/server/main.go
+./scripts/freshcf.sh
+
+# In another terminal:
 curl http://localhost:8080/
+curl http://localhost:8080/json
+curl -X POST http://localhost:8080/push
 ```
 
 ## Potential Future Development
