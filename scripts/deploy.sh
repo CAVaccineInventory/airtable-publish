@@ -57,7 +57,7 @@ if ! git diff "$MERGE_BASE" "$ORIGIN_DEPLOY" --exit-code; then
 	echo
 	git --no-pager diff --stat "$MERGE_BASE" "$ORIGIN_DEPLOY"
 	echo
-	git --no-pager log --decorate=short --oneline "$ORIGIN_DEPLOY" "^$DEPLOY_LIMIT" --max-parents=1
+	git --no-pager log --no-decorate --oneline "$ORIGIN_DEPLOY" "^$DEPLOY_LIMIT" --max-parents=1
 	exit 1
 fi
 
@@ -68,15 +68,18 @@ fi
 if [ 0 -ne "$(git rev-list "$ORIGIN_DEPLOY" "^$DEPLOY_LIMIT" --max-parents=1 | wc -l)" ]; then
 	echo "$DEPLOY_BRANCH contains non-merge commits that are not in main!"
 	echo
-	git --no-pager log --decorate=short --oneline "$ORIGIN_DEPLOY" "^$DEPLOY_LIMIT" --max-parents=1
+	git --no-pager log --no-decorate --oneline "$ORIGIN_DEPLOY" "^$DEPLOY_LIMIT" --max-parents=1
 	exit 1
 fi
 
-echo "You are about to deploy the following $WHAT commits:"
+echo
+echo "You are about to deploy the following **$WHAT** commits:"
 if [ "$WHAT" != "pipeline" ]; then
 	echo "  (this is limited to go no further than current 'prod')"
 fi
-git --no-pager log --decorate=short --oneline "$DEPLOY_LIMIT" "^$ORIGIN_DEPLOY"
+echo '```'
+git --no-pager log --no-decorate --oneline "$DEPLOY_LIMIT" "^$ORIGIN_DEPLOY"
+echo '```'
 
 echo
 echo "Type 'yes' to confirm they look right, and that you have gotten a :thumbsup: from #operations:"
