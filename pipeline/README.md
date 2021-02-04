@@ -130,6 +130,28 @@ docker run \
   --rm -it airtable-export /entrypoint.sh once
 ```
 
+### Adding a new resource type
+
+1. Add a new function to `pipeline/pkg/airtable/tables.go` which calls
+   `getTable` with the name of the table, as found in Airtable.
+
+2. Determine the latest endpoint version, in
+   `pipeline/pkg/endpoints/all.go`; since adding a new resource is
+   backwards-compatible, we will not be increasing it.
+
+3. Add a new package under `pipeline/pkg/endpoints/`; it should have a
+   function named after the version (e.g. `V1`) which:
+
+   1. Starts a beeline span
+   2. Calls the function added in step 1, checking its err response
+   3. Filters the columns using `filter.ToAllowedKeys`
+   4. Returns the result.
+
+4. Insert that function into `EndpointMap` in
+   `pipeline/pkg/endpoints/all.go` under the latest version; the key
+   should be the base filename the results are serialized as, the
+   value should be the function you just wrote.
+
 ## Testing
 
 ```

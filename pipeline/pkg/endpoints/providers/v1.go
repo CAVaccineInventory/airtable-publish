@@ -14,7 +14,7 @@ func V1(ctx context.Context, tables *airtable.Tables) (airtable.TableContent, er
 	ctx, span := beeline.StartSpan(ctx, "endpoints.providers.V1")
 	defer span.Send()
 
-	rawTable, err := tables.GetTable(ctx, "Provider networks")
+	rawTable, err := tables.GetProviders(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch Providers table: %w", err)
 	}
