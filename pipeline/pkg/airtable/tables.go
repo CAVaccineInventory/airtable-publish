@@ -30,10 +30,22 @@ func NewTables() *Tables {
 	}
 }
 
-// GetTable does a thread-safe, just-in-time fetch of a table.
+func (t *Tables) GetCounties(ctx context.Context) (TableContent, error) {
+	return t.getTable(ctx, "Counties")
+}
+
+func (t *Tables) GetProviders(ctx context.Context) (TableContent, error) {
+	return t.getTable(ctx, "Provider networks")
+}
+
+func (t *Tables) GetLocations(ctx context.Context) (TableContent, error) {
+	return t.getTable(ctx, "Locations")
+}
+
+// getTable does a thread-safe, just-in-time fetch of a table.
 // The result is cached for the lifetime of the Tables object..
-func (t *Tables) GetTable(ctx context.Context, tableName string) (TableContent, error) {
-	ctx, span := beeline.StartSpan(ctx, "airtable.GetTable")
+func (t *Tables) getTable(ctx context.Context, tableName string) (TableContent, error) {
+	ctx, span := beeline.StartSpan(ctx, "airtable.getTable")
 	defer span.Send()
 	beeline.AddField(ctx, "table", tableName)
 	// Acquire the lock for the table in question, in order to fetch exactly once or wait for that fetch.

@@ -34,7 +34,7 @@ func Locations(ctx context.Context, tables *airtable.Tables) (airtable.TableCont
 	ctx, span := beeline.StartSpan(ctx, "endpoints.legacy.Locations")
 	defer span.Send()
 
-	rawTable, err := tables.GetTable(ctx, "Locations")
+	rawTable, err := tables.GetLocations(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch Locations table: %w", err)
 	}
@@ -61,7 +61,7 @@ func Counties(ctx context.Context, tables *airtable.Tables) (airtable.TableConte
 	ctx, span := beeline.StartSpan(ctx, "endpoints.legacy.Counties")
 	defer span.Send()
 
-	rawTable, err := tables.GetTable(ctx, "Counties")
+	rawTable, err := tables.GetCounties(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch Counties table: %w", err)
 	}
