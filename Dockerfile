@@ -1,4 +1,4 @@
-FROM gcr.io/google.com/cloudsdktool/cloud-sdk:alpine
+FROM alpine:latest
 
 RUN apk add --no-cache go
 

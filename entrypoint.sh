@@ -14,7 +14,6 @@ fi
 
 if [ -f /testing-key.json ]; then
 	export GOOGLE_APPLICATION_CREDENTIALS=/testing-key.json
-	gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS
 elif [ -d /testing-key.json ]; then
 	echo
 	echo "Testing file specified, but not found on your host."
