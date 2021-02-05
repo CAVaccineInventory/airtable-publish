@@ -20,14 +20,14 @@ func V1(ctx context.Context, tables *airtable.Tables) (airtable.TableContent, er
 	}
 
 	filteredTable := filter.ToAllowedKeys(rawTable, []string{
+		"Appointments URL",
+		"Last Updated",
+		"Phase",
 		"Provider",
+		"Public Notes",
+		"Provider network type",
 		"Vaccine info URL",
 		"Vaccine locations URL",
-		"Public Notes",
-		"Phase",
-		"Appointments URL",
-		"Provider network type",
-		"Last Updated",
 	})
 
 	return filteredTable, nil
