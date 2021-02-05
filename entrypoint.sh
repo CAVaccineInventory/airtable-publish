@@ -1,6 +1,4 @@
-#!/bin/bash
-
-# This script is only intended for environment setup.
+#!/bin/sh
 
 AIRTABLE_KEY_TEMP=$(gcloud secrets versions access 1 --secret="airtable-key" 2>/dev/null)
 if [ -n "$AIRTABLE_KEY_TEMP" ]; then
