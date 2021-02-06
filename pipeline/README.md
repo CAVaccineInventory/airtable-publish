@@ -103,32 +103,68 @@ In production, these are fetched automatically from Google Cloud's Secrets Manag
 
 ## Development
 
-In development:
- - You can look up your Airtable API key at https://airtable.com/account
- - You can look up the testing Honeycomb API key at https://ui.honeycomb.io/teams/vaccinateca
- - Set up your own service account for testing:
-    1. Create your own test workspace, if you do no have one already
-    2. Create a Google Cloud service account in there
-    3. Grant it "Monitoring Metric Writer" and "Storage Object Admin" rights.
-    4. Download the key:
+If you want to run locally and test uploads, you'll need to set up
+your own project, monitoring workspace, and service account:
 
-       ```
-       gcloud iam service-accounts keys create testing-key.json --iam-account example@example.iam.gserviceaccount.com
-       ```
+1. Create a personal [project][projects] in Google Cloud.
+2. Create a [monitoring workspace][workspaces] in that project.  If
+   you have a fresh project, this should just be a matter of clicking
+   on [Monitoring][monitoring].
+3. Create a Google Cloud [service account][service-account] in there;
+   name it something like `vaccinateca-testing`
+4. [Grant][role-grants] the "Monitoring Metric Writer" and "Storage
+   Object Admin" roles.
+5. Download the key:
 
- - Choose a unique bucket name to use
- - Build and run in docker:
+   ```
+   gcloud iam service-accounts keys create testing-key.json --iam-account example@example.iam.gserviceaccount.com
+   ```
 
+6. Choose a unique `TESTING_BUCKET` name to use (e.g. `alexmv-testing`)
+
+7. Run `./scripts/pipeline.sh`, which will create a template `.env`
+   file; edit it with your editor of choice, filling in the variables
+   by following the instructions in it.
+
+[projects]: https://cloud.google.com/resource-manager/docs/creating-managing-projects#creating_a_project
+[workspaces]: https://cloud.google.com/monitoring/workspaces
+[monitoring]: https://console.cloud.google.com/monitoring
+[service-account]: https://cloud.google.com/iam/docs/creating-managing-service-accounts#creating
+[role-grants]: https://cloud.google.com/iam/docs/granting-changing-revoking-access#granting-console
+
+After that setup, you should be able to:
 ```
-docker build -t airtable-export .
+# To listen on port 8080
+./scripts/pipeline.sh
 
-docker run \
-  -e AIRTABLE_KEY=<key> \
-  -e TESTING_BUCKET=<bucketname> \
-  -v "$(pwd)/testing-key.json:/testing-key.json" \
-  -p 8080:8080
-  --rm -it airtable-export /entrypoint.sh once
+# In another terminal: curl -X POST http://localhost:8080/publish
+
+
+# To publish once and exit
+./scripts/once.sh
 ```
+
+### Adding a new resource type
+
+1. Add a new function to `pipeline/pkg/airtable/tables.go` which calls
+   `getTable` with the name of the table, as found in Airtable.
+
+2. Determine the latest endpoint version, in
+   `pipeline/pkg/endpoints/all.go`; since adding a new resource is
+   backwards-compatible, we will not be increasing it.
+
+3. Add a new package under `pipeline/pkg/endpoints/`; it should have a
+   function named after the version (e.g. `V1`) which:
+
+   1. Starts a beeline span
+   2. Calls the function added in step 1, checking its err response
+   3. Filters the columns using `filter.ToAllowedKeys`
+   4. Returns the result.
+
+4. Insert that function into `EndpointMap` in
+   `pipeline/pkg/endpoints/all.go` under the latest version; the key
+   should be the base filename the results are serialized as, the
+   value should be the function you just wrote.
 
 ## Testing
 
