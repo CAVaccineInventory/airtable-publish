@@ -67,10 +67,12 @@ func Counties(ctx context.Context, tables *airtable.Tables) (airtable.TableConte
 	}
 	filteredTable := filter.ToAllowedKeys(rawTable, []string{
 		"County",
+		"County vaccination reservations URL",
 		"Facebook Page",
 		"Notes",
 		"Official volunteering opportunities",
 		"Total reports",
+		"Twitter Page",
 		"Vaccine info URL",
 		"Vaccine locations URL",
 		"Yeses",
