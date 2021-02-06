@@ -51,6 +51,7 @@ func Locations(ctx context.Context, tables *airtable.Tables) (airtable.TableCont
 		"Location Type",
 		"Longitude",
 		"Name",
+		"Affiliation",
 	})
 
 	return filteredTable, nil

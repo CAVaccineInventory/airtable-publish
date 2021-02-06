@@ -6,7 +6,9 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"os/signal"
 	"strconv"
+	"syscall"
 	"time"
 
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/deploys"
@@ -26,6 +28,15 @@ type Publisher struct {
 // Takes the Google Cloud Storage bucket path as the first argument.
 func main() {
 	log.Println("Starting...")
+
+	sigs := make(chan os.Signal, 1)
+	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+	go func() {
+		sig := <-sigs
+		log.Println()
+		log.Printf("Got signal %v, exiting...\n", sig)
+		os.Exit(0)
+	}()
 
 	p := Publisher{}
 	p.Run()
