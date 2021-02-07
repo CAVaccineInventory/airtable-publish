@@ -36,3 +36,33 @@ func TestFilterToAllowedKeys(t *testing.T) {
 		}
 	}
 }
+
+func TestFilterRemapToAllowedKeys(t *testing.T) {
+	cases := []struct {
+		input   airtable.TableContent
+		mapping map[string]string
+		expect  airtable.TableContent
+	}{
+		{
+			input: airtable.TableContent{
+				{
+					"allow":    "allowvalue",
+					"disallow": "disallowvalue",
+				},
+			},
+			mapping: map[string]string{"allow": "keep"},
+			expect: airtable.TableContent{
+				{
+					"keep": "allowvalue",
+				},
+			},
+		},
+	}
+
+	for _, c := range cases {
+		actual := RemapToAllowedKeys(c.input, c.mapping)
+		if !reflect.DeepEqual(c.expect, actual) {
+			t.Errorf("Expected all and only allowed keys.\nGOT: %v\nEXPECTED: %v\n", actual, c.expect)
+		}
+	}
+}

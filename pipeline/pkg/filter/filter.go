@@ -25,3 +25,21 @@ func ToAllowedKeys(raw airtable.TableContent, allowedKeys []string) airtable.Tab
 
 	return filtered
 }
+
+// RemapToAllowedKeys takes a slice of KV objects, and a map of allowed key names => output names.
+// For each object in the list, it removes each KV pair where the key is not in allowedKeys,
+// then returns this result.
+func RemapToAllowedKeys(raw airtable.TableContent, keys map[string]string) airtable.TableContent {
+	filtered := make([]map[string]interface{}, len(raw))
+
+	for i := range raw {
+		filtered[i] = map[string]interface{}{}
+		for k, v := range raw[i] {
+			if _, found := keys[k]; found {
+				filtered[i][keys[k]] = v
+			}
+		}
+	}
+
+	return filtered
+}
