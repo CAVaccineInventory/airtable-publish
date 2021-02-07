@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"net/http"
 	"testing"
 	"time"
 
@@ -13,19 +14,18 @@ import (
 func Test_StackdriverOptions(t *testing.T) {
 	// Make sure the "failure" case (not running in Cloud Functions returns the expected values.)
 
-	// This test is slow (5 seconds) because the http.Client used in the
-	// metadata library has a non-overridable 750ms header response timeout.
-	//
-	// There is a non-Google implementation
-	// (gitee.com/wangHvip/google-cloud-go/compute/metadata) that allows setting
-	// a custom http.Client, so we could have a lower timeout for tests. Another
-	// option would be to use package level variables, i.e. `metadataInstanceID
-	// = metadata.InstanceID` which can be overridden with stubs in the tests.
-	// Under the hood, the metadata library is just making simple HTTP calls
-	// (and caching), so we could even just re-implement.
-	//
-	// This test may potentially fail on Cloud Build, if the build environment
-	// metadata server is reachable.
+	origHTTPClient := httpClient
+	t.Cleanup(func() {
+		httpClient = origHTTPClient
+	})
+	httpClient = &http.Client{
+		// Requests to the metadata server are expected to fail in this test
+		// environments, so set an absurdly low timeout so they fail really
+		// fast.  (If we're running in an environment with a reachable metadata
+		// server, this may break the test, in which case we should make a
+		// custom AlwaysImmediatelyFail RoundTripper.)
+		Timeout: 1 * time.Millisecond,
+	}
 
 	got := StackdriverOptions("namespace1")
 	want := stackdriver.Options{
