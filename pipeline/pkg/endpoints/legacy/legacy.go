@@ -40,6 +40,7 @@ func Locations(ctx context.Context, tables *airtable.Tables) (airtable.TableCont
 	}
 	filteredTable := filter.ToAllowedKeys(rawTable, []string{
 		"Address",
+		"Affiliation",
 		"Appointment scheduling instructions",
 		"Availability Info",
 		"County",
@@ -51,7 +52,6 @@ func Locations(ctx context.Context, tables *airtable.Tables) (airtable.TableCont
 		"Location Type",
 		"Longitude",
 		"Name",
-		"Affiliation",
 	})
 
 	return filteredTable, nil
@@ -67,13 +67,15 @@ func Counties(ctx context.Context, tables *airtable.Tables) (airtable.TableConte
 	}
 	filteredTable := filter.ToAllowedKeys(rawTable, []string{
 		"County",
+		"County vaccination reservations URL",
+		"Facebook Page",
+		"Notes",
+		"Official volunteering opportunities",
+		"Total reports",
+		"Twitter Page",
 		"Vaccine info URL",
 		"Vaccine locations URL",
-		"Notes",
-		"Total reports",
 		"Yeses",
-		"Official volunteering opportunities",
-		"Facebook Page",
 	})
 
 	return filteredTable, nil
