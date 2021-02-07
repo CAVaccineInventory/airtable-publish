@@ -11,24 +11,11 @@ import (
 // For each object in the list, it removes each KV pair where the key is not in allowedKeys,
 // then returns this result.
 func ToAllowedKeys(raw airtable.TableContent, allowedKeys []string) airtable.TableContent {
-	// Build a map for fast lookup.
-	allowedSet := map[string]struct{}{}
-	for _, key := range allowedKeys {
-		allowedSet[key] = struct{}{}
+	keys := make(map[string]string, len(allowedKeys))
+	for _, k := range allowedKeys {
+		keys[k] = k
 	}
-
-	filtered := make([]map[string]interface{}, len(raw))
-
-	for i := range raw {
-		filtered[i] = map[string]interface{}{}
-		for k, v := range raw[i] {
-			if _, found := allowedSet[k]; found {
-				filtered[i][k] = v
-			}
-		}
-	}
-
-	return filtered
+	return RemapToAllowedKeys(raw, keys)
 }
 
 // RemapToAllowedKeys takes a slice of KV objects, and a map of allowed key names => output names.
