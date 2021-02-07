@@ -19,22 +19,34 @@ func getTaskID() string {
 	return fmt.Sprintf("go-%d@%s", os.Getpid(), hostname)
 }
 
-// Provide a configuration suitable for configuring Stackdriver
+// StackdriverOptions provides a configuration suitable for configuring Stackdriver
 func StackdriverOptions(namespace string) stackdriver.Options {
+
+	id, err := metadata.InstanceID()
+	if err != nil {
+		id = getTaskID()
+	}
+
 	location, err := metadata.Zone()
 	if err != nil {
 		location = "unknown"
 	}
+
+	prj, err := metadata.ProjectID()
+	if err != nil {
+		prj = "unknown"
+	}
+
 	return stackdriver.Options{
-		ProjectID:         GoogleProjectID,
+		ProjectID:         prj,
 		ReportingInterval: 60 * time.Second,
 		Resource: &monitoredres.MonitoredResource{
 			Type: "generic_node",
 			Labels: map[string]string{
-				"project_id": GoogleProjectID,
+				"project_id": prj,
 				"location":   location,
 				"namespace":  namespace,
-				"node_id":    getTaskID(),
+				"node_id":    id,
 			},
 		},
 	}

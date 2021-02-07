@@ -6,6 +6,7 @@ require (
 	cloud.google.com/go v0.63.0
 	cloud.google.com/go/storage v1.10.0
 	contrib.go.opencensus.io/exporter/stackdriver v0.13.4
+	github.com/google/go-cmp v0.5.4
 	github.com/honeycombio/beeline-go v0.11.1
 	github.com/kr/text v0.2.0 // indirect
 	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect
