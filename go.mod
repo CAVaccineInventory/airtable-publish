@@ -1,6 +1,6 @@
 module github.com/CAVaccineInventory/airtable-export
 
-go 1.15
+go 1.13
 
 require (
 	cloud.google.com/go v0.63.0
