@@ -19,7 +19,7 @@ func V1(ctx context.Context, tables *airtable.Tables) (airtable.TableContent, er
 		return nil, fmt.Errorf("failed to fetch Providers table: %w", err)
 	}
 
-	filteredTable := filter.ToAllowedKeys(rawTable, []string{
+	fields := []string{
 		"Appointments URL",
 		"Last Updated",
 		"Phase",
@@ -28,7 +28,11 @@ func V1(ctx context.Context, tables *airtable.Tables) (airtable.TableContent, er
 		"Provider network type",
 		"Vaccine info URL",
 		"Vaccine locations URL",
-	})
+	}
+	filteredTable, err := filter.ToAllowedKeys(rawTable, fields)
+	if err != nil {
+		return nil, fmt.Errorf("ToAllowedKeys: %w", err)
+	}
 
 	return filteredTable, nil
 }

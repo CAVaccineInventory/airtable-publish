@@ -38,7 +38,7 @@ func Locations(ctx context.Context, tables *airtable.Tables) (airtable.TableCont
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch Locations table: %w", err)
 	}
-	filteredTable := filter.ToAllowedKeys(rawTable, []string{
+	fields := []string{
 		"Address",
 		"Affiliation",
 		"Appointment scheduling instructions",
@@ -52,7 +52,11 @@ func Locations(ctx context.Context, tables *airtable.Tables) (airtable.TableCont
 		"Location Type",
 		"Longitude",
 		"Name",
-	})
+	}
+	filteredTable, err := filter.ToAllowedKeys(rawTable, fields)
+	if err != nil {
+		return nil, fmt.Errorf("ToAllowedKeys: %w", err)
+	}
 
 	return filteredTable, nil
 }
@@ -65,7 +69,7 @@ func Counties(ctx context.Context, tables *airtable.Tables) (airtable.TableConte
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch Counties table: %w", err)
 	}
-	filteredTable := filter.ToAllowedKeys(rawTable, []string{
+	fields := []string{
 		"County",
 		"County vaccination reservations URL",
 		"Facebook Page",
@@ -76,7 +80,12 @@ func Counties(ctx context.Context, tables *airtable.Tables) (airtable.TableConte
 		"Vaccine info URL",
 		"Vaccine locations URL",
 		"Yeses",
-	})
+	}
+
+	filteredTable, err := filter.ToAllowedKeys(rawTable, fields)
+	if err != nil {
+		return nil, fmt.Errorf("ToAllowedKeys: %w", err)
+	}
 
 	return filteredTable, nil
 }

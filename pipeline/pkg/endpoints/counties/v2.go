@@ -35,7 +35,9 @@ func V2(ctx context.Context, tables *airtable.Tables) (airtable.TableContent, er
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch Counties table: %w", err)
 	}
-	filteredTable := filter.RemapToAllowedKeys(rawTable, v2Map)
-
+	filteredTable, err := filter.RemapToAllowedKeys(rawTable, v2Map)
+	if err != nil {
+		return nil, fmt.Errorf("RemapToAllowedKeys: %w", err)
+	}
 	return filteredTable, nil
 }
