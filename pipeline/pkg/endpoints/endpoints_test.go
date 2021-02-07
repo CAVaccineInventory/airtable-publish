@@ -48,34 +48,35 @@ func TestSanitize(t *testing.T) {
 
 	ctx := context.Background()
 	for name, tc := range tests {
-		getData := func(ctx context.Context, tableName string) (airtable.TableContent, error) {
-			return airtable.ObjectFromFile(ctx, name, tc.testDataFile)
-		}
-		fakeTables := airtable.NewFakeTables(getData)
-		out, err := tc.endpointFunc(ctx, fakeTables)
-		require.NoError(t, err)
+		t.Run(name, func(t *testing.T) {
+			getData := func(ctx context.Context, tableName string) (airtable.TableContent, error) {
+				return airtable.ObjectFromFile(ctx, name, tc.testDataFile)
+			}
+			fakeTables := airtable.NewFakeTables(getData)
+			out, err := tc.endpointFunc(ctx, fakeTables)
+			require.NoError(t, err)
 
-		got, err := storage.Serialize(out)
-		require.NoError(t, err)
+			got, err := storage.Serialize(out)
+			require.NoError(t, err)
 
-		//  Basic sanity check
-		if bytes.Contains(got.Bytes(), []byte("@gmail.com")) {
-			t.Errorf("result contains @gmail.com")
-		}
+			//  Basic sanity check
+			if bytes.Contains(got.Bytes(), []byte("@gmail.com")) {
+				t.Errorf("result contains @gmail.com")
+			}
 
-		locs := make(airtable.TableContent, 0)
-		err = json.Unmarshal(got.Bytes(), &locs)
-		require.NoError(t, err)
+			locs := make(airtable.TableContent, 0)
+			err = json.Unmarshal(got.Bytes(), &locs)
+			require.NoError(t, err)
 
-		// Check a sampling of bad keys.
-		for _, l := range locs {
-			for _, k := range tc.badKeys {
-				if _, ok := l[k]; ok {
-					t.Errorf("bad key %v found in ", k)
+			// Check a sampling of bad keys.
+			for _, l := range locs {
+				for _, k := range tc.badKeys {
+					if _, ok := l[k]; ok {
+						t.Errorf("bad key %v found in ", k)
+					}
 				}
 			}
-		}
-
+		})
 	}
 }
 
