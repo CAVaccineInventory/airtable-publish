@@ -15,6 +15,7 @@ import (
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/deploys"
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/generator"
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/metrics"
+	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/secrets"
 	beeline "github.com/honeycombio/beeline-go"
 	"github.com/honeycombio/beeline-go/trace"
 	"github.com/honeycombio/beeline-go/wrappers/hnynethttp"
@@ -32,6 +33,8 @@ func main() {
 	noopFlag := flag.Bool("noop", false, "Only print output, don't upload")
 	metricsFlag := flag.Bool("metrics", true, "Enable metrics reporting")
 	flag.Parse()
+
+	secrets.RequireAirtableSecret()
 
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
