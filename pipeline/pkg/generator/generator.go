@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
 	"sync"
 	"time"
 
@@ -33,6 +34,7 @@ func NewPublishManager() *PublishManager {
 
 // Uses storage.StoreLocal to not need upload credentials
 func NewLocalPublishManager() *PublishManager {
+	os.Setenv("TESTING_BUCKET", "local")
 	return &PublishManager{
 		store: storage.StoreLocal,
 	}
@@ -40,6 +42,7 @@ func NewLocalPublishManager() *PublishManager {
 
 // Uses storage.DebugToStderr to for quick debugging
 func NewNoopPublishManager() *PublishManager {
+	os.Setenv("TESTING_BUCKET", "noop")
 	return &PublishManager{
 		store: storage.DebugToSTDERR,
 	}
