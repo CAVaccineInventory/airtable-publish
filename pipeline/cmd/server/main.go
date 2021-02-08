@@ -31,8 +31,13 @@ type Publisher struct {
 // Takes the Google Cloud Storage bucket path as the first argument.
 func main() {
 	noopFlag := flag.Bool("noop", false, "Only print output, don't upload")
+	localFlag := flag.Bool("local", false, "Write to files under local/")
 	metricsFlag := flag.Bool("metrics", true, "Enable metrics reporting")
 	flag.Parse()
+
+	if *localFlag && *noopFlag {
+		log.Fatal("-noop and -local are mutually exclusive!")
+	}
 
 	secrets.RequireAirtableSecret()
 
@@ -53,6 +58,8 @@ func main() {
 	p := Publisher{}
 	if *noopFlag {
 		p.publishManager = generator.NewNoopPublishManager
+	} else if *localFlag {
+		p.publishManager = generator.NewLocalPublishManager
 	} else {
 		p.publishManager = generator.NewPublishManager
 	}

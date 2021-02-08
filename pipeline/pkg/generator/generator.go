@@ -31,7 +31,14 @@ func NewPublishManager() *PublishManager {
 	}
 }
 
-// Uses storage.DebugToStderr to not need upload credentials
+// Uses storage.StoreLocal to not need upload credentials
+func NewLocalPublishManager() *PublishManager {
+	return &PublishManager{
+		store: storage.StoreLocal,
+	}
+}
+
+// Uses storage.DebugToStderr to for quick debugging
 func NewNoopPublishManager() *PublishManager {
 	return &PublishManager{
 		store: storage.DebugToSTDERR,
