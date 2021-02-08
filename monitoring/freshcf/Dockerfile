@@ -8,8 +8,9 @@ COPY ./go.* /src/
 WORKDIR /src
 RUN go mod download
 
-# Copy the rest of the source code into the container.
-COPY ./ /src
+# Copy the source code into the container.
+COPY ./pipeline/pkg/       /src/pipeline/pkg/
+COPY ./monitoring/freshcf/ /src/monitoring/freshcf/
 
 # Build!
 RUN go build -o /freshcf ./monitoring/freshcf/cmd/server/main.go
