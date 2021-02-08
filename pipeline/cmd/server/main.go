@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"flag"
 	"fmt"
 	"log"
 	"net/http"
@@ -23,11 +24,14 @@ import (
 type Publisher struct {
 	lastPublishSucceeded bool // Make this thread safe if nontrivial multithreading comes up.
 	deploy               deploys.DeployType
+	publishManager       func() *generator.PublishManager
 }
 
 // Takes the Google Cloud Storage bucket path as the first argument.
 func main() {
-	log.Println("Starting...")
+	noopFlag := flag.Bool("noop", false, "Only print output, don't upload")
+	metricsFlag := flag.Bool("metrics", true, "Enable metrics reporting")
+	flag.Parse()
 
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
@@ -38,15 +42,23 @@ func main() {
 		os.Exit(0)
 	}()
 
+	if *metricsFlag {
+		metricsCleanup := metrics.Init()
+		defer metricsCleanup()
+	}
+
 	p := Publisher{}
+	if *noopFlag {
+		p.publishManager = generator.NewNoopPublishManager
+	} else {
+		p.publishManager = generator.NewPublishManager
+	}
+	log.Println("Starting...")
 	p.Run()
 }
 
 // Run loops forever, publishing data on a regular basis.
 func (p *Publisher) Run() {
-	metricsCleanup := metrics.Init()
-	defer metricsCleanup()
-
 	deploy, err := deploys.GetDeploy()
 	if err != nil {
 		panic(err)
@@ -85,7 +97,7 @@ func (p *Publisher) syncAndPublishRequest(w http.ResponseWriter, r *http.Request
 	ctx, cxl := context.WithTimeout(ctx, time.Duration(timeoutMinutes)*time.Minute)
 	defer cxl()
 
-	pm := generator.NewPublishManager()
+	pm := p.publishManager()
 	p.lastPublishSucceeded = pm.PublishAll(ctx)
 	if !p.lastPublishSucceeded {
 		w.WriteHeader(http.StatusInternalServerError)

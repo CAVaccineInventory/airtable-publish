@@ -18,4 +18,5 @@ exec docker run \
 	${GOOGLE_AUTH_BIND:+'-v' "$GOOGLE_AUTH_BIND"} \
 	--rm \
 	-p 8080:8080 \
-	airtable-export
+	airtable-export \
+	sh /entrypoint.sh server "$@"
