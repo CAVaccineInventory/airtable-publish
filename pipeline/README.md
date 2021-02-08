@@ -103,8 +103,18 @@ In production, these are fetched automatically from Google Cloud's Secrets Manag
 
 ## Development
 
-If you want to run locally and test uploads, you'll need to set up
-your own project, monitoring workspace, and service account:
+### Local-only
+
+If you want to run locally without testing uploads, run
+`./scripts/once.sh -local` and follow the instructions.  Output will
+be written to the `local/` directory.
+
+
+### Google Cloud testing
+
+If you also want to test file uploads or metrics, you'll need to set
+up your own Google Cloud project, monitoring workspace, and service
+account:
 
 1. Create a personal [project][projects] in Google Cloud.
 2. Create a [monitoring workspace][workspaces] in that project.  If
