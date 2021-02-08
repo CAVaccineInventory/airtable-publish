@@ -2,16 +2,6 @@
 
 # This script is only intended for environment setup.
 
-AIRTABLE_KEY_TEMP=$(gcloud secrets versions access 1 --secret="airtable-key" 2>/dev/null)
-if [ -n "$AIRTABLE_KEY_TEMP" ]; then
-	export AIRTABLE_KEY=${AIRTABLE_KEY_TEMP}
-fi
-
-HONEYCOMB_KEY_TEMP=$(gcloud secrets versions access 1 --secret="honeycomb-key" 2>/dev/null)
-if [ -n "$HONEYCOMB_KEY_TEMP" ]; then
-	export HONEYCOMB_KEY=${HONEYCOMB_KEY_TEMP}
-fi
-
 if [ -f /testing-key.json ]; then
 	export GOOGLE_APPLICATION_CREDENTIALS=/testing-key.json
 	gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS

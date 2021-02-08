@@ -7,11 +7,11 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-	"os"
 	"strings"
 	"time"
 
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/config"
+	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/secrets"
 	beeline "github.com/honeycombio/beeline-go"
 )
 
@@ -77,7 +77,10 @@ func fetchRowsActual(ctx context.Context, tableName string, offset string) (Tabl
 		return TableContent{}, offset, err
 	}
 
-	airtableSecret := os.Getenv(config.AirtableSecretEnvKey)
+	airtableSecret, err := secrets.Get(ctx, secrets.AirtableSecret)
+	if err != nil {
+		return TableContent{}, offset, fmt.Errorf("Failed to fetch airtable secret: %w", err)
+	}
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", airtableSecret))
 
 	q := req.URL.Query()
