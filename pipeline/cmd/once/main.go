@@ -10,12 +10,12 @@ import (
 
 // Takes the Google Cloud Storage bucket path as the first argument.
 func main() {
-	debugFlag := flag.Bool("debug", false, "Only print output, don't upload")
+	noopFlag := flag.Bool("noop", false, "Only print output, don't upload")
 	flag.Parse()
 
 	var pm *generator.PublishManager
-	if *debugFlag {
-		pm = generator.NewDebugPublishManager()
+	if *noopFlag {
+		pm = generator.NewNoopPublishManager()
 	} else {
 		pm = generator.NewPublishManager()
 	}

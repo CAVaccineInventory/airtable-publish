@@ -32,7 +32,7 @@ func NewPublishManager() *PublishManager {
 }
 
 // Uses storage.DebugToStderr to not need upload credentials
-func NewDebugPublishManager() *PublishManager {
+func NewNoopPublishManager() *PublishManager {
 	return &PublishManager{
 		store: storage.DebugToSTDERR,
 	}
