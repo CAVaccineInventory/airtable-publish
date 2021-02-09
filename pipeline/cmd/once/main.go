@@ -6,20 +6,22 @@ import (
 	"log"
 	"os"
 
+	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/deploys"
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/generator"
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/metrics"
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/secrets"
+	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/storage"
 )
 
 // Takes the Google Cloud Storage bucket path as the first argument.
 func main() {
 	noopFlag := flag.Bool("noop", false, "Only print output, don't upload")
-	localFlag := flag.Bool("local", false, "Write to files under local/")
+	bucketFlag := flag.String("bucket", "", "Upload into a specific bucket")
 	metricsFlag := flag.Bool("metrics", false, "Enable metrics reporting")
 	flag.Parse()
 
-	if *localFlag && *noopFlag {
-		log.Fatal("-noop and -local are mutually exclusive!")
+	if *noopFlag && *bucketFlag != "" {
+		log.Fatal("-noop and -bucket are mutually exclusive!")
 	}
 
 	secrets.RequireAirtableSecret()
@@ -29,14 +31,15 @@ func main() {
 		defer metricsCleanup()
 	}
 
-	var pm *generator.PublishManager
+	pm := generator.NewPublishManager()
+
 	if *noopFlag {
-		pm = generator.NewNoopPublishManager()
-	} else if *localFlag {
-		pm = generator.NewLocalPublishManager()
-	} else {
-		pm = generator.NewPublishManager()
+		// "bucket-name" is arbitrary here, since nothing is written anywhere
+		deploys.SetTestingStorage(storage.DebugToSTDERR, "bucket-name")
+	} else if *bucketFlag != "" {
+		deploys.SetTestingStorage(storage.UploadToGCS, *bucketFlag)
 	}
+
 	ok := pm.PublishAll(context.Background())
 	if !ok {
 		os.Exit(1)

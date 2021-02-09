@@ -1,9 +1,10 @@
 package deploys
 
 import (
-	"errors"
 	"fmt"
 	"os"
+
+	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/storage"
 )
 
 // Versions are, practically, numbers, but we use strings for
@@ -26,18 +27,22 @@ const (
 // the same bucket but separate directories; in the non-legacy
 // version, they're in the top level of separate buckets, at separate
 // domains names.
-var deploys = map[DeployType]DeployConfig{
+var deploys = map[DeployType]*DeployConfig{
 	DeployTesting: {
+		// The bucket name here used for the name of the local
+		// directory to write into.
+		Storage: storage.StoreLocal,
 		LegacyBucket: Bucket{
-			// name is set below
+			Name: "local",
 			Path: "legacy",
 		},
 		APIBucket: Bucket{
-			// name is set below
+			Name: "local",
 			Path: "api",
 		},
 	},
 	DeployStaging: {
+		Storage: storage.UploadToGCS,
 		LegacyBucket: Bucket{
 			Name: "cavaccineinventory-sitedata",
 			Path: "airtable-sync-staging",
@@ -48,6 +53,7 @@ var deploys = map[DeployType]DeployConfig{
 		},
 	},
 	DeployProduction: {
+		Storage: storage.UploadToGCS,
 		LegacyBucket: Bucket{
 			Name: "cavaccineinventory-sitedata",
 			Path: "airtable-sync",
@@ -71,25 +77,28 @@ func GetDeploy() (DeployType, error) {
 	return deploy, nil
 }
 
-// Fills out the bucket information from the TESTING_BUCKET
-// environment variable if in testing.
+// Returns the deployment configuration.
 func getDeployConfig() (*DeployConfig, error) {
 	deploy, err := GetDeploy()
 	if err != nil {
 		return nil, err
 	}
 	config := deploys[deploy]
-	if deploy != DeployTesting {
-		return &config, nil
-	}
+	return config, nil
+}
 
-	bucketName := os.Getenv("TESTING_BUCKET")
-	if bucketName == "" {
-		return nil, errors.New("Set TESTING_BUCKET env var to the name of your bucket (see README.md)")
+func GetStorage() (StorageWriter, error) {
+	config, err := getDeployConfig()
+	if err != nil {
+		return nil, err
 	}
-	config.LegacyBucket.Name = bucketName
-	config.APIBucket.Name = bucketName
-	return &config, nil
+	return config.Storage, nil
+}
+
+func SetTestingStorage(sw StorageWriter, bucketName string) {
+	deploys[DeployTesting].Storage = sw
+	deploys[DeployTesting].LegacyBucket.Name = bucketName
+	deploys[DeployTesting].APIBucket.Name = bucketName
 }
 
 // Returns the gs:// URL that files in the bucket can be uploaded to,

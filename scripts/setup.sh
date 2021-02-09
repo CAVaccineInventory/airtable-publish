@@ -30,10 +30,7 @@ HONEYCOMB_KEY=
 
 # Optional Google Cloud authentication gets stored in
 # 'testing-key.json', to test uploading files and metrics; see
-# 'pipeline/README.md' for instructions.  This will also require
-# choosing a bucket to store the data in:
-
-TESTING_BUCKET=
+# 'pipeline/README.md' for instructions.
 EOF
 fi
 

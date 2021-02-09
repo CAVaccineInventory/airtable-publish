@@ -20,13 +20,6 @@ func StoreLocal(ctx context.Context, destinationFile string, transformedData met
 	defer span.Send()
 	beeline.AddField(ctx, "destinationFile", destinationFile)
 
-	writeToURL, err := url.Parse(destinationFile)
-	if err != nil {
-		err = fmt.Errorf("Invalid destination URL %s: %w", destinationFile, err)
-		beeline.AddField(ctx, "error", err)
-		return err
-	}
-
 	serializedData, err := Serialize(transformedData)
 	if err != nil {
 		err = fmt.Errorf("failed to serialize json: %w", err)
@@ -34,9 +27,17 @@ func StoreLocal(ctx context.Context, destinationFile string, transformedData met
 		return err
 	}
 
-	// writeToURL.Path still has a leading `/` on it; we write out
-	// under `local`, which in Docker is mounted out to the host OS.
-	localFilePath := filepath.Join("local", writeToURL.Path)
+	writeToURL, err := url.Parse(destinationFile)
+	if err != nil {
+		err = fmt.Errorf("Invalid destination URL %s: %w", destinationFile, err)
+		beeline.AddField(ctx, "error", err)
+		return err
+	}
+
+	// Strip of the gs://; the "host" is the bucket name, which in
+	// treat as a directory.  In most cases this is "local", which,
+	// in Docker, is mounted out to the host OS.
+	localFilePath := filepath.Join(writeToURL.Host, writeToURL.Path)
 	err = os.MkdirAll(path.Dir(localFilePath), 0755)
 	if err != nil {
 		err = fmt.Errorf("failed to make directories %s: %w", path.Dir(localFilePath), err)

@@ -16,6 +16,7 @@ import (
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/generator"
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/metrics"
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/secrets"
+	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/storage"
 	beeline "github.com/honeycombio/beeline-go"
 	"github.com/honeycombio/beeline-go/trace"
 	"github.com/honeycombio/beeline-go/wrappers/hnynethttp"
@@ -25,18 +26,17 @@ import (
 type Publisher struct {
 	lastPublishSucceeded bool // Make this thread safe if nontrivial multithreading comes up.
 	deploy               deploys.DeployType
-	publishManager       func() *generator.PublishManager
 }
 
 // Takes the Google Cloud Storage bucket path as the first argument.
 func main() {
 	noopFlag := flag.Bool("noop", false, "Only print output, don't upload")
-	localFlag := flag.Bool("local", false, "Write to files under local/")
-	metricsFlag := flag.Bool("metrics", true, "Enable metrics reporting")
+	bucketFlag := flag.String("bucket", "", "Upload into a specific bucket")
+	metricsFlag := flag.Bool("metrics", false, "Enable metrics reporting")
 	flag.Parse()
 
-	if *localFlag && *noopFlag {
-		log.Fatal("-noop and -local are mutually exclusive!")
+	if *noopFlag && *bucketFlag != "" {
+		log.Fatal("-noop and -bucket are mutually exclusive!")
 	}
 
 	secrets.RequireAirtableSecret()
@@ -55,14 +55,14 @@ func main() {
 		defer metricsCleanup()
 	}
 
-	p := Publisher{}
 	if *noopFlag {
-		p.publishManager = generator.NewNoopPublishManager
-	} else if *localFlag {
-		p.publishManager = generator.NewLocalPublishManager
-	} else {
-		p.publishManager = generator.NewPublishManager
+		// "bucket-name" is arbitrary here, since nothing is written anywhere
+		deploys.SetTestingStorage(storage.DebugToSTDERR, "bucket-name")
+	} else if *bucketFlag != "" {
+		deploys.SetTestingStorage(storage.UploadToGCS, *bucketFlag)
 	}
+
+	p := Publisher{}
 	log.Println("Starting...")
 	p.Run()
 }
@@ -107,7 +107,7 @@ func (p *Publisher) syncAndPublishRequest(w http.ResponseWriter, r *http.Request
 	ctx, cxl := context.WithTimeout(ctx, time.Duration(timeoutMinutes)*time.Minute)
 	defer cxl()
 
-	pm := p.publishManager()
+	pm := generator.NewPublishManager()
 	p.lastPublishSucceeded = pm.PublishAll(ctx)
 	if !p.lastPublishSucceeded {
 		w.WriteHeader(http.StatusInternalServerError)
