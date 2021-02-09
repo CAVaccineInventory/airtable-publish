@@ -72,7 +72,7 @@ func fetchRows(ctx context.Context, tableName string, offset string) (TableConte
 // rows, next offset, and error.
 func fetchRowsActual(ctx context.Context, tableName string, offset string) (TableContent, string, error) {
 	url := fmt.Sprintf("https://api.airtable.com/v0/%s/%s", config.AirtableID, tableName)
-	req, err := http.NewRequest("GET", url, http.NoBody)
+	req, err := http.NewRequestWithContext(ctx, "GET", url, http.NoBody)
 	if err != nil {
 		return TableContent{}, offset, err
 	}
