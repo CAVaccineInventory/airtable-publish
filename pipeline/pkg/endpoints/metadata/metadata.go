@@ -32,7 +32,7 @@ func Wrap(table airtable.TableContent) JSONData {
 		Usage: Usage{
 			Notice: defaultNoticeText,
 			Contact: Contact{
-				PartnersEmail: "partners@vaccinateca.com",
+				PartnersEmail: "api@vaccinateca.com",
 			},
 		},
 		Content: table,
