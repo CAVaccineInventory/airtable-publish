@@ -15,39 +15,34 @@ import (
 
 func TestSanitize(t *testing.T) {
 	tests := map[string]struct {
-		endpointFunc       endpointFunc
-		testDataFile       string
-		badKeys            []string
-		expectRequiredKeys []string // Keys that should be in every element.
+		endpointFunc endpointFunc
+		testDataFile string
+		badKeys      []string
 	}{
 		"Locations": {
-			endpointFunc:       EndpointMap[deploys.LegacyVersion]["Locations"],
-			testDataFile:       "test_data/locations_reduced.json",
-			badKeys:            []string{"Last report author", "Internal notes"},
-			expectRequiredKeys: []string{"id"},
+			endpointFunc: EndpointMap[deploys.LegacyVersion]["Locations"],
+			testDataFile: "test_data/locations_reduced.json",
+			badKeys:      []string{"Last report author", "Internal notes"},
 		},
 		"Counties": {
-			endpointFunc:       EndpointMap[deploys.LegacyVersion]["Counties"],
-			testDataFile:       "test_data/counties.json",
-			badKeys:            []string{"Internal notes"},
-			expectRequiredKeys: []string{"id"},
+			endpointFunc: EndpointMap[deploys.LegacyVersion]["Counties"],
+			testDataFile: "test_data/counties.json",
+			badKeys:      []string{"Internal notes"},
 		},
 		"Locations-V1": {
-			endpointFunc:       EndpointMap[deploys.VersionType("1")]["locations"],
-			testDataFile:       "test_data/locations_reduced.json",
-			badKeys:            []string{"Last report author", "Internal notes"},
-			expectRequiredKeys: []string{"id"},
+			endpointFunc: EndpointMap[deploys.VersionType("1")]["locations"],
+			testDataFile: "test_data/locations_reduced.json",
+			badKeys:      []string{"Last report author", "Internal notes"},
 		},
 		"Counties-V1": {
-			endpointFunc:       EndpointMap[deploys.VersionType("1")]["counties"],
-			testDataFile:       "test_data/counties.json",
-			badKeys:            []string{"Internal notes"},
-			expectRequiredKeys: []string{"id"},
+			endpointFunc: EndpointMap[deploys.VersionType("1")]["counties"],
+			testDataFile: "test_data/counties.json",
+			badKeys:      []string{"Internal notes"},
 		},
 		"Providers-V1": {
-			endpointFunc:       EndpointMap[deploys.VersionType("1")]["providers"],
-			testDataFile:       "test_data/providers.json",
-			expectRequiredKeys: []string{"id"},
+			endpointFunc: EndpointMap[deploys.VersionType("1")]["providers"],
+			testDataFile: "test_data/providers.json",
+			badKeys:      []string{"airtable_id"},
 		},
 	}
 
@@ -69,21 +64,15 @@ func TestSanitize(t *testing.T) {
 				t.Errorf("result contains @gmail.com")
 			}
 
-			elements := make(airtable.TableContent, 0)
-			err = json.Unmarshal(got.Bytes(), &elements)
+			locs := make(airtable.TableContent, 0)
+			err = json.Unmarshal(got.Bytes(), &locs)
 			require.NoError(t, err)
 
-			for _, elem := range elements {
-				// Check that no bad keys are present.
+			// Check a sampling of bad keys.
+			for _, l := range locs {
 				for _, k := range tc.badKeys {
-					if _, ok := elem[k]; ok {
-						t.Errorf("bad key %s found in %v", k, elem)
-					}
-				}
-
-				for _, k := range tc.expectRequiredKeys {
-					if _, ok := elem[k]; !ok {
-						t.Errorf("required key %s missing from %v", k, elem)
+					if _, ok := l[k]; ok {
+						t.Errorf("bad key %v found in ", k)
 					}
 				}
 			}
