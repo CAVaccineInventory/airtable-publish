@@ -110,7 +110,9 @@ func fetchRowsActual(ctx context.Context, tableName string, offset string) (Tabl
 	// Max page size is 100
 	rows := make(TableContent, 0, 100)
 	for _, row := range rd.Records {
+		row.Fields["id"] = row.ID // synthetic "id" field based on Airtable ID takes precedence over any field that might be named "id".
 		rows = append(rows, row.Fields)
+
 	}
 	return rows, rd.Offset, nil
 

@@ -19,12 +19,14 @@ func TestFilterToAllowedKeys(t *testing.T) {
 				{
 					"allow":    "allowvalue",
 					"disallow": "disallowvalue",
+					"id":       "always kept even if not specified",
 				},
 			},
 			allowKeys: []string{"allow"},
 			expect: airtable.TableContent{
 				{
 					"allow": "allowvalue",
+					"id":    "always kept even if not specified",
 				},
 			},
 		},
@@ -52,12 +54,14 @@ func TestFilterRemapToAllowedKeys(t *testing.T) {
 				{
 					"allow":    "allowvalue",
 					"disallow": "disallowvalue",
+					"id":       "always kept even if not specified",
 				},
 			},
 			mapping: map[string]string{"allow": "keep"},
 			expect: airtable.TableContent{
 				{
 					"keep": "allowvalue",
+					"id":   "always kept even if not specified",
 				},
 			},
 		},
