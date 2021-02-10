@@ -7,15 +7,14 @@ import (
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/airtable"
 )
 
-// ToAllowedKeys takes a slice of KV objects, and a set of allowed key names.
-// For each object in the list, it removes each KV pair where the key is not in allowedKeys,
-// then returns this result.
-func ToAllowedKeys(raw airtable.TableContent, allowedKeys []string) (airtable.TableContent, error) {
-	keys := make(map[string]string, len(allowedKeys))
-	for _, k := range allowedKeys {
-		keys[k] = k
+// SameKeyMapping takes a list of keys, and returns a map of key -> key.
+// It is intended as a helper for RemapToAllowedKeys, when the key names are the same.
+func SameKeyMapping(keys []string) map[string]string {
+	mapping := make(map[string]string, len(keys))
+	for _, k := range keys {
+		mapping[k] = k
 	}
-	return RemapToAllowedKeys(raw, keys)
+	return mapping
 }
 
 // RemapToAllowedKeys takes a slice of KV objects, and a map of allowed key names => output names.

@@ -29,7 +29,11 @@ func V1(ctx context.Context, tables *airtable.Tables) (airtable.TableContent, er
 		"Vaccine info URL",
 		"Vaccine locations URL",
 	}
-	filteredTable, err := filter.ToAllowedKeys(rawTable, fields)
+	fieldMapping := filter.SameKeyMapping(fields)
+	fieldMapping["airtable_id"] = "id"
+
+	filteredTable, err := filter.RemapToAllowedKeys(rawTable, fieldMapping)
+
 	if err != nil {
 		return nil, fmt.Errorf("ToAllowedKeys: %w", err)
 	}

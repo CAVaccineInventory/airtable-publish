@@ -53,7 +53,10 @@ func Locations(ctx context.Context, tables *airtable.Tables) (airtable.TableCont
 		"Longitude",
 		"Name",
 	}
-	filteredTable, err := filter.ToAllowedKeys(rawTable, fields)
+	fieldMapping := filter.SameKeyMapping(fields)
+	fieldMapping["airtable_id"] = "id"
+
+	filteredTable, err := filter.RemapToAllowedKeys(rawTable, fieldMapping)
 	if err != nil {
 		return nil, fmt.Errorf("ToAllowedKeys: %w", err)
 	}
@@ -81,8 +84,10 @@ func Counties(ctx context.Context, tables *airtable.Tables) (airtable.TableConte
 		"Vaccine locations URL",
 		"Yeses",
 	}
+	fieldMapping := filter.SameKeyMapping(fields)
+	fieldMapping["airtable_id"] = "id"
 
-	filteredTable, err := filter.ToAllowedKeys(rawTable, fields)
+	filteredTable, err := filter.RemapToAllowedKeys(rawTable, fieldMapping)
 	if err != nil {
 		return nil, fmt.Errorf("ToAllowedKeys: %w", err)
 	}
