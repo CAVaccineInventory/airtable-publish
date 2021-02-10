@@ -24,6 +24,9 @@ func ToAllowedKeys(raw airtable.TableContent, allowedKeys []string) (airtable.Ta
 func RemapToAllowedKeys(raw airtable.TableContent, fields map[string]string) (airtable.TableContent, error) {
 	filtered := make([]map[string]interface{}, len(raw))
 
+	// "id" is always retained.
+	fields["id"] = "id"
+
 	for i := range raw {
 		filtered[i] = map[string]interface{}{}
 		for k, v := range raw[i] {

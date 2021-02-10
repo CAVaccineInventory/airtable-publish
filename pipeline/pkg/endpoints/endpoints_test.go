@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"os"
 	"testing"
 
@@ -13,16 +14,28 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+var seq = 0
+
+// synthesizeIDs creates synthetic IDs for a table.  Sometimes the saved test data on disk doesn't have an ID stored.
+func synthesizeIDs(c airtable.TableContent) {
+	for _, r := range c {
+		seq = seq + 1
+		r["id"] = fmt.Sprintf("%08x", seq)
+	}
+}
+
 func TestSanitize(t *testing.T) {
 	tests := map[string]struct {
 		endpointFunc endpointFunc
 		testDataFile string
-		badKeys      []string
+		badKeys      []string // fields no record must have
+		requiredKeys []string // fields every record must have
 	}{
 		"Locations": {
 			endpointFunc: EndpointMap[deploys.LegacyVersion]["Locations"],
 			testDataFile: "test_data/locations_reduced.json",
 			badKeys:      []string{"Last report author", "Internal notes"},
+			requiredKeys: []string{"Name"},
 		},
 		"Counties": {
 			endpointFunc: EndpointMap[deploys.LegacyVersion]["Counties"],
@@ -33,6 +46,7 @@ func TestSanitize(t *testing.T) {
 			endpointFunc: EndpointMap[deploys.VersionType("1")]["locations"],
 			testDataFile: "test_data/locations_reduced.json",
 			badKeys:      []string{"Last report author", "Internal notes"},
+			requiredKeys: []string{"Name"},
 		},
 		"Counties-V1": {
 			endpointFunc: EndpointMap[deploys.VersionType("1")]["counties"],
@@ -49,8 +63,16 @@ func TestSanitize(t *testing.T) {
 	ctx := context.Background()
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
+			// "id" is always required
+			tc.requiredKeys = append(tc.requiredKeys, "id")
+
 			getData := func(ctx context.Context, tableName string) (airtable.TableContent, error) {
-				return airtable.ObjectFromFile(ctx, name, tc.testDataFile)
+				o, err := airtable.ObjectFromFile(ctx, name, tc.testDataFile)
+				if err != nil {
+					return nil, err
+				}
+				synthesizeIDs(o)
+				return o, nil
 			}
 			fakeTables := airtable.NewFakeTables(getData)
 			out, err := tc.endpointFunc(ctx, fakeTables)
@@ -68,13 +90,20 @@ func TestSanitize(t *testing.T) {
 			err = json.Unmarshal(got.Bytes(), &locs)
 			require.NoError(t, err)
 
-			// Check a sampling of bad keys.
-			for _, l := range locs {
+			for i, l := range locs {
+				// Check for bad keys.
 				for _, k := range tc.badKeys {
 					if _, ok := l[k]; ok {
-						t.Errorf("bad key %v found in ", k)
+						t.Errorf("bad key %q found in row %d", k, i)
 					}
 				}
+				// Check for required keys.
+				for _, k := range tc.requiredKeys {
+					if _, ok := l[k]; !ok {
+						t.Errorf("key %q m missing in row %d", k, i)
+					}
+				}
+
 			}
 		})
 	}
