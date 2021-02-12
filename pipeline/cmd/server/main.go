@@ -32,7 +32,7 @@ type Publisher struct {
 func main() {
 	noopFlag := flag.Bool("noop", false, "Only print output, don't upload")
 	bucketFlag := flag.String("bucket", "", "Upload into a specific bucket")
-	metricsFlag := flag.Bool("metrics", false, "Enable metrics reporting")
+	metricsFlag := flag.Bool("metrics", true, "Enable metrics reporting")
 	flag.Parse()
 
 	if *noopFlag && *bucketFlag != "" {
