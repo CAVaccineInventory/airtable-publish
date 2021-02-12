@@ -75,6 +75,7 @@ func Counties(ctx context.Context, tables *airtable.Tables) (airtable.TableConte
 		"Facebook Page",
 		"Notes",
 		"Official volunteering opportunities",
+		"population",
 		"Total reports",
 		"Twitter Page",
 		"Vaccine info URL",

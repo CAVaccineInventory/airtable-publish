@@ -19,6 +19,7 @@ var (
 		"Facebook Page":                       "facebookURL",
 		"Notes":                               "notes",
 		"Official volunteering opportunities": "officialVolunteering",
+		"population":                          "population",
 		"Total reports":                       "totalReports",
 		"Twitter Page":                        "twitterURL",
 		"Vaccine info URL":                    "vaccineInfoURL",
