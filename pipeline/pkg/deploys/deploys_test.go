@@ -39,48 +39,33 @@ func TestDeploys(t *testing.T) {
 func TestDeployBuckets(t *testing.T) {
 	tests := map[string]struct {
 		envVar        string
-		wantError     bool
 		deploy        DeployType
 		testingBucket string
 	}{
-		"prod":           {envVar: "prod", deploy: DeployProduction},
-		"staging":        {envVar: "staging", deploy: DeployStaging},
-		"testing":        {envVar: "testing", deploy: DeployTesting, wantError: true},
-		"testing_bucket": {envVar: "testing", deploy: DeployTesting, testingBucket: "test-bucket-name"},
-		"blank":          {envVar: "", deploy: DeployTesting, wantError: true},
-		"blank_bucket":   {envVar: "", deploy: DeployTesting, testingBucket: "test-bucket-name"},
+		"prod":    {envVar: "prod", deploy: DeployProduction},
+		"staging": {envVar: "staging", deploy: DeployStaging},
+		"testing": {envVar: "testing", deploy: DeployTesting},
+		"blank":   {envVar: "", deploy: DeployTesting},
 	}
 	t.Cleanup(func() {
 		os.Unsetenv("DEPLOY")
-		os.Unsetenv("TESTING_BUCKET")
 	})
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			os.Setenv("DEPLOY", tc.envVar)
-			os.Setenv("TESTING_BUCKET", tc.testingBucket)
 			bucket, err := GetUploadURL(LegacyVersion)
-			if tc.wantError {
-				require.Error(t, err)
-				require.Equal(t, bucket, "")
-			} else {
-				require.NoError(t, err)
-				if !strings.HasPrefix(bucket, "gs://") {
-					t.Errorf("Upload URL does not start with gs://")
-				}
+			require.NoError(t, err)
+			if !strings.HasPrefix(bucket, "gs://") {
+				t.Errorf("Upload URL does not start with gs://")
 			}
 
 			url, err := GetDownloadURL(LegacyVersion)
-			if tc.wantError {
-				require.Error(t, err)
-				require.Equal(t, url, "")
-			} else {
-				require.NoError(t, err)
-				if !strings.HasPrefix(url, "https://") {
-					t.Errorf("Download URL does not start with https://")
-				}
-				if strings.HasSuffix(url, "/") {
-					t.Errorf("Download URL ends with /")
-				}
+			require.NoError(t, err)
+			if !strings.HasPrefix(url, "https://") {
+				t.Errorf("Download URL does not start with https://")
+			}
+			if strings.HasSuffix(url, "/") {
+				t.Errorf("Download URL ends with /")
 			}
 		})
 	}

@@ -1,6 +1,14 @@
 package deploys
 
-import "fmt"
+import (
+	"context"
+	"fmt"
+
+	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/endpoints/metadata"
+)
+
+// A function which can be used to output the transformed data; see pkg/storage/
+type StorageWriter func(ctx context.Context, destinationFile string, transformedData metadata.JSONData) error
 
 type Bucket struct {
 	Name     string
@@ -33,6 +41,7 @@ func (b *Bucket) GetDownloadURL() string {
 
 // Pair of legacy bucket, and new bucket hooked up to a CDN
 type DeployConfig struct {
+	Storage      StorageWriter
 	LegacyBucket Bucket
 	APIBucket    Bucket
 }

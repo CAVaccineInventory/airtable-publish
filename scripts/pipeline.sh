@@ -14,8 +14,9 @@ echo "Running image..."
 exec docker run \
 	-e "AIRTABLE_KEY=$AIRTABLE_KEY" \
 	-e "HONEYCOMB_KEY=$HONEYCOMB_KEY" \
-	-e "TESTING_BUCKET=$TESTING_BUCKET" \
 	${GOOGLE_AUTH_BIND:+'-v' "$GOOGLE_AUTH_BIND"} \
+	${LOCAL_BIND:+'-v' "$LOCAL_BIND"} \
 	--rm \
 	-p 8080:8080 \
-	airtable-export
+	airtable-export \
+	sh /entrypoint.sh server "$@"

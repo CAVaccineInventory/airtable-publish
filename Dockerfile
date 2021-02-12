@@ -8,8 +8,8 @@ COPY ./go.* /src/
 WORKDIR /src
 RUN go mod download
 
-# Copy the rest of the source code into the container.
-COPY ./ /src
+# Copy the source code into the container.
+COPY ./pipeline/ /src/pipeline/
 
 # Build!
 RUN go build -o /server ./pipeline/cmd/server/main.go

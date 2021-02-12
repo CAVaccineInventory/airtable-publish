@@ -1,15 +1,16 @@
 package metrics
 
 import (
+	"context"
 	"fmt"
 	"log"
-	"os"
 
 	"contrib.go.opencensus.io/exporter/stackdriver"
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/airtable"
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/config"
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/deploys"
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/generator"
+	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/secrets"
 	beeline "github.com/honeycombio/beeline-go"
 	"go.opencensus.io/stats/view"
 	"go.opencensus.io/tag"
@@ -27,8 +28,12 @@ func Init() func() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	honeycombKey, err := secrets.Get(context.Background(), secrets.HoneycombSecret)
+	if err != nil {
+		log.Fatal(fmt.Errorf("Failed to get Honeycomb credentials: %w", err))
+	}
 	beeline.Init(beeline.Config{
-		WriteKey:    os.Getenv("HONEYCOMB_KEY"),
+		WriteKey:    honeycombKey,
 		Dataset:     fmt.Sprintf("pipeline-%s", deploy),
 		ServiceName: "pipeline",
 	})
