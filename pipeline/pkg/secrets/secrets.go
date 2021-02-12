@@ -69,7 +69,7 @@ func Get(ctx context.Context, secret *SecretData) (string, error) {
 		return "", err
 	}
 
-	secret.value = result.Payload.String()
+	secret.value = string(result.Payload.Data)
 	return secret.value, nil
 }
 
