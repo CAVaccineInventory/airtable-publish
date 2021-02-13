@@ -54,7 +54,8 @@ func Locations(ctx context.Context, tables *airtable.Tables) (types.TableContent
 		"Longitude",
 		"Name",
 	}
-	filteredTable, err := filter.ToAllowedKeys(rawTable, fields)
+
+	filteredTable, err := filter.Transform(rawTable, filter.WithFieldSlice(fields))
 	if err != nil {
 		return nil, fmt.Errorf("ToAllowedKeys: %w", err)
 	}
