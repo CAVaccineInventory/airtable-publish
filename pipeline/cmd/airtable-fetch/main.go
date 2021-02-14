@@ -13,6 +13,7 @@ import (
 
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/airtable"
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/secrets"
+	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/types"
 )
 
 var (
@@ -30,7 +31,7 @@ func main() {
 	secrets.RequireAirtableSecret()
 	tables := airtable.NewTables()
 
-	var data airtable.TableContent
+	var data types.TableContent
 	var err error
 
 	switch strings.ToLower(*table) {

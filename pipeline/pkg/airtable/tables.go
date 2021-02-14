@@ -4,11 +4,12 @@ import (
 	"context"
 	"sync"
 
+	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/types"
 	beeline "github.com/honeycombio/beeline-go"
 )
 
 type tableFetchResults struct {
-	table TableContent
+	table types.TableContent
 	err   error
 }
 
@@ -18,7 +19,7 @@ type Tables struct {
 	mainLock   sync.RWMutex                 // mainLock protects tableLocks.
 	tableLocks map[string]*sync.Mutex       // tableLocks contains a lock for each table, to prevent races to populate a table.
 	tables     map[string]tableFetchResults // Tables contains a map of table name to (table content or error).
-	fetchFunc  func(context.Context, string) (TableContent, error)
+	fetchFunc  func(context.Context, string) (types.TableContent, error)
 }
 
 func NewTables() *Tables {
@@ -30,21 +31,21 @@ func NewTables() *Tables {
 	}
 }
 
-func (t *Tables) GetCounties(ctx context.Context) (TableContent, error) {
+func (t *Tables) GetCounties(ctx context.Context) (types.TableContent, error) {
 	return t.getTable(ctx, "Counties")
 }
 
-func (t *Tables) GetProviders(ctx context.Context) (TableContent, error) {
+func (t *Tables) GetProviders(ctx context.Context) (types.TableContent, error) {
 	return t.getTable(ctx, "Provider networks")
 }
 
-func (t *Tables) GetLocations(ctx context.Context) (TableContent, error) {
+func (t *Tables) GetLocations(ctx context.Context) (types.TableContent, error) {
 	return t.getTable(ctx, "Locations")
 }
 
 // getTable does a thread-safe, just-in-time fetch of a table.
 // The result is cached for the lifetime of the Tables object..
-func (t *Tables) getTable(ctx context.Context, tableName string) (TableContent, error) {
+func (t *Tables) getTable(ctx context.Context, tableName string) (types.TableContent, error) {
 	ctx, span := beeline.StartSpan(ctx, "airtable.getTable")
 	defer span.Send()
 	beeline.AddField(ctx, "table", tableName)

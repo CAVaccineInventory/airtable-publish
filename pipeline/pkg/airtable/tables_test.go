@@ -5,11 +5,12 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/types"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestTables_GetCounties(t *testing.T) {
-	fetchFunc := func(_ context.Context, _ string) (TableContent, error) {
+	fetchFunc := func(_ context.Context, _ string) (types.TableContent, error) {
 		return []map[string]interface{}{
 			{
 				"name": "test county",
@@ -29,7 +30,7 @@ func TestTables_GetCounties(t *testing.T) {
 
 func TestTables_CachedErr(t *testing.T) {
 	fail := true
-	fetchFunc := func(_ context.Context, _ string) (TableContent, error) {
+	fetchFunc := func(_ context.Context, _ string) (types.TableContent, error) {
 		if fail {
 			return nil, errors.New("Failure")
 		}

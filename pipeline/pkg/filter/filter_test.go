@@ -5,17 +5,17 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/airtable"
+	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/types"
 )
 
 func TestFilterToAllowedKeys(t *testing.T) {
 	cases := []struct {
-		input     airtable.TableContent
+		input     types.TableContent
 		allowKeys []string
-		expect    airtable.TableContent
+		expect    types.TableContent
 	}{
 		{
-			input: airtable.TableContent{
+			input: types.TableContent{
 				{
 					"allow":    "allowvalue",
 					"disallow": "disallowvalue",
@@ -23,7 +23,7 @@ func TestFilterToAllowedKeys(t *testing.T) {
 				},
 			},
 			allowKeys: []string{"allow"},
-			expect: airtable.TableContent{
+			expect: types.TableContent{
 				{
 					"allow": "allowvalue",
 					"id":    "always kept even if not specified",
@@ -45,12 +45,12 @@ func TestFilterToAllowedKeys(t *testing.T) {
 
 func TestFilterRemapToAllowedKeys(t *testing.T) {
 	cases := []struct {
-		input   airtable.TableContent
+		input   types.TableContent
 		mapping map[string]string
-		expect  airtable.TableContent
+		expect  types.TableContent
 	}{
 		{
-			input: airtable.TableContent{
+			input: types.TableContent{
 				{
 					"allow":    "allowvalue",
 					"disallow": "disallowvalue",
@@ -58,7 +58,7 @@ func TestFilterRemapToAllowedKeys(t *testing.T) {
 				},
 			},
 			mapping: map[string]string{"allow": "keep"},
-			expect: airtable.TableContent{
+			expect: types.TableContent{
 				{
 					"keep": "allowvalue",
 					"id":   "always kept even if not specified",
@@ -81,13 +81,13 @@ func TestFilterRemapToAllowedKeys(t *testing.T) {
 func TestCheckFields(t *testing.T) {
 	cases := []struct {
 		desc    string
-		input   airtable.TableContent
+		input   types.TableContent
 		fields  []string
 		wantErr error
 	}{
 		{
 			desc: "no errors",
-			input: airtable.TableContent{
+			input: types.TableContent{
 				{
 					"allow":    "allowvalue",
 					"disallow": "disallowvalue",
@@ -98,7 +98,7 @@ func TestCheckFields(t *testing.T) {
 		},
 		{
 			desc: "no errors - sparse fields",
-			input: airtable.TableContent{
+			input: types.TableContent{
 				{
 					"a":        "a",
 					"disallow": "disallowvalue",
@@ -113,7 +113,7 @@ func TestCheckFields(t *testing.T) {
 		},
 		{
 			desc: "no errors - dense fields",
-			input: airtable.TableContent{
+			input: types.TableContent{
 				{
 					"a":        "a",
 					"b":        "b",
@@ -130,7 +130,7 @@ func TestCheckFields(t *testing.T) {
 		},
 		{
 			desc: "missing field",
-			input: airtable.TableContent{
+			input: types.TableContent{
 				{
 					"allow":    "allowvalue",
 					"disallow": "disallowvalue",

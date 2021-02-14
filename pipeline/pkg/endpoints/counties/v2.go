@@ -6,6 +6,7 @@ import (
 
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/airtable"
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/filter"
+	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/types"
 	"github.com/honeycombio/beeline-go"
 )
 
@@ -27,7 +28,7 @@ var (
 	}
 )
 
-func V2(ctx context.Context, tables *airtable.Tables) (airtable.TableContent, error) {
+func V2(ctx context.Context, tables *airtable.Tables) (types.TableContent, error) {
 	ctx, span := beeline.StartSpan(ctx, "endpoints.counties.V2")
 	defer span.Send()
 

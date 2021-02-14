@@ -5,12 +5,13 @@ import (
 	"fmt"
 
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/filter"
+	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/types"
 
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/airtable"
 	"github.com/honeycombio/beeline-go"
 )
 
-func V1(ctx context.Context, tables *airtable.Tables) (airtable.TableContent, error) {
+func V1(ctx context.Context, tables *airtable.Tables) (types.TableContent, error) {
 	ctx, span := beeline.StartSpan(ctx, "endpoints.providers.V1")
 	defer span.Send()
 

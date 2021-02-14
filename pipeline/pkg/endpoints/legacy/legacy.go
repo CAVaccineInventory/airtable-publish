@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/filter"
+	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/types"
 
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/airtable"
 	"github.com/honeycombio/beeline-go"
@@ -30,7 +31,7 @@ Okay, for those doing exporter stuff, for the following fields: "Name", "Address
  - perhaps we should give some of these better names and stick that in Locations-v2.json
 */
 
-func Locations(ctx context.Context, tables *airtable.Tables) (airtable.TableContent, error) {
+func Locations(ctx context.Context, tables *airtable.Tables) (types.TableContent, error) {
 	ctx, span := beeline.StartSpan(ctx, "endpoints.legacy.Locations")
 	defer span.Send()
 
@@ -61,7 +62,7 @@ func Locations(ctx context.Context, tables *airtable.Tables) (airtable.TableCont
 	return filteredTable, nil
 }
 
-func Counties(ctx context.Context, tables *airtable.Tables) (airtable.TableContent, error) {
+func Counties(ctx context.Context, tables *airtable.Tables) (types.TableContent, error) {
 	ctx, span := beeline.StartSpan(ctx, "endpoints.legacy.Counties")
 	defer span.Send()
 

@@ -11,13 +11,14 @@ import (
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/airtable"
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/deploys"
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/storage"
+	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/types"
 	"github.com/stretchr/testify/require"
 )
 
 var seq = 0
 
 // synthesizeIDs creates synthetic IDs for a table.  Sometimes the saved test data on disk doesn't have an ID stored.
-func synthesizeIDs(c airtable.TableContent) {
+func synthesizeIDs(c types.TableContent) {
 	for _, r := range c {
 		seq = seq + 1
 		r["id"] = fmt.Sprintf("%08x", seq)
@@ -66,7 +67,7 @@ func TestSanitize(t *testing.T) {
 			// "id" is always required
 			tc.requiredKeys = append(tc.requiredKeys, "id")
 
-			getData := func(ctx context.Context, tableName string) (airtable.TableContent, error) {
+			getData := func(ctx context.Context, tableName string) (types.TableContent, error) {
 				o, err := airtable.ObjectFromFile(ctx, name, tc.testDataFile)
 				if err != nil {
 					return nil, err
@@ -86,7 +87,7 @@ func TestSanitize(t *testing.T) {
 				t.Errorf("result contains @gmail.com")
 			}
 
-			locs := make(airtable.TableContent, 0)
+			locs := make(types.TableContent, 0)
 			err = json.Unmarshal(got.Bytes(), &locs)
 			require.NoError(t, err)
 
