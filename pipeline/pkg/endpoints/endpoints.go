@@ -6,6 +6,7 @@ import (
 
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/airtable"
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/deploys"
+	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/endpoints/metadata"
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/types"
 )
 
@@ -14,7 +15,7 @@ type endpointFunc func(context.Context, *airtable.Tables) (types.TableContent, e
 // Endpoint stores the data transform for a given version and resource
 // path.
 type Endpoint struct {
-	Version   deploys.VersionType
+	Version   metadata.VersionType
 	Resource  string
 	Transform endpointFunc
 }

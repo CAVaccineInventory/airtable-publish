@@ -6,6 +6,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/endpoints/metadata"
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/storage"
 	"github.com/google/go-cmp/cmp"
 	"github.com/stretchr/testify/require"
@@ -44,13 +45,13 @@ func TestDeployBuckets(t *testing.T) {
 		envVar        string
 		deploy        DeployType
 		testingBucket string
-		version       VersionType
+		version       metadata.VersionType
 		wantErr       bool
 	}{
-		"prod-legacy":    {envVar: "prod", deploy: DeployProduction, version: LegacyVersion},
-		"staging-legacy": {envVar: "staging", deploy: DeployStaging, version: LegacyVersion},
-		"testing-legacy": {envVar: "testing", deploy: DeployTesting, version: LegacyVersion},
-		"blank-legacy":   {envVar: "", deploy: DeployTesting, version: LegacyVersion},
+		"prod-legacy":    {envVar: "prod", deploy: DeployProduction, version: metadata.LegacyVersion},
+		"staging-legacy": {envVar: "staging", deploy: DeployStaging, version: metadata.LegacyVersion},
+		"testing-legacy": {envVar: "testing", deploy: DeployTesting, version: metadata.LegacyVersion},
+		"blank-legacy":   {envVar: "", deploy: DeployTesting, version: metadata.LegacyVersion},
 		"prod-v1":        {envVar: "prod", deploy: DeployProduction, version: "1"},
 		"staging-v1":     {envVar: "staging", deploy: DeployStaging, version: "1"},
 		"testing-v1":     {envVar: "testing", deploy: DeployTesting, version: "1"},

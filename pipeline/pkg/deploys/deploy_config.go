@@ -50,8 +50,8 @@ type DeployConfig struct {
 // for the given API version; never ends with a `/`.  Prefer to use
 // deploys.GetUploadURL, which chooses the right DeployConfig based on
 // the deploy environment.
-func (dc *DeployConfig) GetUploadURL(version VersionType) string {
-	if version == LegacyVersion {
+func (dc *DeployConfig) GetUploadURL(version metadata.VersionType) string {
+	if version == metadata.LegacyVersion {
 		return dc.LegacyBucket.GetUploadURL()
 	}
 	return fmt.Sprintf("%s/v%s", dc.APIBucket.GetUploadURL(), version)
@@ -61,8 +61,8 @@ func (dc *DeployConfig) GetUploadURL(version VersionType) string {
 // for the given API version; never ends with a `/`.  Prefer to use
 // deploys.GetDownloadURL, which chooses the right DeployConfig based on
 // the deploy environment.
-func (dc *DeployConfig) GetDownloadURL(version VersionType) string {
-	if version == LegacyVersion {
+func (dc *DeployConfig) GetDownloadURL(version metadata.VersionType) string {
+	if version == metadata.LegacyVersion {
 		return dc.LegacyBucket.GetDownloadURL()
 	}
 	return fmt.Sprintf("%s/v%s", dc.APIBucket.GetDownloadURL(), version)

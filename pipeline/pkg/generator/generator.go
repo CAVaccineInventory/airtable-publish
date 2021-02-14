@@ -102,10 +102,9 @@ func (pm *PublishManager) publishEndpointActual(ctx context.Context, tables *air
 		return fmt.Errorf("failed to sanitize json data: %w", err)
 	}
 
-	// Everything but the legacy code gets metadata around it
-	var sanitizedData interface{} = tableData
-	if ep.Version != deploys.LegacyVersion {
-		sanitizedData = metadata.Wrap(tableData)
+	wrappedData, err := metadata.Wrap(tableData, ep.Version)
+	if err != nil {
+		return fmt.Errorf("failed to format response: %w", err)
 	}
 
 	bucket, err := deploys.GetUploadURL(ep.Version)
@@ -119,5 +118,5 @@ func (pm *PublishManager) publishEndpointActual(ctx context.Context, tables *air
 	if err != nil {
 		return fmt.Errorf("failed to get storage function: %w", err)
 	}
-	return store(ctx, destinationFile, sanitizedData)
+	return store(ctx, destinationFile, wrappedData)
 }

@@ -1,10 +1,10 @@
 package endpoints
 
 import (
-	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/deploys"
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/endpoints/counties"
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/endpoints/legacy"
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/endpoints/locations"
+	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/endpoints/metadata"
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/endpoints/providers"
 )
 
@@ -21,12 +21,12 @@ import (
 // versions, if that endpoint is unchanged.  E.G. if changing the
 // locations API in a breaking fashion, keep using the
 // GenerateV1Counties func for v2, v3, etc.
-var EndpointMap = map[deploys.VersionType]map[string]endpointFunc{
-	deploys.LegacyVersion: {
+var EndpointMap = map[metadata.VersionType]map[string]endpointFunc{
+	metadata.LegacyVersion: {
 		"Locations": legacy.Locations,
 		"Counties":  legacy.Counties,
 	},
-	deploys.VersionType("1"): {
+	metadata.VersionType("1"): {
 		"locations": locations.V1,
 		"counties":  counties.V1,
 		"providers": providers.V1,

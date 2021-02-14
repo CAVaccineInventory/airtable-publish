@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/airtable"
-	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/deploys"
+	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/endpoints/metadata"
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/storage"
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/types"
 	"github.com/stretchr/testify/require"
@@ -46,29 +46,29 @@ func TestSanitize(t *testing.T) {
 		requiredKeys []string // fields every record must have
 	}{
 		"Locations": {
-			endpointFunc: EndpointMap[deploys.LegacyVersion]["Locations"],
+			endpointFunc: EndpointMap[metadata.LegacyVersion]["Locations"],
 			testDataFile: "test_data/locations_reduced.json",
 			badKeys:      []string{"Last report author", "Internal notes"},
 			requiredKeys: []string{"Name"},
 		},
 		"Counties": {
-			endpointFunc: EndpointMap[deploys.LegacyVersion]["Counties"],
+			endpointFunc: EndpointMap[metadata.LegacyVersion]["Counties"],
 			testDataFile: "test_data/counties.json",
 			badKeys:      []string{"Internal notes"},
 		},
 		"Locations-V1": {
-			endpointFunc: EndpointMap[deploys.VersionType("1")]["locations"],
+			endpointFunc: EndpointMap[metadata.VersionType("1")]["locations"],
 			testDataFile: "test_data/locations_reduced.json",
 			badKeys:      []string{"Last report author", "Internal notes"},
 			requiredKeys: []string{"Name"},
 		},
 		"Counties-V1": {
-			endpointFunc: EndpointMap[deploys.VersionType("1")]["counties"],
+			endpointFunc: EndpointMap[metadata.VersionType("1")]["counties"],
 			testDataFile: "test_data/counties.json",
 			badKeys:      []string{"Internal notes"},
 		},
 		"Providers-V1": {
-			endpointFunc: EndpointMap[deploys.VersionType("1")]["providers"],
+			endpointFunc: EndpointMap[metadata.VersionType("1")]["providers"],
 			testDataFile: "test_data/providers.json",
 			badKeys:      []string{"airtable_id"},
 		},

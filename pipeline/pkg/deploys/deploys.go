@@ -4,15 +4,9 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/endpoints/metadata"
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/storage"
 )
-
-// Versions are, practically, numbers, but we use strings for
-// potential extensibility.
-type VersionType string
-
-// "Legacy" versions are ones which predate the CDN domain and bucket.
-const LegacyVersion VersionType = "LEGACY"
 
 type DeployType string
 
@@ -103,7 +97,7 @@ func SetTestingStorage(sw StorageWriter, bucketName string) {
 
 // Returns the gs:// URL that files in the bucket can be uploaded to,
 // for the given API version; never ends with a `/`.
-func GetUploadURL(version VersionType) (string, error) {
+func GetUploadURL(version metadata.VersionType) (string, error) {
 	config, err := getDeployConfig()
 	if err != nil {
 		return "", err
@@ -113,7 +107,7 @@ func GetUploadURL(version VersionType) (string, error) {
 
 // Returns the https:// URL that files in the bucket can be read from,
 // for the given API version; never ends with a `/`.
-func GetDownloadURL(version VersionType) (string, error) {
+func GetDownloadURL(version metadata.VersionType) (string, error) {
 	config, err := getDeployConfig()
 	if err != nil {
 		return "", err
