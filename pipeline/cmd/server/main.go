@@ -51,7 +51,9 @@ func main() {
 	}()
 
 	if *metricsFlag {
-		metricsCleanup := metrics.Init()
+		ctx, cxl := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cxl()
+		metricsCleanup := metrics.Init(ctx)
 		defer metricsCleanup()
 	}
 

@@ -49,7 +49,7 @@ func Get(ctx context.Context, secret *SecretData) (string, error) {
 		return envVal, nil
 	}
 
-	projectID, err := config.GetProject()
+	projectID, err := config.GetProject(ctx)
 	if err != nil {
 		secret.err = err
 		return "", err

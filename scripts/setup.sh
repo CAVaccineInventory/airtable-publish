@@ -46,7 +46,17 @@ if [ -f "testing-key.json" ]; then
 	GOOGLE_AUTH_BIND="$(pwd)/testing-key.json:/testing-key.json"
 fi
 
-# We clean out `local/` before every run; the `-local` flag will
-# possibly fill it.
+# We clean out `local/` before every run.
 rm -rf local/
+mkdir local
 LOCAL_BIND="$(pwd)/local/:/src/local/"
+
+DOCKER_RUN_ARGS=(
+	--rm
+	-u "$(id -u)"
+	-e CLOUDSDK_CONFIG=/src/local/.gcloudconfig/
+	-e "AIRTABLE_KEY=${AIRTABLE_KEY}"
+	-e "HONEYCOMB_KEY=${HONEYCOMB_KEY}"
+	${GOOGLE_AUTH_BIND:+ -v "$GOOGLE_AUTH_BIND"}
+	${LOCAL_BIND:+ -v "$LOCAL_BIND"}
+)
