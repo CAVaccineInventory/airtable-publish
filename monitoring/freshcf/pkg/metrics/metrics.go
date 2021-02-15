@@ -1,13 +1,14 @@
 package metrics
 
 import (
+	"context"
 	"fmt"
 	"log"
-	"os"
 
 	"contrib.go.opencensus.io/exporter/stackdriver"
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/config"
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/deploys"
+	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/secrets"
 	"github.com/honeycombio/beeline-go"
 	"go.opencensus.io/stats"
 	"go.opencensus.io/stats/view"
@@ -44,13 +45,17 @@ var (
 	KeyResource, _ = tag.NewKey("resource")
 )
 
-func Init() func() {
+func Init(ctx context.Context) func() {
 	deploy, err := deploys.GetDeploy()
 	if err != nil {
 		log.Fatal(err)
 	}
+	honeycombKey, err := secrets.Get(ctx, secrets.HoneycombSecret)
+	if err != nil {
+		log.Fatal(fmt.Errorf("Failed to get Honeycomb credentials: %w", err))
+	}
 	beeline.Init(beeline.Config{
-		WriteKey:    os.Getenv("HONEYCOMB_KEY"),
+		WriteKey:    honeycombKey,
 		Dataset:     fmt.Sprintf("freshcf-%s", deploy),
 		ServiceName: "freshcf",
 	})
@@ -88,7 +93,7 @@ func Init() func() {
 		log.Fatalf("Failed to register the view: %v", err)
 	}
 
-	exporter, err := stackdriver.NewExporter(config.StackdriverOptions("freshcf"))
+	exporter, err := stackdriver.NewExporter(config.StackdriverOptions(ctx, "freshcf"))
 	if err != nil {
 		log.Fatal(err)
 	}

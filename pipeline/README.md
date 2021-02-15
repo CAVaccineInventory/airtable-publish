@@ -103,8 +103,19 @@ In production, these are fetched automatically from Google Cloud's Secrets Manag
 
 ## Development
 
-If you want to run locally and test uploads, you'll need to set up
-your own project, monitoring workspace, and service account:
+### Local-only
+
+If you want to run locally without testing uploads, run
+`./scripts/once.sh` and follow the instructions to set up your
+configuration file with your Airtable key.  Output will be written to
+the `local/` directory.
+
+
+### Google Cloud testing
+
+If you also want to test file uploads or metrics, you'll need to set
+up your own Google Cloud project, monitoring workspace, and service
+account:
 
 1. Create a personal [project][projects] in Google Cloud.
 2. Create a [monitoring workspace][workspaces] in that project.  If
@@ -120,7 +131,7 @@ your own project, monitoring workspace, and service account:
    gcloud iam service-accounts keys create testing-key.json --iam-account example@example.iam.gserviceaccount.com
    ```
 
-6. Choose a unique `TESTING_BUCKET` name to use (e.g. `alexmv-testing`)
+6. Choose a unique bucket name to use (e.g. `alexmv-testing`)
 
 7. Run `./scripts/pipeline.sh`, which will create a template `.env`
    file; edit it with your editor of choice, filling in the variables
@@ -135,13 +146,13 @@ your own project, monitoring workspace, and service account:
 After that setup, you should be able to:
 ```
 # To listen on port 8080
-./scripts/pipeline.sh
+./scripts/pipeline.sh -bucket your-bucket-name-here
 
 # In another terminal: curl -X POST http://localhost:8080/publish
 
 
 # To publish once and exit
-./scripts/once.sh
+./scripts/once.sh -bucket your-bucket-name-here
 ```
 
 ### Adding a new resource type

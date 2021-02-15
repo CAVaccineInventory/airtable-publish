@@ -7,11 +7,11 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-	"os"
 	"strings"
 	"time"
 
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/config"
+	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/secrets"
 	beeline "github.com/honeycombio/beeline-go"
 )
 
@@ -72,12 +72,15 @@ func fetchRows(ctx context.Context, tableName string, offset string) (TableConte
 // rows, next offset, and error.
 func fetchRowsActual(ctx context.Context, tableName string, offset string) (TableContent, string, error) {
 	url := fmt.Sprintf("https://api.airtable.com/v0/%s/%s", config.AirtableID, tableName)
-	req, err := http.NewRequest("GET", url, http.NoBody)
+	req, err := http.NewRequestWithContext(ctx, "GET", url, http.NoBody)
 	if err != nil {
 		return TableContent{}, offset, err
 	}
 
-	airtableSecret := os.Getenv(config.AirtableSecretEnvKey)
+	airtableSecret, err := secrets.Get(ctx, secrets.AirtableSecret)
+	if err != nil {
+		return TableContent{}, offset, fmt.Errorf("Failed to fetch airtable secret: %w", err)
+	}
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", airtableSecret))
 
 	q := req.URL.Query()
@@ -110,7 +113,9 @@ func fetchRowsActual(ctx context.Context, tableName string, offset string) (Tabl
 	// Max page size is 100
 	rows := make(TableContent, 0, 100)
 	for _, row := range rd.Records {
+		row.Fields["id"] = row.ID // synthetic "id" field based on Airtable ID takes precedence over any field that might be named "id".
 		rows = append(rows, row.Fields)
+
 	}
 	return rows, rd.Offset, nil
 

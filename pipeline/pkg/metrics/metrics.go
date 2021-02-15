@@ -1,15 +1,16 @@
 package metrics
 
 import (
+	"context"
 	"fmt"
 	"log"
-	"os"
 
 	"contrib.go.opencensus.io/exporter/stackdriver"
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/airtable"
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/config"
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/deploys"
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/generator"
+	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/secrets"
 	beeline "github.com/honeycombio/beeline-go"
 	"go.opencensus.io/stats/view"
 	"go.opencensus.io/tag"
@@ -22,13 +23,17 @@ var (
 // Set up Honeycomb and Stackdriver (via OpenCensus) metric logging.
 // Returns a cleanup function which should be called before exit, to
 // push any final metrics.
-func Init() func() {
+func Init(ctx context.Context) func() {
 	deploy, err := deploys.GetDeploy()
 	if err != nil {
 		log.Fatal(err)
 	}
+	honeycombKey, err := secrets.Get(ctx, secrets.HoneycombSecret)
+	if err != nil {
+		log.Fatal(fmt.Errorf("Failed to get Honeycomb credentials: %w", err))
+	}
 	beeline.Init(beeline.Config{
-		WriteKey:    os.Getenv("HONEYCOMB_KEY"),
+		WriteKey:    honeycombKey,
 		Dataset:     fmt.Sprintf("pipeline-%s", deploy),
 		ServiceName: "pipeline",
 	})
@@ -88,7 +93,7 @@ func Init() func() {
 		log.Fatalf("Failed to register the view: %v", err)
 	}
 
-	exporter, err := stackdriver.NewExporter(config.StackdriverOptions("pipeline"))
+	exporter, err := stackdriver.NewExporter(config.StackdriverOptions(ctx, "pipeline"))
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -2,7 +2,9 @@
 package main
 
 import (
+	"context"
 	"net/http"
+	"time"
 
 	"github.com/CAVaccineInventory/airtable-export/monitoring/freshcf/pkg/handlers"
 	"github.com/CAVaccineInventory/airtable-export/monitoring/freshcf/pkg/metrics"
@@ -10,7 +12,9 @@ import (
 )
 
 func main() {
-	metricsCleanup := metrics.Init()
+	ctx, cxl := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cxl()
+	metricsCleanup := metrics.Init(ctx)
 	defer metricsCleanup()
 
 	// Serve health status.
