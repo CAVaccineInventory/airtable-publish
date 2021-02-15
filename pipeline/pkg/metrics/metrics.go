@@ -23,12 +23,12 @@ var (
 // Set up Honeycomb and Stackdriver (via OpenCensus) metric logging.
 // Returns a cleanup function which should be called before exit, to
 // push any final metrics.
-func Init() func() {
+func Init(ctx context.Context) func() {
 	deploy, err := deploys.GetDeploy()
 	if err != nil {
 		log.Fatal(err)
 	}
-	honeycombKey, err := secrets.Get(context.Background(), secrets.HoneycombSecret)
+	honeycombKey, err := secrets.Get(ctx, secrets.HoneycombSecret)
 	if err != nil {
 		log.Fatal(fmt.Errorf("Failed to get Honeycomb credentials: %w", err))
 	}
@@ -93,7 +93,7 @@ func Init() func() {
 		log.Fatalf("Failed to register the view: %v", err)
 	}
 
-	exporter, err := stackdriver.NewExporter(config.StackdriverOptions("pipeline"))
+	exporter, err := stackdriver.NewExporter(config.StackdriverOptions(ctx, "pipeline"))
 	if err != nil {
 		log.Fatal(err)
 	}

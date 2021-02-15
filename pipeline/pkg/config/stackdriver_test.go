@@ -1,6 +1,7 @@
 package config
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"testing"
@@ -27,7 +28,8 @@ func Test_StackdriverOptions(t *testing.T) {
 		Timeout: 1 * time.Millisecond,
 	}
 
-	got := StackdriverOptions("namespace1")
+	ctx := context.Background()
+	got := StackdriverOptions(ctx, "namespace1")
 	want := stackdriver.Options{
 		ProjectID:         "unknown",
 		ReportingInterval: 60 * time.Second,

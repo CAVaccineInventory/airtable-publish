@@ -5,6 +5,7 @@ import (
 	"flag"
 	"log"
 	"os"
+	"time"
 
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/deploys"
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/generator"
@@ -27,7 +28,9 @@ func main() {
 	secrets.RequireAirtableSecret()
 
 	if *metricsFlag {
-		metricsCleanup := metrics.Init()
+		ctx, cxl := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cxl()
+		metricsCleanup := metrics.Init(ctx)
 		defer metricsCleanup()
 	}
 

@@ -45,12 +45,12 @@ var (
 	KeyResource, _ = tag.NewKey("resource")
 )
 
-func Init() func() {
+func Init(ctx context.Context) func() {
 	deploy, err := deploys.GetDeploy()
 	if err != nil {
 		log.Fatal(err)
 	}
-	honeycombKey, err := secrets.Get(context.Background(), secrets.HoneycombSecret)
+	honeycombKey, err := secrets.Get(ctx, secrets.HoneycombSecret)
 	if err != nil {
 		log.Fatal(fmt.Errorf("Failed to get Honeycomb credentials: %w", err))
 	}
@@ -93,7 +93,7 @@ func Init() func() {
 		log.Fatalf("Failed to register the view: %v", err)
 	}
 
-	exporter, err := stackdriver.NewExporter(config.StackdriverOptions("freshcf"))
+	exporter, err := stackdriver.NewExporter(config.StackdriverOptions(ctx, "freshcf"))
 	if err != nil {
 		log.Fatal(err)
 	}

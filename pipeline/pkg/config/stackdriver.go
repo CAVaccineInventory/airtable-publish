@@ -1,6 +1,7 @@
 package config
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net/http"
@@ -39,7 +40,7 @@ func getTaskID() string {
 }
 
 // StackdriverOptions provides a configuration suitable for configuring Stackdriver
-func StackdriverOptions(namespace string) stackdriver.Options {
+func StackdriverOptions(ctx context.Context, namespace string) stackdriver.Options {
 	mc := metadata.NewClient(httpClient)
 
 	id, err := getInstanceID(mc)
@@ -52,7 +53,7 @@ func StackdriverOptions(namespace string) stackdriver.Options {
 		location = "unknown"
 	}
 
-	prj, err := GetProject()
+	prj, err := GetProject(ctx)
 	if err != nil {
 		prj = "unknown"
 	}
