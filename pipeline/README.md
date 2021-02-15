@@ -169,7 +169,7 @@ After that setup, you should be able to:
 
    1. Starts a beeline span
    2. Calls the function added in step 1, checking its err response
-   3. Filters the columns using `filter.ToAllowedKeys`
+   3. Filters/modifies the columns using `filter.Transform`
    4. Returns the result.
 
 4. Insert that function into `EndpointMap` in

@@ -7,38 +7,6 @@ import (
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/types"
 )
 
-// ToAllowedKeys takes a slice of KV objects, and a set of allowed key names.
-// For each object in the list, it removes each KV pair where the key is not in allowedKeys,
-// then returns this result.
-func ToAllowedKeys(raw types.TableContent, allowedKeys []string) (types.TableContent, error) {
-	keys := make(map[string]string, len(allowedKeys))
-	for _, k := range allowedKeys {
-		keys[k] = k
-	}
-	return RemapToAllowedKeys(raw, keys)
-}
-
-// RemapToAllowedKeys takes a slice of KV objects, and a map of allowed key names => output names.
-// For each object in the list, it removes each KV pair where the key is not in allowedKeys,
-// then returns this result.
-func RemapToAllowedKeys(raw types.TableContent, fields map[string]string) (types.TableContent, error) {
-	filtered := make([]map[string]interface{}, len(raw))
-
-	// "id" is always retained.
-	fields["id"] = "id"
-
-	for i := range raw {
-		filtered[i] = map[string]interface{}{}
-		for k, v := range raw[i] {
-			if _, ok := fields[k]; ok {
-				filtered[i][fields[k]] = v
-			}
-		}
-	}
-
-	return filtered, checkFields(filtered, fields)
-}
-
 // ErrMissingField represents the case when a field is missing from the output.
 var ErrMissingField = errors.New("missing field")
 

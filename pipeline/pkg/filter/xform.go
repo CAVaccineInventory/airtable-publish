@@ -60,7 +60,8 @@ func Transform(in types.TableContent, opts ...XformOpt) (types.TableContent, err
 		}
 		out = append(out, new)
 	}
-	return out, err
+
+	return out, checkFields(out, cfg.fields)
 }
 
 // WithFieldMap configures the transformer to include specific fields and rename them.  Map keys are old: new.

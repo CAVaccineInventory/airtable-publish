@@ -57,7 +57,7 @@ func Locations(ctx context.Context, tables *airtable.Tables) (types.TableContent
 
 	filteredTable, err := filter.Transform(rawTable, filter.WithFieldSlice(fields))
 	if err != nil {
-		return nil, fmt.Errorf("ToAllowedKeys: %w", err)
+		return nil, fmt.Errorf("Transform: %w", err)
 	}
 
 	return filteredTable, nil
@@ -84,9 +84,9 @@ func Counties(ctx context.Context, tables *airtable.Tables) (types.TableContent,
 		"Yeses",
 	}
 
-	filteredTable, err := filter.ToAllowedKeys(rawTable, fields)
+	filteredTable, err := filter.Transform(rawTable, filter.WithFieldSlice(fields))
 	if err != nil {
-		return nil, fmt.Errorf("ToAllowedKeys: %w", err)
+		return nil, fmt.Errorf("Transform: %w", err)
 	}
 
 	return filteredTable, nil
