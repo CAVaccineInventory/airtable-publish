@@ -30,8 +30,11 @@ func Transform(in types.TableContent, opts ...XformOpt) (types.TableContent, err
 		f(&cfg)
 	}
 
-	for i := range in { // For every row in the input
+	// Make a copy of the source table so we don't modify the original data,
+	// which could cause havoc.
+	in = in.Clone()
 
+	for i := range in { // For every row in the input
 		row := in[i]
 		for _, f := range cfg.mungers {
 			row, err = f(row)

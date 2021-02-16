@@ -8,41 +8,16 @@ import (
 	"github.com/google/go-cmp/cmp"
 )
 
-// ucName is a test munger demonstrating changing the content of a field.
+// ucName is a test munger demonstrating changing the content of a field..
 func ucName(row map[string]interface{}) (map[string]interface{}, error) {
-	out := make(map[string]interface{}, len(row))
-
-	for k, v := range row {
-		nv := v.(string)
-		if k == "Name" {
-			nv = strings.ToUpper(nv)
-		}
-		out[k] = nv
-	}
-	return out, nil
-}
-
-// ucName is a test munger demonstrating changing the content of a field inplace.
-func ucNameInplace(row map[string]interface{}) (map[string]interface{}, error) {
 	row["Name"] = strings.ToUpper(row["Name"].(string))
 	return row, nil
 }
 
-// dropNameInPlace is a test munger demonstrating dropping a field from a row inplace.
-func dropNameInplace(row map[string]interface{}) (map[string]interface{}, error) {
+// dropNameis a test munger demonstrating dropping a field..
+func dropName(row map[string]interface{}) (map[string]interface{}, error) {
 	delete(row, "Name")
 	return row, nil
-}
-
-// dropNameInPlace is a test munger demonstrating dropping a field from a row.
-func dropName(row map[string]interface{}) (map[string]interface{}, error) {
-	var out = make(map[string]interface{})
-	for k, v := range row {
-		if k != "Name" {
-			out[k] = v
-		}
-	}
-	return out, nil
 }
 
 // dropRow is a test munger demonstrating dropping a row entirely if it meets conditions.
@@ -71,14 +46,13 @@ func testData() types.TableContent {
 
 func TestTransformMunger(t *testing.T) {
 	tests := []struct {
-		desc    string
-		in      types.TableContent
-		want    types.TableContent
-		munger  Munger
-		inplace bool
+		desc   string
+		in     types.TableContent
+		want   types.TableContent
+		munger Munger
 	}{
 		{
-			desc: "inplace",
+			desc: "change",
 			in:   testData(),
 			want: types.TableContent{
 				map[string]interface{}{
@@ -92,42 +66,7 @@ func TestTransformMunger(t *testing.T) {
 					"Other": "lower",
 				},
 			},
-			inplace: true,
-			munger:  ucNameInplace,
-		},
-		{
-			desc: "not-inplace",
-			in:   testData(),
-			want: types.TableContent{
-				map[string]interface{}{
-					"id":    "1",
-					"Name":  "MODERNA",
-					"Other": "MiXeD",
-				},
-				map[string]interface{}{
-					"id":    "2",
-					"Name":  "PFIZER",
-					"Other": "lower",
-				},
-			},
-			inplace: false,
-			munger:  ucName,
-		},
-		{
-			desc: "delete field inplace",
-			in:   testData(),
-			want: types.TableContent{
-				map[string]interface{}{
-					"id":    "1",
-					"Other": "MiXeD",
-				},
-				map[string]interface{}{
-					"id":    "2",
-					"Other": "lower",
-				},
-			},
-			inplace: true,
-			munger:  dropNameInplace,
+			munger: ucName,
 		},
 		{
 			desc: "delete field",
@@ -142,8 +81,7 @@ func TestTransformMunger(t *testing.T) {
 					"Other": "lower",
 				},
 			},
-			inplace: false,
-			munger:  dropName,
+			munger: dropName,
 		},
 		{
 			desc: "drop row",
@@ -155,8 +93,7 @@ func TestTransformMunger(t *testing.T) {
 					"Other": "lower",
 				},
 			},
-			inplace: false,
-			munger:  dropRow,
+			munger: dropRow,
 		},
 	}
 	for _, tt := range tests {
@@ -168,14 +105,8 @@ func TestTransformMunger(t *testing.T) {
 			if diff := cmp.Diff(tt.want, got); diff != "" {
 				t.Errorf("-want +got:\n %v\n", diff)
 			}
-			if tt.inplace {
-				if diff := cmp.Diff(tt.in, got); diff != "" {
-					t.Errorf("inplace edit, expected input edited: -want +got:\n %v\n", diff)
-				}
-			} else {
-				if diff := cmp.Diff(testData(), tt.in); diff != "" {
-					t.Errorf("expected input unmodified: -want +got:\n %v\n", diff)
-				}
+			if diff := cmp.Diff(testData(), tt.in); diff != "" {
+				t.Errorf("expected input unmodified: -want +got:\n %v\n", diff)
 			}
 		})
 	}
