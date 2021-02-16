@@ -1,6 +1,7 @@
 package filter
 
 import (
+	"errors"
 	"strings"
 	"testing"
 
@@ -28,6 +29,11 @@ func dropRow(row map[string]interface{}) (map[string]interface{}, error) {
 	return row, nil
 }
 
+// returnError is a test munger that just returns an error (to test error handling)
+func returnError(row map[string]interface{}) (map[string]interface{}, error) {
+	return nil, errors.New("fail")
+}
+
 // testData is a helper function to return the data we use for the tests in this file.  It exists only to reduce a little duplication.
 func testData() types.TableContent {
 	return types.TableContent{
@@ -46,10 +52,11 @@ func testData() types.TableContent {
 
 func TestTransformMunger(t *testing.T) {
 	tests := []struct {
-		desc   string
-		in     types.TableContent
-		want   types.TableContent
-		munger Munger
+		desc    string
+		in      types.TableContent
+		want    types.TableContent
+		wantErr bool
+		munger  Munger
 	}{
 		{
 			desc: "change",
@@ -95,11 +102,18 @@ func TestTransformMunger(t *testing.T) {
 			},
 			munger: dropRow,
 		},
+		{
+			desc:    "error",
+			in:      testData(),
+			want:    nil,
+			wantErr: true,
+			munger:  returnError,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.desc, func(t *testing.T) {
 			got, err := Transform(tt.in, WithMunger(tt.munger))
-			if err != nil {
+			if (err != nil) != tt.wantErr {
 				t.Fatalf("unexpected error from Transform: %v", err)
 			}
 			if diff := cmp.Diff(tt.want, got); diff != "" {
