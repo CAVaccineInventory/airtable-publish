@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net/http"
@@ -15,13 +16,17 @@ import (
 )
 
 func PushMetrics(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	deploy, err := deploys.GetDeploy()
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprintf(w, "error determining deploy: %v", err)
 		return
 	}
-	ctx, _ := tag.New(r.Context(), tag.Insert(metrics.KeyDeploy, string(deploy)))
+	ctx, cxl := context.WithTimeout(ctx, requestTimeout)
+	defer cxl()
+
+	ctx, _ = tag.New(ctx, tag.Insert(metrics.KeyDeploy, string(deploy)))
 
 	resultChan := freshstats.AllResponses(ctx)
 	for len(resultChan) != 0 {
