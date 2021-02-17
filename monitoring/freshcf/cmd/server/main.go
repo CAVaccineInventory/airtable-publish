@@ -3,19 +3,32 @@ package main
 
 import (
 	"context"
+	"flag"
 	"net/http"
 	"time"
 
 	"github.com/CAVaccineInventory/airtable-export/monitoring/freshcf/pkg/handlers"
 	"github.com/CAVaccineInventory/airtable-export/monitoring/freshcf/pkg/metrics"
+	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/deploys"
+	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/storage"
 	"github.com/honeycombio/beeline-go/wrappers/hnynethttp"
 )
 
 func main() {
-	ctx, cxl := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cxl()
-	metricsCleanup := metrics.Init(ctx)
-	defer metricsCleanup()
+	bucketFlag := flag.String("bucket", "", "Upload into a specific bucket")
+	metricsFlag := flag.Bool("metrics", true, "Enable metrics reporting")
+	flag.Parse()
+
+	if *metricsFlag {
+		ctx, cxl := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cxl()
+		metricsCleanup := metrics.Init(ctx)
+		defer metricsCleanup()
+	}
+
+	if *bucketFlag != "" {
+		deploys.SetTestingStorage(storage.UploadToGCS, *bucketFlag)
+	}
 
 	// Serve health status.
 	http.HandleFunc("/", handlers.Health)
