@@ -51,7 +51,11 @@ func getURLStatsResult(ctx context.Context, ep endpoints.Endpoint) Response {
 func GetURLStats(ctx context.Context, url string) (ExportedJSONFileStats, error) {
 	output := ExportedJSONFileStats{}
 
-	resp, err := http.Get(url)
+	req, err := http.NewRequestWithContext(ctx, "GET", url, http.NoBody)
+	if err != nil {
+		return output, fmt.Errorf("making request to %q: %w", url, err)
+	}
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return output, fmt.Errorf("fetching: %q: %w", url, err)
 	}
