@@ -7,7 +7,7 @@ cd "$(dirname "$0")/.."
 
 echo "Building image..."
 echo
-docker build -t airtable-export .
+docker build --build-arg COMMIT_SHA="$COMMIT_SHA" -t airtable-export .
 
 echo
 echo "Running image..."
