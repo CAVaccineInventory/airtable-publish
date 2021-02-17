@@ -12,6 +12,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/config"
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/deploys"
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/generator"
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/metrics"
@@ -65,7 +66,7 @@ func main() {
 	}
 
 	p := Publisher{}
-	log.Println("Starting...")
+	log.Printf("Starting pipeline version %s...\n", config.GitCommit)
 	p.Run()
 }
 
