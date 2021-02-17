@@ -28,7 +28,7 @@ func main() {
 	secrets.RequireAirtableSecret()
 
 	if *metricsFlag {
-		ctx, cxl := context.WithTimeout(context.Background(), 5*time.Second)
+		ctx, cxl := context.WithTimeout(context.Background(), 30*time.Second)
 		defer cxl()
 		metricsCleanup := metrics.Init(ctx)
 		defer metricsCleanup()
