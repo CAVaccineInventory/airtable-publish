@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"os"
@@ -12,6 +13,8 @@ import (
 )
 
 func Health(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
 	thresholdAge := 600
 	thresholdItems := 10
 	thresholdLength := 1000
@@ -38,7 +41,9 @@ func Health(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	resultChan := stats.AllResponses(r.Context())
+	ctx, cxl := context.WithTimeout(ctx, requestTimeout)
+	defer cxl()
+	resultChan := stats.AllResponses(ctx)
 	errs := make([]string, 0)
 	for len(resultChan) != 0 {
 		result := <-resultChan

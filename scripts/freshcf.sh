@@ -14,4 +14,5 @@ echo "Running image..."
 exec docker run \
 	"${DOCKER_RUN_ARGS[@]}" \
 	-p 8080:8080 \
-	freshcf
+	freshcf \
+	sh /entrypoint.sh freshcf "$@"

@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -10,7 +11,12 @@ import (
 )
 
 func ExportJSON(w http.ResponseWriter, r *http.Request) {
-	resultChan := stats.AllResponses(r.Context())
+	ctx := r.Context()
+
+	ctx, cxl := context.WithTimeout(ctx, requestTimeout)
+	defer cxl()
+
+	resultChan := stats.AllResponses(ctx)
 
 	results := make(map[string]stats.ExportedJSONFileStats)
 	for len(resultChan) != 0 {
