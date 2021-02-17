@@ -18,7 +18,7 @@ var (
 	httpClient *http.Client = nil
 )
 
-func getInstanceID(mc *metadata.Client) (string, error) {
+func getInstanceID(mc metadataClient) (string, error) {
 	inst, err := mc.InstanceID()
 	if err != nil {
 		return "", fmt.Errorf("metadata.InstanceID(): %w", err)
@@ -73,4 +73,9 @@ func StackdriverOptions(ctx context.Context, namespace string) stackdriver.Optio
 	}
 	log.Printf("StackDriver Labels: %+v", so.Resource.Labels) //nolint
 	return so
+}
+
+type metadataClient interface {
+	Zone() (string, error)
+	InstanceID() (string, error)
 }

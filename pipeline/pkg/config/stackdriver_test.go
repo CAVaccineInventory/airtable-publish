@@ -53,3 +53,25 @@ func Test_StackdriverOptions(t *testing.T) {
 		t.Errorf("Unexpected results for StackdriverOptions(): -want +got\n: %s\n", diff)
 	}
 }
+
+type stubMetadataClient struct {
+	instanceID, zone string
+}
+
+func (c *stubMetadataClient) Zone() (string, error) {
+	return c.zone, nil
+}
+func (c *stubMetadataClient) InstanceID() (string, error) {
+	return c.instanceID, nil
+}
+
+func TestGetInstanceID(t *testing.T) {
+	mc := &stubMetadataClient{
+		zone:       "zone",
+		instanceID: "abcdefghijklmnopqrstuvwxyz",
+	}
+	got, _ := getInstanceID(mc)
+	if diff := cmp.Diff("stuvwxyz", got); diff != "" {
+		t.Errorf("getInstanceID: -want +got:\n%v\n", diff)
+	}
+}
