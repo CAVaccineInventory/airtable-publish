@@ -137,3 +137,57 @@ func TestEndpoints(t *testing.T) {
 		})
 	}
 }
+
+func TestEndPointAccessors(t *testing.T) {
+	t.Cleanup(func() {
+		os.Unsetenv("DEPLOY")
+	})
+
+	e := Endpoint{
+		Version:  "1",
+		Resource: "locations",
+		// Transform: Not specified, because we're not testing it
+	}
+
+	tests := []struct {
+		desc       string
+		deploy     string
+		wantURL    string
+		wantString string
+		wantErr    bool
+	}{
+		{
+			desc:       "success",
+			deploy:     "prod",
+			wantURL:    "https://api.vaccinateca.com/v1/locations.json",
+			wantString: "1/locations",
+			wantErr:    false,
+		},
+		{
+			desc:       "error",
+			deploy:     "doesnotexist",
+			wantString: "1/locations",
+			wantErr:    true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.desc, func(t *testing.T) {
+			os.Setenv("DEPLOY", tt.deploy)
+
+			gotString := e.String()
+			if gotString != tt.wantString {
+				t.Errorf("String(): got %q, want %q", gotString, tt.wantString)
+			}
+
+			gotURL, err := e.URL()
+			if (err != nil) != tt.wantErr {
+				t.Fatalf("unexpected error state: %v", err)
+			}
+
+			if gotURL != tt.wantURL {
+				t.Errorf("String(): got %v, want %v", gotURL, tt.wantURL)
+			}
+		})
+	}
+}
