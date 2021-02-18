@@ -5,6 +5,7 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/filter"
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/types"
 	"github.com/google/go-cmp/cmp"
 	"github.com/stretchr/testify/assert"
@@ -19,14 +20,50 @@ func TestTables_GetCounties(t *testing.T) {
 		}, nil
 	}
 
-	tables := NewTables()
-	tables.fetchFunc = fetchFunc
+	tables := NewFakeTables(fetchFunc)
 
 	for i := 0; i < 2; i++ {
 		table, err := tables.GetCounties(context.Background())
 		assert.NoError(t, err)
 		assert.Equal(t, table[0]["name"], "test county")
 	}
+}
+
+func TestTables_GetProviders(t *testing.T) {
+	fetchFunc := func(_ context.Context, _ string) (types.TableContent, error) {
+		return []map[string]interface{}{
+			{
+				"name": "test provider",
+			},
+		}, nil
+	}
+
+	tables := NewFakeTables(fetchFunc)
+
+	for i := 0; i < 2; i++ {
+		table, err := tables.GetProviders(context.Background())
+		assert.NoError(t, err)
+		assert.Equal(t, table[0]["name"], "test provider")
+	}
+}
+
+func TestGetTables_XFormError(t *testing.T) {
+	fetchFunc := func(_ context.Context, _ string) (types.TableContent, error) {
+		return []map[string]interface{}{
+			{},
+		}, nil
+	}
+
+	// returnError is a test munger that just returns an error (to test error
+	// handling).  borrowed from xform_test.go
+	returnError := func(row map[string]interface{}) (map[string]interface{}, error) {
+		return nil, errors.New("fail")
+	}
+
+	tables := NewFakeTables(fetchFunc)
+
+	_, err := tables.getTable(context.Background(), "providers", filter.WithMunger(returnError))
+	assert.Error(t, err)
 }
 
 func TestTables_CachedErr(t *testing.T) {
@@ -42,8 +79,7 @@ func TestTables_CachedErr(t *testing.T) {
 		}, nil
 	}
 
-	tables := NewTables()
-	tables.fetchFunc = fetchFunc
+	tables := NewFakeTables(fetchFunc)
 
 	_, err := tables.GetCounties(context.Background())
 	assert.Error(t, err)
@@ -132,8 +168,7 @@ func TestGetLocations(t *testing.T) {
 		},
 	}
 
-	tables := NewTables()
-	tables.fetchFunc = fetchFunc
+	tables := NewFakeTables(fetchFunc)
 
 	got, err := tables.GetLocations(context.Background())
 	assert.NoError(t, err)
