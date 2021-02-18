@@ -1,0 +1,52 @@
+[
+  {
+    "County": "Glenn County",
+    "County enum": "Glenn County",
+    "Facebook Page": "https://www.facebook.com/GlennCountyHHSA/",
+    "Internal notes": " removed ",
+    "Last Update to Notes": "2021-01-28",
+    "Locations": [
+      "reckMcZ9hsSgfbLim",
+      "rec18dBZibl8jv1hl",
+      "receFnsrp2PlHpCGy",
+      "recDLfA3w5AKrXqpT",
+      "rec1L2lL3dp3Wc8pQ",
+      "recKUjIEc8L2kxA99",
+      "reca38BQdJPMVH1Tn",
+      "rec7jEWN5c420Cc72"
+    ],
+    "Notes": " removed ",
+    "Percentage Yes": 0.25,
+    "Total reports": 8,
+    "Twitter Page": "https://twitter.com/glenncountyoes",
+    "Vaccine info URL": "https://www.countyofglenn.net/dept/health-human-services/public-health/covid-19/covid-19-vaccine-information",
+    "Yeses": 2,
+    "county_id": "rec0QOd7EXzSuZZvN",
+    "id": "rec0QOd7EXzSuZZvN",
+    "population": 28393
+  },
+  {
+    "County": "Shasta County",
+    "County enum": "Shasta County",
+    "Facebook Page": "https://www.facebook.com/shastahhsa",
+    "Last Update to Notes": "2021-02-10",
+    "Locations": [
+      "recgJEqhQQk4nsyDw",
+      "recOiz5oTEl8lpvGh",
+      "rec7eiAERWzxJrzTt",
+      "recoDLyJfflcPqnAt",
+      "rec75LbxWCqTRTYuP",
+      "recUGpi9Q7sYgJflc"
+    ],
+    "Notes": "removed",
+    "Percentage Yes": 0.3611111111111111,
+    "Total reports": 36,
+    "Twitter Page": "https://twitter.com/ShastaHHSA",
+    "Vaccine info URL": "https://www.co.shasta.ca.us/ready/covid-19/vaccinations",
+    "Vaccine locations URL": "https://www.co.shasta.ca.us/docs/libraries/shasta-ready-docs/covid-19/vaccine-options.pdf?sfvrsn=a716f589_0",
+    "Yeses": 13,
+    "county_id": "rec1rvcyGSS6AgQEq",
+    "id": "rec1rvcyGSS6AgQEq",
+    "population": 180080
+  }
+]
