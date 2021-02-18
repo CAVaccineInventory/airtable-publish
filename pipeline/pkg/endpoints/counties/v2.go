@@ -6,6 +6,7 @@ import (
 
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/airtable"
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/filter"
+	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/types"
 	"github.com/honeycombio/beeline-go"
 )
 
@@ -27,7 +28,7 @@ var (
 	}
 )
 
-func V2(ctx context.Context, tables *airtable.Tables) (airtable.TableContent, error) {
+func V2(ctx context.Context, tables *airtable.Tables) (types.TableContent, error) {
 	ctx, span := beeline.StartSpan(ctx, "endpoints.counties.V2")
 	defer span.Send()
 
@@ -35,9 +36,9 @@ func V2(ctx context.Context, tables *airtable.Tables) (airtable.TableContent, er
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch Counties table: %w", err)
 	}
-	filteredTable, err := filter.RemapToAllowedKeys(rawTable, v2Map)
+	filteredTable, err := filter.Transform(rawTable, filter.WithFieldMap(v2Map))
 	if err != nil {
-		return nil, fmt.Errorf("RemapToAllowedKeys: %w", err)
+		return nil, fmt.Errorf("Transform: %w", err)
 	}
 	return filteredTable, nil
 }

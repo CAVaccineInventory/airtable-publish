@@ -2,9 +2,12 @@ package deploys
 
 import (
 	"os"
+	"reflect"
 	"strings"
 	"testing"
 
+	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/storage"
+	"github.com/google/go-cmp/cmp"
 	"github.com/stretchr/testify/require"
 )
 
@@ -41,11 +44,16 @@ func TestDeployBuckets(t *testing.T) {
 		envVar        string
 		deploy        DeployType
 		testingBucket string
+		version       VersionType
 	}{
-		"prod":    {envVar: "prod", deploy: DeployProduction},
-		"staging": {envVar: "staging", deploy: DeployStaging},
-		"testing": {envVar: "testing", deploy: DeployTesting},
-		"blank":   {envVar: "", deploy: DeployTesting},
+		"prod-legacy":    {envVar: "prod", deploy: DeployProduction, version: LegacyVersion},
+		"staging-legacy": {envVar: "staging", deploy: DeployStaging, version: LegacyVersion},
+		"testing-legacy": {envVar: "testing", deploy: DeployTesting, version: LegacyVersion},
+		"blank-legacy":   {envVar: "", deploy: DeployTesting, version: LegacyVersion},
+		"prod-v1":        {envVar: "prod", deploy: DeployProduction, version: "1"},
+		"staging-v1":     {envVar: "staging", deploy: DeployStaging, version: "1"},
+		"testing-v1":     {envVar: "testing", deploy: DeployTesting, version: "1"},
+		"blank-v1":       {envVar: "", deploy: DeployTesting, version: "1"},
 	}
 	t.Cleanup(func() {
 		os.Unsetenv("DEPLOY")
@@ -53,13 +61,13 @@ func TestDeployBuckets(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			os.Setenv("DEPLOY", tc.envVar)
-			bucket, err := GetUploadURL(LegacyVersion)
+			bucket, err := GetUploadURL(tc.version)
 			require.NoError(t, err)
 			if !strings.HasPrefix(bucket, "gs://") {
 				t.Errorf("Upload URL does not start with gs://")
 			}
 
-			url, err := GetDownloadURL(LegacyVersion)
+			url, err := GetDownloadURL(tc.version)
 			require.NoError(t, err)
 			if !strings.HasPrefix(url, "https://") {
 				t.Errorf("Download URL does not start with https://")
@@ -68,5 +76,67 @@ func TestDeployBuckets(t *testing.T) {
 				t.Errorf("Download URL ends with /")
 			}
 		})
+	}
+}
+
+func TestGetStorage(t *testing.T) {
+	tests := []struct {
+		desc    string
+		deploy  string
+		want    StorageWriter
+		wantErr bool
+	}{
+		{
+			desc:    "get testing storage",
+			deploy:  string(DeployTesting),
+			want:    storage.StoreLocal,
+			wantErr: false,
+		},
+		{
+			desc:    "non-existent deploy",
+			deploy:  "made up string",
+			wantErr: true,
+		},
+	}
+
+	origDeploy := os.Getenv("DEPLOY")
+	t.Cleanup(func() { os.Setenv("DEPLOY", origDeploy) })
+
+	for _, tt := range tests {
+		t.Run(tt.desc, func(t *testing.T) {
+			os.Setenv("DEPLOY", tt.deploy)
+			got, err := GetStorage()
+			if (err != nil) != tt.wantErr {
+				t.Fatalf("unexpected error state: %v", err)
+			}
+
+			// Checking that two functions are the same function is messy.
+			gotV := reflect.ValueOf(got)
+			wantV := reflect.ValueOf(tt.want)
+
+			if !cmp.Equal(gotV.Pointer(), wantV.Pointer()) {
+				t.Errorf("got %v, want %v", got, tt.want)
+			}
+
+		})
+	}
+}
+
+func TestSetTestingStorage(t *testing.T) {
+	orig := deploys[DeployTesting]
+	t.Cleanup(func() { deploys[DeployTesting] = orig })
+
+	const tbn = "testbucketname"
+	SetTestingStorage(nil, "testbucketname")
+	// Use nil for teseting the StorageWriter, because checking for an actual
+	// function is a hassle.
+	if deploys[DeployTesting].Storage != nil {
+		t.Errorf("Storage: got %v, want %v", deploys[DeployTesting].Storage, nil)
+	}
+	if deploys[DeployTesting].LegacyBucket.Name != tbn {
+		t.Errorf("LegacyBucket.Name: got %v, want %v", deploys[DeployTesting].LegacyBucket.Name, tbn)
+	}
+	if deploys[DeployTesting].APIBucket.Name != tbn {
+		t.Errorf("APIBucket.Name: got %v, want %v", deploys[DeployTesting].APIBucket.Name, tbn)
 	}
 }

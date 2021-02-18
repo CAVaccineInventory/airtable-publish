@@ -1,6 +1,6 @@
 package metadata
 
-import "github.com/CAVaccineInventory/airtable-export/pipeline/pkg/airtable"
+import "github.com/CAVaccineInventory/airtable-export/pipeline/pkg/types"
 
 // Arbitrary data that may be JSON marshalled.
 type JSONData interface{}
@@ -21,13 +21,13 @@ type Contact struct {
 type APIResponse struct {
 	Usage Usage `json:"usage"`
 	// Content is the actual data. It's currently limited to a table-type response (list of KV maps), but it doesn't need to be.
-	Content airtable.TableContent `json:"content"`
+	Content types.TableContent `json:"content"`
 }
 
 var defaultNoticeText = "Please contact VaccinateCA and let us know if you plan to rely on or publish this data. This data is provided with best-effort accuracy. If you are displaying this data, we expect you to display it responsibly. Please do not display it in a way that is easy to misread."
 
 // Wraps a list of tabular data with the default usage stanza.
-func Wrap(table airtable.TableContent) JSONData {
+func Wrap(table types.TableContent) JSONData {
 	return APIResponse{
 		Usage: Usage{
 			Notice: defaultNoticeText,

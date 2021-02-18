@@ -2,13 +2,16 @@ package airtable
 
 import (
 	"context"
+	"fmt"
 	"sync"
 
+	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/filter"
+	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/types"
 	beeline "github.com/honeycombio/beeline-go"
 )
 
 type tableFetchResults struct {
-	table TableContent
+	table types.TableContent
 	err   error
 }
 
@@ -18,7 +21,7 @@ type Tables struct {
 	mainLock   sync.RWMutex                 // mainLock protects tableLocks.
 	tableLocks map[string]*sync.Mutex       // tableLocks contains a lock for each table, to prevent races to populate a table.
 	tables     map[string]tableFetchResults // Tables contains a map of table name to (table content or error).
-	fetchFunc  func(context.Context, string) (TableContent, error)
+	fetchFunc  func(context.Context, string) (types.TableContent, error)
 }
 
 func NewTables() *Tables {
@@ -30,21 +33,30 @@ func NewTables() *Tables {
 	}
 }
 
-func (t *Tables) GetCounties(ctx context.Context) (TableContent, error) {
+func (t *Tables) GetCounties(ctx context.Context) (types.TableContent, error) {
 	return t.getTable(ctx, "Counties")
 }
 
-func (t *Tables) GetProviders(ctx context.Context) (TableContent, error) {
+func (t *Tables) GetProviders(ctx context.Context) (types.TableContent, error) {
 	return t.getTable(ctx, "Provider networks")
 }
 
-func (t *Tables) GetLocations(ctx context.Context) (TableContent, error) {
-	return t.getTable(ctx, "Locations")
+func hideNotes(row map[string]interface{}) (map[string]interface{}, error) {
+	// Because this function is used as part of the input processing, which only
+	// happens once and inside a lock, it directly modifies the input row.
+	if row["Latest report yes?"].(float64) != 1 {
+		row["Latest report notes"] = ""
+	}
+	return row, nil
+}
+
+func (t *Tables) GetLocations(ctx context.Context) (types.TableContent, error) {
+	return t.getTable(ctx, "Locations", filter.WithMunger(hideNotes))
 }
 
 // getTable does a thread-safe, just-in-time fetch of a table.
 // The result is cached for the lifetime of the Tables object..
-func (t *Tables) getTable(ctx context.Context, tableName string) (TableContent, error) {
+func (t *Tables) getTable(ctx context.Context, tableName string, xfOpts ...filter.XformOpt) (types.TableContent, error) {
 	ctx, span := beeline.StartSpan(ctx, "airtable.getTable")
 	defer span.Send()
 	beeline.AddField(ctx, "table", tableName)
@@ -63,6 +75,15 @@ func (t *Tables) getTable(ctx context.Context, tableName string) (TableContent, 
 	if err != nil {
 		beeline.AddField(ctx, "error", err)
 	}
+
+	if len(xfOpts) > 0 {
+		table, err = filter.Transform(table, xfOpts...)
+		if err != nil {
+			err = fmt.Errorf("Transform failed: %v", err)
+			beeline.AddField(ctx, "error", err)
+		}
+	}
+
 	t.tables[tableName] = tableFetchResults{
 		table: table,
 		err:   err,

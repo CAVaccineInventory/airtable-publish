@@ -11,13 +11,14 @@ import (
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/airtable"
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/deploys"
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/storage"
+	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/types"
 	"github.com/stretchr/testify/require"
 )
 
 var seq = 0
 
 // synthesizeIDs creates synthetic IDs for a table.  Sometimes the saved test data on disk doesn't have an ID stored.
-func synthesizeIDs(c airtable.TableContent) {
+func synthesizeIDs(c types.TableContent) {
 	for _, r := range c {
 		seq = seq + 1
 		r["id"] = fmt.Sprintf("%08x", seq)
@@ -66,7 +67,7 @@ func TestSanitize(t *testing.T) {
 			// "id" is always required
 			tc.requiredKeys = append(tc.requiredKeys, "id")
 
-			getData := func(ctx context.Context, tableName string) (airtable.TableContent, error) {
+			getData := func(ctx context.Context, tableName string) (types.TableContent, error) {
 				o, err := airtable.ObjectFromFile(ctx, name, tc.testDataFile)
 				if err != nil {
 					return nil, err
@@ -86,7 +87,7 @@ func TestSanitize(t *testing.T) {
 				t.Errorf("result contains @gmail.com")
 			}
 
-			locs := make(airtable.TableContent, 0)
+			locs := make(types.TableContent, 0)
 			err = json.Unmarshal(got.Bytes(), &locs)
 			require.NoError(t, err)
 
@@ -133,6 +134,60 @@ func TestEndpoints(t *testing.T) {
 			require.NoError(t, err)
 
 			require.Contains(t, URLs, tc.containsURL)
+		})
+	}
+}
+
+func TestEndPointAccessors(t *testing.T) {
+	t.Cleanup(func() {
+		os.Unsetenv("DEPLOY")
+	})
+
+	e := Endpoint{
+		Version:  "1",
+		Resource: "locations",
+		// Transform: Not specified, because we're not testing it
+	}
+
+	tests := []struct {
+		desc       string
+		deploy     string
+		wantURL    string
+		wantString string
+		wantErr    bool
+	}{
+		{
+			desc:       "success",
+			deploy:     "prod",
+			wantURL:    "https://api.vaccinateca.com/v1/locations.json",
+			wantString: "1/locations",
+			wantErr:    false,
+		},
+		{
+			desc:       "error",
+			deploy:     "doesnotexist",
+			wantString: "1/locations",
+			wantErr:    true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.desc, func(t *testing.T) {
+			os.Setenv("DEPLOY", tt.deploy)
+
+			gotString := e.String()
+			if gotString != tt.wantString {
+				t.Errorf("String(): got %q, want %q", gotString, tt.wantString)
+			}
+
+			gotURL, err := e.URL()
+			if (err != nil) != tt.wantErr {
+				t.Fatalf("unexpected error state: %v", err)
+			}
+
+			if gotURL != tt.wantURL {
+				t.Errorf("String(): got %v, want %v", gotURL, tt.wantURL)
+			}
 		})
 	}
 }

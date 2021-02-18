@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/filter"
+	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/types"
 
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/airtable"
 	"github.com/honeycombio/beeline-go"
@@ -30,7 +31,7 @@ Okay, for those doing exporter stuff, for the following fields: "Name", "Address
  - perhaps we should give some of these better names and stick that in Locations-v2.json
 */
 
-func Locations(ctx context.Context, tables *airtable.Tables) (airtable.TableContent, error) {
+func Locations(ctx context.Context, tables *airtable.Tables) (types.TableContent, error) {
 	ctx, span := beeline.StartSpan(ctx, "endpoints.legacy.Locations")
 	defer span.Send()
 
@@ -53,15 +54,16 @@ func Locations(ctx context.Context, tables *airtable.Tables) (airtable.TableCont
 		"Longitude",
 		"Name",
 	}
-	filteredTable, err := filter.ToAllowedKeys(rawTable, fields)
+
+	filteredTable, err := filter.Transform(rawTable, filter.WithFieldSlice(fields))
 	if err != nil {
-		return nil, fmt.Errorf("ToAllowedKeys: %w", err)
+		return nil, fmt.Errorf("Transform: %w", err)
 	}
 
 	return filteredTable, nil
 }
 
-func Counties(ctx context.Context, tables *airtable.Tables) (airtable.TableContent, error) {
+func Counties(ctx context.Context, tables *airtable.Tables) (types.TableContent, error) {
 	ctx, span := beeline.StartSpan(ctx, "endpoints.legacy.Counties")
 	defer span.Send()
 
@@ -82,9 +84,9 @@ func Counties(ctx context.Context, tables *airtable.Tables) (airtable.TableConte
 		"Yeses",
 	}
 
-	filteredTable, err := filter.ToAllowedKeys(rawTable, fields)
+	filteredTable, err := filter.Transform(rawTable, filter.WithFieldSlice(fields))
 	if err != nil {
-		return nil, fmt.Errorf("ToAllowedKeys: %w", err)
+		return nil, fmt.Errorf("Transform: %w", err)
 	}
 
 	return filteredTable, nil
