@@ -44,7 +44,7 @@ func (t *Tables) GetProviders(ctx context.Context) (types.TableContent, error) {
 func hideNotes(row map[string]interface{}) (map[string]interface{}, error) {
 	// Because this function is used as part of the input processing, which only
 	// happens once and inside a lock, it directly modifies the input row.
-	if row["Latest report yes?"].(float64) != 1 {
+	if v, ok := row["Latest report yes?"].(float64); !ok || v != 1 {
 		row["Latest report notes"] = ""
 	}
 	return row, nil
