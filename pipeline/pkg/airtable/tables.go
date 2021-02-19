@@ -50,8 +50,15 @@ func hideNotes(row map[string]interface{}) (map[string]interface{}, error) {
 	return row, nil
 }
 
+func dropSoftDeleted(row map[string]interface{}) (map[string]interface{}, error) {
+	if v, ok := row["is_soft_deleted"].(bool); ok && v {
+		return nil, nil
+	}
+	return row, nil
+}
+
 func (t *Tables) GetLocations(ctx context.Context) (types.TableContent, error) {
-	return t.getTable(ctx, "Locations", filter.WithMunger(hideNotes))
+	return t.getTable(ctx, "Locations", filter.WithMunger(hideNotes), filter.WithMunger(dropSoftDeleted))
 }
 
 // getTable does a thread-safe, just-in-time fetch of a table.

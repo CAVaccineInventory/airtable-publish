@@ -143,12 +143,20 @@ func TestGetLocations(t *testing.T) {
 				"Name":                "test location 1",
 				"Latest report yes?":  1.0,
 				"Latest report notes": []string{"a", "b"},
+				"is_soft_deleted":     false,
 			},
 			{
 				"id":                  "2",
 				"Name":                "test location 2",
 				"Latest report yes?":  0.0,
 				"Latest report notes": []string{"c", "d"},
+			},
+			{
+				"id":                  "3",
+				"Name":                "deleted location",
+				"Latest report yes?":  0.0,
+				"Latest report notes": []string{"c", "d"},
+				"is_soft_deleted":     true,
 			},
 		}, nil
 	}
@@ -159,6 +167,7 @@ func TestGetLocations(t *testing.T) {
 			"Name":                "test location 1",
 			"Latest report yes?":  1.0,
 			"Latest report notes": []string{"a", "b"},
+			"is_soft_deleted":     false,
 		},
 		{
 			"id":                  "2",
