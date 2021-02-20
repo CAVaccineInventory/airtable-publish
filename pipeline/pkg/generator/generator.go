@@ -26,7 +26,7 @@ func NewPublishManager() *PublishManager {
 
 // In parallel, calls PublishEndpoint on each; if any has an error,
 // returns false.
-func (pm *PublishManager) PublishAll(ctx context.Context) bool {
+func (pm *PublishManager) PublishAll(ctx context.Context, tables *airtable.Tables) bool {
 	ctx, span := beeline.StartSpan(ctx, "generator.PublishAll")
 	defer span.Send()
 
@@ -35,14 +35,13 @@ func (pm *PublishManager) PublishAll(ctx context.Context) bool {
 	startTime := time.Now()
 	wg := sync.WaitGroup{}
 	publishOk := make(chan bool, len(eps))
-	sharedTablesCache := airtable.NewTables()
 	for _, ep := range eps {
 		wg.Add(1)
 
 		go func(ep endpoints.Endpoint) {
 			defer wg.Done()
 
-			err := pm.PublishEndpoint(ctx, sharedTablesCache, ep)
+			err := pm.PublishEndpoint(ctx, tables, ep)
 			publishOk <- err == nil
 		}(ep)
 	}

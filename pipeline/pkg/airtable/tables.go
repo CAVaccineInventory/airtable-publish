@@ -21,15 +21,19 @@ type Tables struct {
 	mainLock   sync.RWMutex                 // mainLock protects tableLocks.
 	tableLocks map[string]*sync.Mutex       // tableLocks contains a lock for each table, to prevent races to populate a table.
 	tables     map[string]tableFetchResults // Tables contains a map of table name to (table content or error).
-	fetchFunc  func(context.Context, string) (types.TableContent, error)
+	fetcher    fetcher
 }
 
-func NewTables() *Tables {
+type fetcher interface {
+	Download(context.Context, string) (types.TableContent, error)
+}
+
+func NewTables(secret string) *Tables {
 	return &Tables{
 		mainLock:   sync.RWMutex{},
 		tableLocks: map[string]*sync.Mutex{},
 		tables:     map[string]tableFetchResults{},
-		fetchFunc:  Download,
+		fetcher:    newAirtable(secret),
 	}
 }
 
@@ -78,7 +82,7 @@ func (t *Tables) getTable(ctx context.Context, tableName string, xfOpts ...filte
 	}
 
 	beeline.AddField(ctx, "fetched", 1)
-	table, err := t.fetchFunc(ctx, tableName)
+	table, err := t.fetcher.Download(ctx, tableName)
 	if err != nil {
 		beeline.AddField(ctx, "error", err)
 	}

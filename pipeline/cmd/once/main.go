@@ -7,6 +7,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/airtable"
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/deploys"
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/generator"
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/metrics"
@@ -25,10 +26,11 @@ func main() {
 		log.Fatal("-noop and -bucket are mutually exclusive!")
 	}
 
-	secrets.RequireAirtableSecret()
+	ctx := context.Background()
+	sec := secrets.RequireAirtableSecret(ctx)
 
 	if *metricsFlag {
-		ctx, cxl := context.WithTimeout(context.Background(), 30*time.Second)
+		ctx, cxl := context.WithTimeout(ctx, 30*time.Second)
 		defer cxl()
 		metricsCleanup := metrics.Init(ctx)
 		defer metricsCleanup()
@@ -43,7 +45,8 @@ func main() {
 		deploys.SetTestingStorage(storage.UploadToGCS, *bucketFlag)
 	}
 
-	ok := pm.PublishAll(context.Background())
+	tables := airtable.NewTables(sec)
+	ok := pm.PublishAll(ctx, tables)
 	if !ok {
 		os.Exit(1)
 	}

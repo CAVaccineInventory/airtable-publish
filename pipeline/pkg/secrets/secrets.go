@@ -74,12 +74,13 @@ func Get(ctx context.Context, secret *SecretData) (string, error) {
 }
 
 // Exits with code 1 if the airtable secret is not available.
-func RequireAirtableSecret() {
-	_, err := Get(context.Background(), AirtableSecret)
+func RequireAirtableSecret(ctx context.Context) string {
+	sec, err := Get(ctx, AirtableSecret)
 	if err != nil {
 		fmt.Printf("No airtable secret could be fetched: %s\n", err)
 		fmt.Println("Will not be able to read data, aborting!")
 		fmt.Println("Set AIRTABLE_KEY or adjust rights in IAM")
 		os.Exit(1)
 	}
+	return sec
 }

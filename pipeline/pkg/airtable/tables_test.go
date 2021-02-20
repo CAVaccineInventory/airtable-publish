@@ -11,16 +11,24 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+type stubFetcher struct {
+	content []map[string]interface{}
+	err     error
+}
+
+func (sf *stubFetcher) Download(_ context.Context, _ string) (types.TableContent, error) {
+	return sf.content, sf.err
+}
+
 func TestTables_GetCounties(t *testing.T) {
-	fetchFunc := func(_ context.Context, _ string) (types.TableContent, error) {
-		return []map[string]interface{}{
-			{
-				"name": "test county",
-			},
-		}, nil
+	f := &stubFetcher{content: []map[string]interface{}{
+		{
+			"name": "test county",
+		},
+	},
 	}
 
-	tables := NewFakeTables(fetchFunc)
+	tables := NewFakeTables(context.Background(), f)
 
 	for i := 0; i < 2; i++ {
 		table, err := tables.GetCounties(context.Background())
@@ -30,15 +38,15 @@ func TestTables_GetCounties(t *testing.T) {
 }
 
 func TestTables_GetProviders(t *testing.T) {
-	fetchFunc := func(_ context.Context, _ string) (types.TableContent, error) {
-		return []map[string]interface{}{
+	f := &stubFetcher{
+		content: []map[string]interface{}{
 			{
 				"name": "test provider",
 			},
-		}, nil
+		},
 	}
 
-	tables := NewFakeTables(fetchFunc)
+	tables := NewFakeTables(context.Background(), f)
 
 	for i := 0; i < 2; i++ {
 		table, err := tables.GetProviders(context.Background())
@@ -48,10 +56,10 @@ func TestTables_GetProviders(t *testing.T) {
 }
 
 func TestGetTables_XFormError(t *testing.T) {
-	fetchFunc := func(_ context.Context, _ string) (types.TableContent, error) {
-		return []map[string]interface{}{
+	f := &stubFetcher{
+		content: []map[string]interface{}{
 			{},
-		}, nil
+		},
 	}
 
 	// returnError is a test munger that just returns an error (to test error
@@ -60,33 +68,32 @@ func TestGetTables_XFormError(t *testing.T) {
 		return nil, errors.New("fail")
 	}
 
-	tables := NewFakeTables(fetchFunc)
+	ctx := context.Background()
+	tables := NewFakeTables(ctx, f)
 
-	_, err := tables.getTable(context.Background(), "providers", filter.WithMunger(returnError))
+	_, err := tables.getTable(ctx, "providers", filter.WithMunger(returnError))
 	assert.Error(t, err)
 }
 
 func TestTables_CachedErr(t *testing.T) {
-	fail := true
-	fetchFunc := func(_ context.Context, _ string) (types.TableContent, error) {
-		if fail {
-			return nil, errors.New("Failure")
-		}
-		return []map[string]interface{}{
+	f := &stubFetcher{
+		content: []map[string]interface{}{
 			{
 				"name": "test county",
 			},
-		}, nil
+		},
+		err: errors.New("Failure"),
 	}
 
-	tables := NewFakeTables(fetchFunc)
+	ctx := context.Background()
+	tables := NewFakeTables(ctx, f)
 
-	_, err := tables.GetCounties(context.Background())
+	_, err := tables.GetCounties(ctx)
 	assert.Error(t, err)
 
-	// Should still fail, caching the err from last time, if called again
-	fail = false
-	_, err = tables.GetCounties(context.Background())
+	// Should still fail, caching the err from last time, if called again, even if the underlying fetcher returns success.
+	f.err = nil
+	_, err = tables.GetCounties(ctx)
 	assert.Error(t, err)
 }
 
@@ -156,8 +163,8 @@ func TestHideNotes(t *testing.T) {
 }
 
 func TestGetLocations(t *testing.T) {
-	fetchFunc := func(_ context.Context, _ string) (types.TableContent, error) {
-		return []map[string]interface{}{
+	f := &stubFetcher{
+		content: []map[string]interface{}{
 			{
 				"id":                  "1",
 				"Name":                "yes=yes, all fields explicit",
@@ -183,7 +190,7 @@ func TestGetLocations(t *testing.T) {
 				"Name":                "missing latest report yes? implicit no",
 				"Latest report notes": []string{"c", "d"},
 			},
-		}, nil
+		},
 	}
 
 	want := types.TableContent{
@@ -207,9 +214,10 @@ func TestGetLocations(t *testing.T) {
 		},
 	}
 
-	tables := NewFakeTables(fetchFunc)
+	ctx := context.Background()
+	tables := NewFakeTables(ctx, f)
 
-	got, err := tables.GetLocations(context.Background())
+	got, err := tables.GetLocations(ctx)
 	assert.NoError(t, err)
 
 	if diff := cmp.Diff(want, got); diff != "" {

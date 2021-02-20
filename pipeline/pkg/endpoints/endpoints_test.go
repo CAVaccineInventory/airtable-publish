@@ -25,6 +25,19 @@ func synthesizeIDs(c types.TableContent) {
 	}
 }
 
+type stubFetchFromFile struct {
+	name, dataFile string
+}
+
+func (sf *stubFetchFromFile) Download(ctx context.Context, _ string) (types.TableContent, error) {
+	o, err := airtable.ObjectFromFile(ctx, sf.name, sf.dataFile)
+	if err != nil {
+		return nil, err
+	}
+	synthesizeIDs(o)
+	return o, nil
+}
+
 func TestSanitize(t *testing.T) {
 	tests := map[string]struct {
 		endpointFunc endpointFunc
@@ -67,15 +80,12 @@ func TestSanitize(t *testing.T) {
 			// "id" is always required
 			tc.requiredKeys = append(tc.requiredKeys, "id")
 
-			getData := func(ctx context.Context, tableName string) (types.TableContent, error) {
-				o, err := airtable.ObjectFromFile(ctx, name, tc.testDataFile)
-				if err != nil {
-					return nil, err
-				}
-				synthesizeIDs(o)
-				return o, nil
+			f := &stubFetchFromFile{
+				name:     name,
+				dataFile: tc.testDataFile,
 			}
-			fakeTables := airtable.NewFakeTables(getData)
+
+			fakeTables := airtable.NewFakeTables(ctx, f)
 			out, err := tc.endpointFunc(ctx, fakeTables)
 			require.NoError(t, err)
 
