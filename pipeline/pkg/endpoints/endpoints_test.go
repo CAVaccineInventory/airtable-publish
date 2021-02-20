@@ -127,6 +127,7 @@ func TestEndpoints(t *testing.T) {
 	tests := map[string]struct {
 		deploy      string
 		containsURL string
+		wantErr     bool
 	}{
 		"Locations": {
 			deploy:      "prod",
@@ -136,14 +137,22 @@ func TestEndpoints(t *testing.T) {
 			deploy:      "prod",
 			containsURL: "https://storage.googleapis.com/cavaccineinventory-sitedata/airtable-sync/Counties.json",
 		},
+		"Counties-baddeploy": {
+			deploy:      "error",
+			containsURL: "https://storage.googleapis.com/cavaccineinventory-sitedata/airtable-sync/Counties.json",
+			wantErr:     true,
+		},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			os.Setenv("DEPLOY", tc.deploy)
 			URLs, err := EndpointURLs()
-			require.NoError(t, err)
-
-			require.Contains(t, URLs, tc.containsURL)
+			if (err != nil) != tc.wantErr {
+				t.Fatalf("unexpected error from EndpointURLs(): %v", err)
+			}
+			if err == nil {
+				require.Contains(t, URLs, tc.containsURL)
+			}
 		})
 	}
 }
