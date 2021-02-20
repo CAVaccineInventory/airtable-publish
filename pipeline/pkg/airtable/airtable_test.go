@@ -47,6 +47,7 @@ func TestObjectFromFile(t *testing.T) {
 	}
 }
 
+// stubHTTP is a very simple stub http.RoundTripper.
 type stubHTTP struct {
 	seq   int
 	resps []*http.Response
@@ -58,10 +59,18 @@ func (s *stubHTTP) RoundTrip(req *http.Request) (*http.Response, error) {
 	return resp, nil
 }
 
+// stubFailHTTP is a Roundtripper that always returns an error.
 type stubFailHTTP struct{}
 
 func (s *stubFailHTTP) RoundTrip(_ *http.Request) (*http.Response, error) {
 	return nil, errors.New("round trip failure")
+}
+
+// errorReader is an io.Reader() that always returns an error when Read() is called.
+type errorReader struct{}
+
+func (*errorReader) Read(_ []byte) (_ int, err error) {
+	return 0, errors.New("errorReader error")
 }
 
 func TestDownload(t *testing.T) {
@@ -162,6 +171,18 @@ func TestDownload(t *testing.T) {
 				},
 			},
 			wantLen: 2,
+		},
+		{
+			desc: "error reading Body",
+			transp: &stubHTTP{
+				resps: []*http.Response{
+					&http.Response{
+						StatusCode: http.StatusOK,
+						Body:       ioutil.NopCloser(&errorReader{}),
+					},
+				},
+			},
+			wantErr: true,
 		},
 	}
 
