@@ -3,6 +3,7 @@ package airtable
 import (
 	"bytes"
 	"context"
+	"errors"
 	"io/ioutil"
 	"net/http"
 	"testing"
@@ -57,6 +58,12 @@ func (s *stubHTTP) RoundTrip(req *http.Request) (*http.Response, error) {
 	return resp, nil
 }
 
+type stubFailHTTP struct{}
+
+func (s *stubFailHTTP) RoundTrip(_ *http.Request) (*http.Response, error) {
+	return nil, errors.New("round trip failure")
+}
+
 func TestDownload(t *testing.T) {
 	ctx := context.Background()
 
@@ -66,12 +73,11 @@ func TestDownload(t *testing.T) {
 	}
 
 	tests := []struct {
-		desc      string
-		transp    *stubHTTP
-		wantErr   bool
-		wantLen   int
-		table     string
-		urlFormat string
+		desc    string
+		transp  http.RoundTripper
+		wantErr bool
+		wantLen int
+		table   string
 	}{
 		{
 			desc: "one request, success",
@@ -100,7 +106,7 @@ func TestDownload(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			desc:    "invalid URL",
+			desc:    "invalid URL path",
 			table:   "%percent-is-for-encoding%",
 			wantErr: true,
 		},
@@ -135,9 +141,9 @@ func TestDownload(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			desc:      "invalid url",
-			urlFormat: "sss://sdlkfjsdlfjsdf/%v/%v",
-			wantErr:   true,
+			desc:    "other http request failure",
+			transp:  &stubFailHTTP{},
+			wantErr: true,
 		},
 		{
 			desc: "multiple requests",
@@ -163,10 +169,6 @@ func TestDownload(t *testing.T) {
 		t.Run(tt.desc, func(t *testing.T) {
 			tables := &airtable{
 				httpClient: &http.Client{Transport: tt.transp},
-			}
-
-			if tt.urlFormat == "" {
-				tables.urlFormat = defaultURLFormat
 			}
 
 			tn := tt.table

@@ -53,16 +53,14 @@ type responseData struct {
 type airtable struct {
 	httpClient *http.Client
 	secret     string
-	urlFormat  string
 }
 
-const defaultURLFormat = "https://api.airtable.com/v0/%s/%s"
+const urlFormat = "https://api.airtable.com/v0/%s/%s"
 
 func newAirtable(sec string) *airtable {
 	return &airtable{
 		httpClient: http.DefaultClient,
 		secret:     sec,
-		urlFormat:  defaultURLFormat,
 	}
 }
 
@@ -85,12 +83,11 @@ func (at *airtable) fetchRows(ctx context.Context, tableName string, offset stri
 // Makes a single request to the Airtable endpoint; returns the new
 // rows, next offset, and error.
 func (at *airtable) fetchRowsActual(ctx context.Context, tableName string, offset string) (types.TableContent, string, error) {
-	url := fmt.Sprintf(at.urlFormat, config.AirtableID, tableName)
+	url := fmt.Sprintf(urlFormat, config.AirtableID, tableName)
 	req, err := http.NewRequestWithContext(ctx, "GET", url, http.NoBody)
 	if err != nil {
 		return types.TableContent{}, offset, err
 	}
-
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", at.secret))
 
 	q := req.URL.Query()
