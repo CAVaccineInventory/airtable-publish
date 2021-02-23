@@ -85,13 +85,13 @@ func (t *Tables) getTable(ctx context.Context, tableName string, xfOpts ...filte
 	table, err := t.fetcher.Download(ctx, tableName)
 	if err != nil {
 		beeline.AddField(ctx, "error", err)
-	}
-
-	if len(xfOpts) > 0 {
-		table, err = filter.Transform(table, xfOpts...)
-		if err != nil {
-			err = fmt.Errorf("Transform failed: %v", err)
-			beeline.AddField(ctx, "error", err)
+	} else {
+		if len(xfOpts) > 0 {
+			table, err = filter.Transform(table, xfOpts...)
+			if err != nil {
+				err = fmt.Errorf("Transform failed: %v", err)
+				beeline.AddField(ctx, "error", err)
+			}
 		}
 	}
 
