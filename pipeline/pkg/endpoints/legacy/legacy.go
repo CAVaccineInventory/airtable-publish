@@ -53,6 +53,7 @@ func Locations(ctx context.Context, tables *airtable.Tables) (types.TableContent
 		"Location Type",
 		"Longitude",
 		"Name",
+		"vaccinefinder_location_id",
 	}
 
 	filteredTable, err := filter.Transform(rawTable, filter.WithFieldSlice(fields))
