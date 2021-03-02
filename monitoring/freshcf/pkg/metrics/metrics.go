@@ -58,6 +58,9 @@ func Init(ctx context.Context) func() {
 		WriteKey:    honeycombKey,
 		Dataset:     fmt.Sprintf("freshcf-%s", deploy),
 		ServiceName: "freshcf",
+		PresendHook: func(event map[string]interface{}) {
+			event["app.commit_sha"] = config.GitCommit
+		},
 	})
 	err = view.Register(
 		&view.View{

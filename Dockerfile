@@ -11,9 +11,17 @@ RUN go mod download
 # Copy the source code into the container.
 COPY ./pipeline/ /src/pipeline/
 
-# Build!
-RUN go build -o /server ./pipeline/cmd/server/main.go
-RUN go build -o /once   ./pipeline/cmd/once/main.go
+# Build!  $COMMIT_SHA is filled in by Google Build, or the `scripts/`
+# build step.
+ARG COMMIT_SHA
+
+RUN go build \
+        -ldflags "-X github.com/CAVaccineInventory/airtable-export/pipeline/pkg/config.GitCommit=$COMMIT_SHA" \
+        -o /server ./pipeline/cmd/server/main.go
+
+RUN go build \
+        -ldflags "-X github.com/CAVaccineInventory/airtable-export/pipeline/pkg/config.GitCommit=$COMMIT_SHA" \
+        -o /once   ./pipeline/cmd/once/main.go
 
 # Setup runtime environment
 COPY entrypoint.sh /

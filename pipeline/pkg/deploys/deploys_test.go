@@ -45,6 +45,7 @@ func TestDeployBuckets(t *testing.T) {
 		deploy        DeployType
 		testingBucket string
 		version       VersionType
+		wantErr       bool
 	}{
 		"prod-legacy":    {envVar: "prod", deploy: DeployProduction, version: LegacyVersion},
 		"staging-legacy": {envVar: "staging", deploy: DeployStaging, version: LegacyVersion},
@@ -54,6 +55,7 @@ func TestDeployBuckets(t *testing.T) {
 		"staging-v1":     {envVar: "staging", deploy: DeployStaging, version: "1"},
 		"testing-v1":     {envVar: "testing", deploy: DeployTesting, version: "1"},
 		"blank-v1":       {envVar: "", deploy: DeployTesting, version: "1"},
+		"error-v1":       {envVar: "error", deploy: DeployTesting, version: "1", wantErr: true},
 	}
 	t.Cleanup(func() {
 		os.Unsetenv("DEPLOY")
@@ -62,18 +64,24 @@ func TestDeployBuckets(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			os.Setenv("DEPLOY", tc.envVar)
 			bucket, err := GetUploadURL(tc.version)
-			require.NoError(t, err)
-			if !strings.HasPrefix(bucket, "gs://") {
+			if (err != nil) != tc.wantErr {
+				t.Errorf("unxpected error from GetUploadURL: %v", err)
+			}
+			if err == nil && !strings.HasPrefix(bucket, "gs://") {
 				t.Errorf("Upload URL does not start with gs://")
 			}
 
 			url, err := GetDownloadURL(tc.version)
-			require.NoError(t, err)
-			if !strings.HasPrefix(url, "https://") {
-				t.Errorf("Download URL does not start with https://")
+			if (err != nil) != tc.wantErr {
+				t.Errorf("unxpected error from GetDownloadURL: %v", err)
 			}
-			if strings.HasSuffix(url, "/") {
-				t.Errorf("Download URL ends with /")
+			if err == nil {
+				if !strings.HasPrefix(url, "https://") {
+					t.Errorf("Download URL does not start with https://")
+				}
+				if strings.HasSuffix(url, "/") {
+					t.Errorf("Download URL ends with /")
+				}
 			}
 		})
 	}

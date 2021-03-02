@@ -12,6 +12,8 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/airtable"
+	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/config"
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/deploys"
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/generator"
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/metrics"
@@ -26,6 +28,7 @@ import (
 type Publisher struct {
 	lastPublishSucceeded bool // Make this thread safe if nontrivial multithreading comes up.
 	deploy               deploys.DeployType
+	secret               string
 }
 
 // Takes the Google Cloud Storage bucket path as the first argument.
@@ -39,7 +42,9 @@ func main() {
 		log.Fatal("-noop and -bucket are mutually exclusive!")
 	}
 
-	secrets.RequireAirtableSecret()
+	ctx := context.Background()
+	sec := secrets.RequireAirtableSecret(ctx)
+	p := Publisher{secret: sec}
 
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
@@ -51,7 +56,7 @@ func main() {
 	}()
 
 	if *metricsFlag {
-		ctx, cxl := context.WithTimeout(context.Background(), 30*time.Second)
+		ctx, cxl := context.WithTimeout(ctx, 30*time.Second)
 		defer cxl()
 		metricsCleanup := metrics.Init(ctx)
 		defer metricsCleanup()
@@ -64,8 +69,7 @@ func main() {
 		deploys.SetTestingStorage(storage.UploadToGCS, *bucketFlag)
 	}
 
-	p := Publisher{}
-	log.Println("Starting...")
+	log.Printf("Starting pipeline version %s...\n", config.GitCommit)
 	p.Run()
 }
 
@@ -110,7 +114,8 @@ func (p *Publisher) syncAndPublishRequest(w http.ResponseWriter, r *http.Request
 	defer cxl()
 
 	pm := generator.NewPublishManager()
-	p.lastPublishSucceeded = pm.PublishAll(ctx)
+	tables := airtable.NewTables(p.secret)
+	p.lastPublishSucceeded = pm.PublishAll(ctx, tables)
 	if !p.lastPublishSucceeded {
 		w.WriteHeader(http.StatusInternalServerError)
 	}

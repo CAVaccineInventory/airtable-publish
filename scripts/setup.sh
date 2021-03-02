@@ -51,6 +51,9 @@ rm -rf local/
 mkdir local
 LOCAL_BIND="$(pwd)/local/:/src/local/"
 
+# Set this up to pass in as a build ARG to Docker
+COMMIT_SHA=$(git rev-list -1 HEAD)
+
 DOCKER_RUN_ARGS=(
 	--rm
 	-u "$(id -u)"

@@ -28,8 +28,8 @@ func main() {
 	}
 
 	ctx := context.Background()
-	secrets.RequireAirtableSecret()
-	tables := airtable.NewTables()
+	sec := secrets.RequireAirtableSecret(ctx)
+	tables := airtable.NewTables(sec)
 
 	var data types.TableContent
 	var err error

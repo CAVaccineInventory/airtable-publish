@@ -25,6 +25,19 @@ func synthesizeIDs(c types.TableContent) {
 	}
 }
 
+type stubFetchFromFile struct {
+	name, dataFile string
+}
+
+func (sf *stubFetchFromFile) Download(ctx context.Context, _ string) (types.TableContent, error) {
+	o, err := airtable.ObjectFromFile(ctx, sf.name, sf.dataFile)
+	if err != nil {
+		return nil, err
+	}
+	synthesizeIDs(o)
+	return o, nil
+}
+
 func TestSanitize(t *testing.T) {
 	tests := map[string]struct {
 		endpointFunc endpointFunc
@@ -67,15 +80,12 @@ func TestSanitize(t *testing.T) {
 			// "id" is always required
 			tc.requiredKeys = append(tc.requiredKeys, "id")
 
-			getData := func(ctx context.Context, tableName string) (types.TableContent, error) {
-				o, err := airtable.ObjectFromFile(ctx, name, tc.testDataFile)
-				if err != nil {
-					return nil, err
-				}
-				synthesizeIDs(o)
-				return o, nil
+			f := &stubFetchFromFile{
+				name:     name,
+				dataFile: tc.testDataFile,
 			}
-			fakeTables := airtable.NewFakeTables(getData)
+
+			fakeTables := airtable.NewFakeTables(ctx, f)
 			out, err := tc.endpointFunc(ctx, fakeTables)
 			require.NoError(t, err)
 
@@ -117,6 +127,7 @@ func TestEndpoints(t *testing.T) {
 	tests := map[string]struct {
 		deploy      string
 		containsURL string
+		wantErr     bool
 	}{
 		"Locations": {
 			deploy:      "prod",
@@ -126,14 +137,22 @@ func TestEndpoints(t *testing.T) {
 			deploy:      "prod",
 			containsURL: "https://storage.googleapis.com/cavaccineinventory-sitedata/airtable-sync/Counties.json",
 		},
+		"Counties-baddeploy": {
+			deploy:      "error",
+			containsURL: "https://storage.googleapis.com/cavaccineinventory-sitedata/airtable-sync/Counties.json",
+			wantErr:     true,
+		},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			os.Setenv("DEPLOY", tc.deploy)
 			URLs, err := EndpointURLs()
-			require.NoError(t, err)
-
-			require.Contains(t, URLs, tc.containsURL)
+			if (err != nil) != tc.wantErr {
+				t.Fatalf("unexpected error from EndpointURLs(): %v", err)
+			}
+			if err == nil {
+				require.Contains(t, URLs, tc.containsURL)
+			}
 		})
 	}
 }

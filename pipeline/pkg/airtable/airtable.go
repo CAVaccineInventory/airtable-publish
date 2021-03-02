@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/config"
-	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/secrets"
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/types"
 	beeline "github.com/honeycombio/beeline-go"
 )
@@ -51,15 +50,29 @@ type responseData struct {
 	Records []responseRow `json:"records"`
 }
 
+type airtable struct {
+	httpClient *http.Client
+	secret     string
+}
+
+const urlFormat = "https://api.airtable.com/v0/%s/%s"
+
+func newAirtable(sec string) *airtable {
+	return &airtable{
+		httpClient: http.DefaultClient,
+		secret:     sec,
+	}
+}
+
 // Makes a single request to the Airtable endpoint; returns the new
 // rows, next offset, and error.  Wraps fetchRowsActual with tracing.
-func fetchRows(ctx context.Context, tableName string, offset string) (types.TableContent, string, error) {
+func (at *airtable) fetchRows(ctx context.Context, tableName string, offset string) (types.TableContent, string, error) {
 	ctx, span := beeline.StartSpan(ctx, "airtable.fetchRows")
 	defer span.Send()
 	beeline.AddField(ctx, "table", tableName)
 	beeline.AddField(ctx, "offset", offset)
 
-	rows, offset, err := fetchRowsActual(ctx, tableName, offset)
+	rows, offset, err := at.fetchRowsActual(ctx, tableName, offset)
 	if err != nil {
 		err = fmt.Errorf("failed to fetch table %s: %w", tableName, err)
 		beeline.AddField(ctx, "error", err)
@@ -69,24 +82,19 @@ func fetchRows(ctx context.Context, tableName string, offset string) (types.Tabl
 
 // Makes a single request to the Airtable endpoint; returns the new
 // rows, next offset, and error.
-func fetchRowsActual(ctx context.Context, tableName string, offset string) (types.TableContent, string, error) {
-	url := fmt.Sprintf("https://api.airtable.com/v0/%s/%s", config.AirtableID, tableName)
+func (at *airtable) fetchRowsActual(ctx context.Context, tableName string, offset string) (types.TableContent, string, error) {
+	url := fmt.Sprintf(urlFormat, config.AirtableID, tableName)
 	req, err := http.NewRequestWithContext(ctx, "GET", url, http.NoBody)
 	if err != nil {
 		return types.TableContent{}, offset, err
 	}
-
-	airtableSecret, err := secrets.Get(ctx, secrets.AirtableSecret)
-	if err != nil {
-		return types.TableContent{}, offset, fmt.Errorf("Failed to fetch airtable secret: %w", err)
-	}
-	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", airtableSecret))
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", at.secret))
 
 	q := req.URL.Query()
 	q.Add("offset", offset)
 	req.URL.RawQuery = q.Encode()
 
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := at.httpClient.Do(req)
 	if err != nil {
 		return types.TableContent{}, offset, err
 	}
@@ -123,7 +131,7 @@ func fetchRowsActual(ctx context.Context, tableName string, offset string) (type
 // Downloads a table from Airtable, and returns the unmarshaled data
 // from it.  Airtable limits to paging 100 rows per request, 5
 // requests per second, so this may take a large number of requests.
-func Download(ctx context.Context, tableName string) (types.TableContent, error) {
+func (at *airtable) Download(ctx context.Context, tableName string) (types.TableContent, error) {
 	ctx, span := beeline.StartSpan(ctx, "airtable.Download")
 	defer span.Send()
 	beeline.AddField(ctx, "table", tableName)
@@ -131,7 +139,7 @@ func Download(ctx context.Context, tableName string) (types.TableContent, error)
 	jsonMap := make(types.TableContent, 0)
 	offset := ""
 	for {
-		rows, nextOffset, err := fetchRows(ctx, tableName, offset)
+		rows, nextOffset, err := at.fetchRows(ctx, tableName, offset)
 		if err != nil {
 			return types.TableContent{}, err
 		}

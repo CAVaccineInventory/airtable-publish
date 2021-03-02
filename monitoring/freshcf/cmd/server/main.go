@@ -4,11 +4,13 @@ package main
 import (
 	"context"
 	"flag"
+	"log"
 	"net/http"
 	"time"
 
 	"github.com/CAVaccineInventory/airtable-export/monitoring/freshcf/pkg/handlers"
 	"github.com/CAVaccineInventory/airtable-export/monitoring/freshcf/pkg/metrics"
+	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/config"
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/deploys"
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/storage"
 	"github.com/honeycombio/beeline-go/wrappers/hnynethttp"
@@ -29,6 +31,8 @@ func main() {
 	if *bucketFlag != "" {
 		deploys.SetTestingStorage(storage.UploadToGCS, *bucketFlag)
 	}
+
+	log.Printf("Starting freshcf version %s...\n", config.GitCommit)
 
 	// Serve health status.
 	http.HandleFunc("/", handlers.Health)

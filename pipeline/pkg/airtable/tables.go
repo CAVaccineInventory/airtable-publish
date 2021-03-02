@@ -21,15 +21,19 @@ type Tables struct {
 	mainLock   sync.RWMutex                 // mainLock protects tableLocks.
 	tableLocks map[string]*sync.Mutex       // tableLocks contains a lock for each table, to prevent races to populate a table.
 	tables     map[string]tableFetchResults // Tables contains a map of table name to (table content or error).
-	fetchFunc  func(context.Context, string) (types.TableContent, error)
+	fetcher    fetcher
 }
 
-func NewTables() *Tables {
+type fetcher interface {
+	Download(context.Context, string) (types.TableContent, error)
+}
+
+func NewTables(secret string) *Tables {
 	return &Tables{
 		mainLock:   sync.RWMutex{},
 		tableLocks: map[string]*sync.Mutex{},
 		tables:     map[string]tableFetchResults{},
-		fetchFunc:  Download,
+		fetcher:    newAirtable(secret),
 	}
 }
 
@@ -44,14 +48,21 @@ func (t *Tables) GetProviders(ctx context.Context) (types.TableContent, error) {
 func hideNotes(row map[string]interface{}) (map[string]interface{}, error) {
 	// Because this function is used as part of the input processing, which only
 	// happens once and inside a lock, it directly modifies the input row.
-	if row["Latest report yes?"].(float64) != 1 {
+	if v, ok := row["Latest report yes?"].(float64); !ok || v != 1 {
 		row["Latest report notes"] = ""
 	}
 	return row, nil
 }
 
+func dropSoftDeleted(row map[string]interface{}) (map[string]interface{}, error) {
+	if v, ok := row["is_soft_deleted"].(bool); ok && v {
+		return nil, nil
+	}
+	return row, nil
+}
+
 func (t *Tables) GetLocations(ctx context.Context) (types.TableContent, error) {
-	return t.getTable(ctx, "Locations", filter.WithMunger(hideNotes))
+	return t.getTable(ctx, "Locations", filter.WithMunger(hideNotes), filter.WithMunger(dropSoftDeleted))
 }
 
 // getTable does a thread-safe, just-in-time fetch of a table.
@@ -71,16 +82,16 @@ func (t *Tables) getTable(ctx context.Context, tableName string, xfOpts ...filte
 	}
 
 	beeline.AddField(ctx, "fetched", 1)
-	table, err := t.fetchFunc(ctx, tableName)
+	table, err := t.fetcher.Download(ctx, tableName)
 	if err != nil {
 		beeline.AddField(ctx, "error", err)
-	}
-
-	if len(xfOpts) > 0 {
-		table, err = filter.Transform(table, xfOpts...)
-		if err != nil {
-			err = fmt.Errorf("Transform failed: %v", err)
-			beeline.AddField(ctx, "error", err)
+	} else {
+		if len(xfOpts) > 0 {
+			table, err = filter.Transform(table, xfOpts...)
+			if err != nil {
+				err = fmt.Errorf("Transform failed: %v", err)
+				beeline.AddField(ctx, "error", err)
+			}
 		}
 	}
 
