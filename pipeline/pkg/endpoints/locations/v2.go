@@ -10,17 +10,23 @@ import (
 	"github.com/honeycombio/beeline-go"
 )
 
+const (
+	keyAppointmentSchedulingInstructions = "appointment_scheduling_instructions"
+	keyLatestReportIsYes                 = "latest_report_is_yes"
+	keyHasReport                         = "has_report"
+)
+
 var (
 	v2Map = map[string]string{
 		"Address":                             "address",
 		"Affiliation":                         "affiliation",
-		"Appointment scheduling instructions": "appointment_scheduling_instructions",
+		"Appointment scheduling instructions": keyAppointmentSchedulingInstructions,
 		"Availability Info":                   "availability_info",
 		"County":                              "county",
-		"Has Report":                          "has_report",
+		"Has Report":                          keyHasReport,
 		"Latest report":                       "latest_report",
 		"Latest report notes":                 "latest_report_notes",
-		"Latest report yes?":                  "latest_report_is_yes",
+		"Latest report yes?":                  keyLatestReportIsYes,
 		"Latitude":                            "latitude",
 		"Location Type":                       "location_type",
 		"Longitude":                           "longitude",
@@ -37,12 +43,22 @@ func locationsTransformer(in map[string]interface{}) (map[string]interface{}, er
 
 	for k, v := range in {
 		// Convert appointment_scheduling_instructions from []string{"value"} to "value".
-		if k == "appointment_scheduling_instructions" {
+		if k == keyAppointmentSchedulingInstructions {
 			cast, ok := in[k].([]string)
 			// Drop the field if it deviates from expectations.
 			// TODO: this seems like an opportune place to count warnings or something.
 			if ok && len(cast) == 1 {
 				out[k] = cast[0]
+			}
+		} else if k == keyLatestReportIsYes {
+			cast, ok := in[k].(int)
+			if ok {
+				out[k] = cast == 1
+			}
+		} else if k == keyHasReport {
+			cast, ok := in[k].(int)
+			if ok {
+				out[k] = cast == 1
 			}
 		} else { // Keep all other keys as-is.
 			out[k] = v

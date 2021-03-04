@@ -33,6 +33,36 @@ func Test_locationsTransformer(t *testing.T) {
 			input:  map[string]interface{}{"id": "test", "appointment_scheduling_instructions": []string{}},
 			expect: map[string]interface{}{"id": "test"},
 		},
+		{
+			name:   "latest_report_is_yes 0 gets converted",
+			input:  map[string]interface{}{"id": "test", "latest_report_is_yes": 0},
+			expect: map[string]interface{}{"id": "test", "latest_report_is_yes": false},
+		},
+		{
+			name:   "latest_report_is_yes 1 gets converted",
+			input:  map[string]interface{}{"id": "test", "latest_report_is_yes": 1},
+			expect: map[string]interface{}{"id": "test", "latest_report_is_yes": true},
+		},
+		{
+			name:   "invalid latest_report_is_yes gets dropped",
+			input:  map[string]interface{}{"id": "test", "latest_report_is_yes": "bad"},
+			expect: map[string]interface{}{"id": "test"},
+		},
+		{
+			name:   "has_report 0 gets converted",
+			input:  map[string]interface{}{"id": "test", "has_report": 0},
+			expect: map[string]interface{}{"id": "test", "has_report": false},
+		},
+		{
+			name:   "has_report 1 gets converted",
+			input:  map[string]interface{}{"id": "test", "has_report": 1},
+			expect: map[string]interface{}{"id": "test", "has_report": true},
+		},
+		{
+			name:   "invalid has_report gets dropped",
+			input:  map[string]interface{}{"id": "test", "has_report": "bad"},
+			expect: map[string]interface{}{"id": "test"},
+		},
 	}
 
 	for _, c := range cases {
