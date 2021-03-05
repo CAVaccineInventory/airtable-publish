@@ -94,6 +94,26 @@ func TestGetTables_XFormError(t *testing.T) {
 	assert.Error(t, err)
 }
 
+func TestGetTables_MultipleErr(t *testing.T) {
+	f := &stubFetcher{
+		content: []map[string]interface{}{
+			{},
+		},
+		err: errors.New("Fetching"),
+	}
+	returnError := func(row map[string]interface{}) (map[string]interface{}, error) {
+		return nil, errors.New("Munging")
+	}
+
+	ctx := context.Background()
+	tables := NewFakeTables(ctx, f)
+
+	_, err := tables.getTable(ctx, "providers", filter.WithMunger(returnError))
+	assert.Error(t, err)
+	// Failures in fetching should pre-empt failures in munging
+	assert.Equal(t, "Fetching", err.Error())
+}
+
 func TestTables_CachedErr(t *testing.T) {
 	f := &stubFetcher{
 		content: []map[string]interface{}{
