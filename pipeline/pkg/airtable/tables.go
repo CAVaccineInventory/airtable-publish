@@ -61,8 +61,42 @@ func dropSoftDeleted(row map[string]interface{}) (map[string]interface{}, error)
 	return row, nil
 }
 
+func useCountyURL(ctx context.Context, t *Tables) (func(row map[string]interface{}) (map[string]interface{}, error), error) {
+	cs, err := t.GetCounties(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("GetCounties: %v", err)
+	}
+	urls := make(map[string]string)
+	for _, c := range cs {
+		var n, u string
+		var ok bool
+		if n, ok = c["County"].(string); !ok {
+			continue
+		}
+		if u, ok = c["County vaccination reservations URL"].(string); ok {
+			urls[n] = u
+		}
+	}
+	return func(row map[string]interface{}) (map[string]interface{}, error) {
+		if county, ok := row["County"].(string); ok {
+			if inst, ok := row["Appointment scheduling instructions"].(string); ok {
+				if inst == "Uses county scheduling system" {
+					if u, ok := urls[county]; ok {
+						row["Appointment scheduling instructions"] = u
+					}
+				}
+			}
+		}
+		return row, nil
+	}, nil
+}
+
 func (t *Tables) GetLocations(ctx context.Context) (types.TableContent, error) {
-	return t.getTable(ctx, "Locations", filter.WithMunger(hideNotes), filter.WithMunger(dropSoftDeleted))
+	cm, err := useCountyURL(ctx, t)
+	if err != nil {
+		return nil, fmt.Errorf("Can't setup useCountyURL: %v", err)
+	}
+	return t.getTable(ctx, "Locations", filter.WithMunger(hideNotes), filter.WithMunger(dropSoftDeleted), filter.WithMunger(cm))
 }
 
 // getTable does a thread-safe, just-in-time fetch of a table.
