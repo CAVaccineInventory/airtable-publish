@@ -38,6 +38,7 @@ func (sf *stubMultiFetcher) Download(_ context.Context, table string) (types.Tab
 func TestTables_GetCounties(t *testing.T) {
 	f := &stubFetcher{content: []map[string]interface{}{
 		{
+			"id":   "recA",
 			"name": "test county",
 		},
 	},
@@ -45,6 +46,7 @@ func TestTables_GetCounties(t *testing.T) {
 
 	tables := NewFakeTables(context.Background(), f)
 
+	// Why does this do this twice?
 	for i := 0; i < 2; i++ {
 		table, err := tables.GetCounties(context.Background())
 		assert.NoError(t, err)
@@ -56,6 +58,7 @@ func TestTables_GetProviders(t *testing.T) {
 	f := &stubFetcher{
 		content: []map[string]interface{}{
 			{
+				"id":   "recA",
 				"name": "test provider",
 			},
 		},
@@ -63,6 +66,7 @@ func TestTables_GetProviders(t *testing.T) {
 
 	tables := NewFakeTables(context.Background(), f)
 
+	// Why does this do this twice?
 	for i := 0; i < 2; i++ {
 		table, err := tables.GetProviders(context.Background())
 		assert.NoError(t, err)
@@ -231,6 +235,11 @@ func TestGetLocations(t *testing.T) {
 					"Latest report yes?":                  1.0,
 					"Latest report notes":                 []string{"a", "b"},
 					"is_soft_deleted":                     false,
+				},
+				{
+					"id": "8",
+					// no other fields, will get dropped by dropEmpty.
+					// if it's not dropped, the test will fail because it's not in the expected results.
 				},
 			},
 			"Counties": {

@@ -38,11 +38,20 @@ func NewTables(secret string) *Tables {
 }
 
 func (t *Tables) GetCounties(ctx context.Context) (types.TableContent, error) {
-	return t.getTable(ctx, "Counties")
+	return t.getTable(ctx, "Counties", filter.WithMunger(dropEmpty))
 }
 
 func (t *Tables) GetProviders(ctx context.Context) (types.TableContent, error) {
-	return t.getTable(ctx, "Provider networks")
+	return t.getTable(ctx, "Provider networks", filter.WithMunger(dropEmpty))
+}
+
+func dropEmpty(row map[string]interface{}) (map[string]interface{}, error) {
+	// Real rows from airtable will have at least 2 fields.  The synthetic
+	// record id field and one real field.
+	if len(row) < 2 {
+		return nil, nil
+	}
+	return row, nil
 }
 
 func hideNotes(row map[string]interface{}) (map[string]interface{}, error) {
@@ -96,7 +105,7 @@ func (t *Tables) GetLocations(ctx context.Context) (types.TableContent, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Can't setup useCountyURL: %v", err)
 	}
-	return t.getTable(ctx, "Locations", filter.WithMunger(hideNotes), filter.WithMunger(dropSoftDeleted), filter.WithMunger(cm))
+	return t.getTable(ctx, "Locations", filter.WithMunger(dropEmpty), filter.WithMunger(hideNotes), filter.WithMunger(dropSoftDeleted), filter.WithMunger(cm))
 }
 
 // getTable does a thread-safe, just-in-time fetch of a table.
