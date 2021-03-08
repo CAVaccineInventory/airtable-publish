@@ -264,11 +264,22 @@ func TestGetLocations(t *testing.T) {
 			},
 			"Counties": {
 				{
+					"id":                                  "recA",
 					"County":                              "Los Angeles County",
 					"County vaccination reservations URL": "http://publichealth.lacounty.gov/acd/ncorona2019/vaccine/hcwsignup/",
 				},
 				{
+					"id":    "recB",
 					"weird": "This record has none of the normal County fields.  It gets ignroed.",
+				},
+				{
+					"id":          "recC",
+					"County":      12345,
+					"Description": "This record has the wrong type for County.  It should be a string.",
+				},
+				{
+					"id": "recZ",
+					// no other fields, will get dropped by dropEmpty.
 				},
 			},
 		},
