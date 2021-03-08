@@ -38,7 +38,7 @@ func (sf *stubMultiFetcher) Download(_ context.Context, table string) (types.Tab
 func TestTables_GetCounties(t *testing.T) {
 	f := &stubFetcher{content: []map[string]interface{}{
 		{
-			"name": "test county",
+			"County": "test county",
 		},
 	},
 	}
@@ -48,7 +48,7 @@ func TestTables_GetCounties(t *testing.T) {
 	for i := 0; i < 2; i++ {
 		table, err := tables.GetCounties(context.Background())
 		assert.NoError(t, err)
-		assert.Equal(t, table[0]["name"], "test county")
+		assert.Equal(t, table[0]["County"], "test county")
 	}
 }
 
@@ -56,7 +56,7 @@ func TestTables_GetProviders(t *testing.T) {
 	f := &stubFetcher{
 		content: []map[string]interface{}{
 			{
-				"name": "test provider",
+				"Provider": "test provider",
 			},
 		},
 	}
@@ -66,7 +66,7 @@ func TestTables_GetProviders(t *testing.T) {
 	for i := 0; i < 2; i++ {
 		table, err := tables.GetProviders(context.Background())
 		assert.NoError(t, err)
-		assert.Equal(t, table[0]["name"], "test provider")
+		assert.Equal(t, table[0]["Provider"], "test provider")
 	}
 }
 
@@ -182,17 +182,28 @@ func TestGetLocations(t *testing.T) {
 		content: map[string][]map[string]interface{}{
 			"Locations": {
 				{
+					"id":                 "0",
+					"Name":               "missing required field Address",
+					"Latest report yes?": 1.0,
+					"Latest report notes": []string{
+						"This location is missing the required field 'Address'",
+						"Which means GetLocations will filter it out.",
+						"The test will never see it."},
+				},
+				{
 					"id":                  "1",
 					"Name":                "yes=yes, all fields explicit",
 					"Latest report yes?":  1.0,
 					"Latest report notes": []string{"a", "b"},
 					"is_soft_deleted":     false,
+					"Address":             "123 Required Field Street, Required City",
 				},
 				{
 					"id":                  "2",
 					"Name":                "yes=no, is_soft_deleted implicitly false",
 					"Latest report yes?":  0.0,
 					"Latest report notes": []string{"c", "d"},
+					"Address":             "123 Required Field Street, Required City",
 				},
 				{
 					"id":                  "3",
@@ -200,11 +211,13 @@ func TestGetLocations(t *testing.T) {
 					"Latest report yes?":  0.0,
 					"Latest report notes": []string{"c", "d"},
 					"is_soft_deleted":     true,
+					"Address":             "123 Required Field Street, Required City",
 				},
 				{
 					"id":                  "4",
 					"Name":                "missing latest report yes? implicit no",
 					"Latest report notes": []string{"c", "d"},
+					"Address":             "123 Required Field Street, Required City",
 				},
 				{
 					"id":                                  "5",
@@ -214,6 +227,7 @@ func TestGetLocations(t *testing.T) {
 					"Latest report yes?":                  1.0,
 					"Latest report notes":                 []string{"a", "b"},
 					"is_soft_deleted":                     false,
+					"Address":                             "123 Required Field Street, Required City",
 				},
 				{
 					"id":                                  "6",
@@ -223,6 +237,7 @@ func TestGetLocations(t *testing.T) {
 					"Latest report yes?":                  1.0,
 					"Latest report notes":                 []string{"a", "b"},
 					"is_soft_deleted":                     false,
+					"Address":                             "123 Required Field Street, Required City",
 				},
 				{
 					"id":                                  "7",
@@ -231,6 +246,7 @@ func TestGetLocations(t *testing.T) {
 					"Latest report yes?":                  1.0,
 					"Latest report notes":                 []string{"a", "b"},
 					"is_soft_deleted":                     false,
+					"Address":                             "123 Required Field Street, Required City",
 				},
 			},
 			"Counties": {
@@ -252,17 +268,20 @@ func TestGetLocations(t *testing.T) {
 			"Latest report yes?":  1.0,
 			"Latest report notes": []string{"a", "b"},
 			"is_soft_deleted":     false,
+			"Address":             "123 Required Field Street, Required City",
 		},
 		{
 			"id":                  "2",
 			"Name":                "yes=no, is_soft_deleted implicitly false",
 			"Latest report yes?":  0.0,
 			"Latest report notes": "",
+			"Address":             "123 Required Field Street, Required City",
 		},
 		{
 			"id":                  "4",
 			"Name":                "missing latest report yes? implicit no",
 			"Latest report notes": "",
+			"Address":             "123 Required Field Street, Required City",
 		},
 		{
 			"id":                                  "5",
@@ -272,6 +291,7 @@ func TestGetLocations(t *testing.T) {
 			"Latest report yes?":                  1.0,
 			"Latest report notes":                 []string{"a", "b"},
 			"is_soft_deleted":                     false,
+			"Address":                             "123 Required Field Street, Required City",
 		},
 		{
 			"id":                                  "6",
@@ -281,6 +301,7 @@ func TestGetLocations(t *testing.T) {
 			"Latest report yes?":                  1.0,
 			"Latest report notes":                 []string{"a", "b"},
 			"is_soft_deleted":                     false,
+			"Address":                             "123 Required Field Street, Required City",
 		},
 		{
 			"id":                                  "7",
@@ -289,6 +310,7 @@ func TestGetLocations(t *testing.T) {
 			"Latest report yes?":                  1.0,
 			"Latest report notes":                 []string{"a", "b"},
 			"is_soft_deleted":                     false,
+			"Address":                             "123 Required Field Street, Required City",
 		},
 	}
 

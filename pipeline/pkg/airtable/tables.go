@@ -38,11 +38,11 @@ func NewTables(secret string) *Tables {
 }
 
 func (t *Tables) GetCounties(ctx context.Context) (types.TableContent, error) {
-	return t.getTable(ctx, "Counties")
+	return t.getTable(ctx, "Counties", filter.WithMunger(requireStringFields([]string{"County"})))
 }
 
 func (t *Tables) GetProviders(ctx context.Context) (types.TableContent, error) {
-	return t.getTable(ctx, "Provider networks")
+	return t.getTable(ctx, "Provider networks", filter.WithMunger(requireStringFields([]string{"Provider"})))
 }
 
 func hideNotes(row map[string]interface{}) (map[string]interface{}, error) {
@@ -68,13 +68,12 @@ func useCountyURL(ctx context.Context, t *Tables) (func(row map[string]interface
 	}
 	urls := make(map[string]string)
 	for _, c := range cs {
-		var n, u string
-		var ok bool
-		if n, ok = c["County"].(string); !ok {
-			continue
-		}
-		if u, ok = c["County vaccination reservations URL"].(string); ok {
-			urls[n] = u
+		// Existence and stringiness of the County field is enforced by
+		// requireStringFields in GetLocations() coming earlier in the xforms
+		// list.
+		cty := c["County"].(string)
+		if u, ok := c["County vaccination reservations URL"].(string); ok {
+			urls[cty] = u
 		}
 	}
 	return func(row map[string]interface{}) (map[string]interface{}, error) {
@@ -91,12 +90,25 @@ func useCountyURL(ctx context.Context, t *Tables) (func(row map[string]interface
 	}, nil
 }
 
+func requireStringFields(required []string) func(row map[string]interface{}) (map[string]interface{}, error) {
+	return func(row map[string]interface{}) (map[string]interface{}, error) {
+		for _, r := range required {
+			if v, ok := row[r].(string); !ok || v == "" {
+				// if the r field doesn't exist, can't be cast to a string, or is empty, return nil, indicating skip.)
+				return nil, nil
+			}
+		}
+		return row, nil
+	}
+}
+
 func (t *Tables) GetLocations(ctx context.Context) (types.TableContent, error) {
 	cm, err := useCountyURL(ctx, t)
 	if err != nil {
 		return nil, fmt.Errorf("Can't setup useCountyURL: %v", err)
 	}
-	return t.getTable(ctx, "Locations", filter.WithMunger(hideNotes), filter.WithMunger(dropSoftDeleted), filter.WithMunger(cm))
+	rfs := []string{"Name", "Address"}
+	return t.getTable(ctx, "Locations", filter.WithMunger(requireStringFields(rfs)), filter.WithMunger(hideNotes), filter.WithMunger(dropSoftDeleted), filter.WithMunger(cm))
 }
 
 // getTable does a thread-safe, just-in-time fetch of a table.
