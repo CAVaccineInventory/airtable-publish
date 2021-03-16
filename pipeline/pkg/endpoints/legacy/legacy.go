@@ -54,6 +54,7 @@ func Locations(ctx context.Context, tables *airtable.Tables) (types.TableContent
 		"Longitude",
 		"Name",
 		"vaccinefinder_location_id",
+		"vaccinespotter_location_id",
 		"google_places_id",
 	}
 
