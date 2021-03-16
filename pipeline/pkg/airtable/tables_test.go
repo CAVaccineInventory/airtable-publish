@@ -3,6 +3,7 @@ package airtable
 import (
 	"context"
 	"errors"
+	"fmt"
 	"testing"
 
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/filter"
@@ -11,6 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+// stubFetcher is a stub Fetcher for when the test only needs one table.
 type stubFetcher struct {
 	content []map[string]interface{}
 	err     error
@@ -20,9 +22,23 @@ func (sf *stubFetcher) Download(_ context.Context, _ string) (types.TableContent
 	return sf.content, sf.err
 }
 
+// stubMultiFetcher is a Fetcher for when the test needs multiple tables.
+type stubMultiFetcher struct {
+	content map[string][]map[string]interface{}
+	err     error
+}
+
+func (sf *stubMultiFetcher) Download(_ context.Context, table string) (types.TableContent, error) {
+	d, ok := sf.content[table]
+	if !ok {
+		return nil, fmt.Errorf("table %q data not specified in test", table)
+	}
+	return d, sf.err
+}
 func TestTables_GetCounties(t *testing.T) {
 	f := &stubFetcher{content: []map[string]interface{}{
 		{
+			"id":   "recA",
 			"name": "test county",
 		},
 	},
@@ -30,6 +46,7 @@ func TestTables_GetCounties(t *testing.T) {
 
 	tables := NewFakeTables(context.Background(), f)
 
+	// Why does this do this twice?
 	for i := 0; i < 2; i++ {
 		table, err := tables.GetCounties(context.Background())
 		assert.NoError(t, err)
@@ -41,6 +58,7 @@ func TestTables_GetProviders(t *testing.T) {
 	f := &stubFetcher{
 		content: []map[string]interface{}{
 			{
+				"id":   "recA",
 				"name": "test provider",
 			},
 		},
@@ -48,6 +66,7 @@ func TestTables_GetProviders(t *testing.T) {
 
 	tables := NewFakeTables(context.Background(), f)
 
+	// Why does this do this twice?
 	for i := 0; i < 2; i++ {
 		table, err := tables.GetProviders(context.Background())
 		assert.NoError(t, err)
@@ -73,6 +92,26 @@ func TestGetTables_XFormError(t *testing.T) {
 
 	_, err := tables.getTable(ctx, "providers", filter.WithMunger(returnError))
 	assert.Error(t, err)
+}
+
+func TestGetTables_MultipleErr(t *testing.T) {
+	f := &stubFetcher{
+		content: []map[string]interface{}{
+			{},
+		},
+		err: errors.New("Fetching"),
+	}
+	returnError := func(row map[string]interface{}) (map[string]interface{}, error) {
+		return nil, errors.New("Munging")
+	}
+
+	ctx := context.Background()
+	tables := NewFakeTables(ctx, f)
+
+	_, err := tables.getTable(ctx, "providers", filter.WithMunger(returnError))
+	assert.Error(t, err)
+	// Failures in fetching should pre-empt failures in munging
+	assert.Equal(t, "Fetching", err.Error())
 }
 
 func TestTables_CachedErr(t *testing.T) {
@@ -163,32 +202,85 @@ func TestHideNotes(t *testing.T) {
 }
 
 func TestGetLocations(t *testing.T) {
-	f := &stubFetcher{
-		content: []map[string]interface{}{
-			{
-				"id":                  "1",
-				"Name":                "yes=yes, all fields explicit",
-				"Latest report yes?":  1.0,
-				"Latest report notes": []string{"a", "b"},
-				"is_soft_deleted":     false,
+	f := &stubMultiFetcher{
+		content: map[string][]map[string]interface{}{
+			"Locations": {
+				{
+					"id":                  "1",
+					"Name":                "yes=yes, all fields explicit",
+					"Latest report yes?":  1.0,
+					"Latest report notes": []string{"a", "b"},
+					"is_soft_deleted":     false,
+				},
+				{
+					"id":                  "2",
+					"Name":                "yes=no, is_soft_deleted implicitly false",
+					"Latest report yes?":  0.0,
+					"Latest report notes": []string{"c", "d"},
+				},
+				{
+					"id":                  "3",
+					"Name":                "soft_deleted",
+					"Latest report yes?":  0.0,
+					"Latest report notes": []string{"c", "d"},
+					"is_soft_deleted":     true,
+				},
+				{
+					"id":                  "4",
+					"Name":                "missing latest report yes? implicit no",
+					"Latest report notes": []string{"c", "d"},
+				},
+				{
+					"id":                                  "5",
+					"Name":                                "this location uses county scheduling",
+					"County":                              "Los Angeles County",
+					"Appointment scheduling instructions": "Uses county scheduling system",
+					"Latest report yes?":                  1.0,
+					"Latest report notes":                 []string{"a", "b"},
+					"is_soft_deleted":                     false,
+				},
+				{
+					"id":                                  "6",
+					"Name":                                "this location uses county scheduling but is in a county we don't know about",
+					"County":                              "Imaginary County",
+					"Appointment scheduling instructions": "Uses county scheduling system",
+					"Latest report yes?":                  1.0,
+					"Latest report notes":                 []string{"a", "b"},
+					"is_soft_deleted":                     false,
+				},
+				{
+					"id":                                  "7",
+					"Name":                                "this location uses doesn't have a county specified",
+					"Appointment scheduling instructions": "Uses county scheduling system",
+					"Latest report yes?":                  1.0,
+					"Latest report notes":                 []string{"a", "b"},
+					"is_soft_deleted":                     false,
+				},
+				{
+					"id": "8",
+					// no other fields, will get dropped by dropEmpty.
+					// if it's not dropped, the test will fail because it's not in the expected results.
+				},
 			},
-			{
-				"id":                  "2",
-				"Name":                "yes=no, is_soft_deleted implicitly false",
-				"Latest report yes?":  0.0,
-				"Latest report notes": []string{"c", "d"},
-			},
-			{
-				"id":                  "3",
-				"Name":                "soft_deleted",
-				"Latest report yes?":  0.0,
-				"Latest report notes": []string{"c", "d"},
-				"is_soft_deleted":     true,
-			},
-			{
-				"id":                  "4",
-				"Name":                "missing latest report yes? implicit no",
-				"Latest report notes": []string{"c", "d"},
+			"Counties": {
+				{
+					"id":                                  "recA",
+					"County":                              "Los Angeles County",
+					"County vaccination reservations URL": "http://publichealth.lacounty.gov/acd/ncorona2019/vaccine/hcwsignup/",
+				},
+				{
+					"id":    "recB",
+					"weird": "This record has none of the normal County fields.  It gets ignroed.",
+				},
+				{
+					"id":          "recC",
+					"County":      12345,
+					"Description": "This record has the wrong type for County.  It should be a string.",
+				},
+				{
+					"id": "recZ",
+					// no other fields, will get dropped by dropEmpty.
+				},
 			},
 		},
 	}
@@ -212,6 +304,32 @@ func TestGetLocations(t *testing.T) {
 			"Name":                "missing latest report yes? implicit no",
 			"Latest report notes": "",
 		},
+		{
+			"id":                                  "5",
+			"Name":                                "this location uses county scheduling",
+			"County":                              "Los Angeles County",
+			"Appointment scheduling instructions": "http://publichealth.lacounty.gov/acd/ncorona2019/vaccine/hcwsignup/",
+			"Latest report yes?":                  1.0,
+			"Latest report notes":                 []string{"a", "b"},
+			"is_soft_deleted":                     false,
+		},
+		{
+			"id":                                  "6",
+			"Name":                                "this location uses county scheduling but is in a county we don't know about",
+			"County":                              "Imaginary County",
+			"Appointment scheduling instructions": "Uses county scheduling system",
+			"Latest report yes?":                  1.0,
+			"Latest report notes":                 []string{"a", "b"},
+			"is_soft_deleted":                     false,
+		},
+		{
+			"id":                                  "7",
+			"Name":                                "this location uses doesn't have a county specified",
+			"Appointment scheduling instructions": "Uses county scheduling system",
+			"Latest report yes?":                  1.0,
+			"Latest report notes":                 []string{"a", "b"},
+			"is_soft_deleted":                     false,
+		},
 	}
 
 	ctx := context.Background()
@@ -223,5 +341,32 @@ func TestGetLocations(t *testing.T) {
 	if diff := cmp.Diff(want, got); diff != "" {
 		t.Errorf("unexpected locations: -want +got\n%v\n", diff)
 	}
+}
 
+// TestGetLocations_NoCounties tests a corner case where retrieving the Counties
+// table fails (because GetLocations is now dependent on GetCounties).  This
+// isn't covered by TestGetLocations() above because it uses a single Locations
+// and Counties table.
+func TestGetLocations_NoCounties(t *testing.T) {
+	f := &stubMultiFetcher{
+		content: map[string][]map[string]interface{}{
+			"Locations": {
+				{
+					"id":                  "1",
+					"Name":                "yes=yes, all fields explicit",
+					"Latest report yes?":  1.0,
+					"Latest report notes": []string{"a", "b"},
+					"is_soft_deleted":     false,
+				},
+			},
+		},
+	}
+
+	ctx := context.Background()
+	tables := NewFakeTables(ctx, f)
+
+	_, err := tables.GetLocations(ctx)
+	if err == nil {
+		t.Errorf("want error, got nil")
+	}
 }

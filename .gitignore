@@ -3,3 +3,4 @@
 /testing-key.json
 /.env
 /local/
+coverage.out

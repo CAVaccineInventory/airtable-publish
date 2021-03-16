@@ -34,6 +34,7 @@ func Transform(in types.TableContent, opts ...XformOpt) (types.TableContent, err
 	// which could cause havoc.
 	in = in.Clone()
 
+ROWS:
 	for i := range in { // For every row in the input
 		row := in[i]
 		for _, f := range cfg.mungers {
@@ -41,10 +42,9 @@ func Transform(in types.TableContent, opts ...XformOpt) (types.TableContent, err
 			if err != nil {
 				return nil, fmt.Errorf("error munging row %v: %v", i, err)
 			}
-		}
-
-		if row == nil {
-			continue
+			if row == nil {
+				continue ROWS
+			}
 		}
 
 		new := map[string]interface{}{} // create an empty output row.
