@@ -85,6 +85,7 @@ func Counties(ctx context.Context, tables *airtable.Tables) (types.TableContent,
 		"Vaccine info URL",
 		"Vaccine locations URL",
 		"Yeses",
+		"age_floor_without_restrictions",
 	}
 
 	filteredTable, err := filter.Transform(rawTable, filter.WithFieldSlice(fields))
