@@ -45,28 +45,6 @@ func TestSanitize(t *testing.T) {
 		badKeys      []string // fields no record must have
 		requiredKeys []string // fields every record must have
 	}{
-		"Locations": {
-			endpointFunc: EndpointMap[deploys.LegacyVersion]["Locations"],
-			testDataFile: "test_data/locations_reduced.json",
-			badKeys:      []string{"Last report author", "Internal notes"},
-			requiredKeys: []string{"Name"},
-		},
-		"Counties": {
-			endpointFunc: EndpointMap[deploys.LegacyVersion]["Counties"],
-			testDataFile: "test_data/counties.json",
-			badKeys:      []string{"Internal notes"},
-		},
-		"Locations-V1": {
-			endpointFunc: EndpointMap[deploys.VersionType("1")]["locations"],
-			testDataFile: "test_data/locations_reduced.json",
-			badKeys:      []string{"Last report author", "Internal notes"},
-			requiredKeys: []string{"Name"},
-		},
-		"Counties-V1": {
-			endpointFunc: EndpointMap[deploys.VersionType("1")]["counties"],
-			testDataFile: "test_data/counties.json",
-			badKeys:      []string{"Internal notes"},
-		},
 		"Providers-V1": {
 			endpointFunc: EndpointMap[deploys.VersionType("1")]["providers"],
 			testDataFile: "test_data/providers.json",
@@ -129,17 +107,13 @@ func TestEndpoints(t *testing.T) {
 		containsURL string
 		wantErr     bool
 	}{
-		"Locations": {
+		"Providers": {
 			deploy:      "prod",
-			containsURL: "https://storage.googleapis.com/cavaccineinventory-sitedata/airtable-sync/Locations.json",
+			containsURL: "https://api.vaccinateca.com/v1/providers.json",
 		},
-		"Counties": {
-			deploy:      "prod",
-			containsURL: "https://storage.googleapis.com/cavaccineinventory-sitedata/airtable-sync/Counties.json",
-		},
-		"Counties-baddeploy": {
+		"Providers-baddeploy": {
 			deploy:      "error",
-			containsURL: "https://storage.googleapis.com/cavaccineinventory-sitedata/airtable-sync/Counties.json",
+			containsURL: "https://api.vaccinateca.com/v1/providers.json",
 			wantErr:     true,
 		},
 	}
