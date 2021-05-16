@@ -2,6 +2,9 @@ package endpoints
 
 import (
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/deploys"
+	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/endpoints/counties"
+	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/endpoints/legacy"
+	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/endpoints/locations"
 	"github.com/CAVaccineInventory/airtable-export/pipeline/pkg/endpoints/providers"
 )
 
@@ -19,7 +22,13 @@ import (
 // locations API in a breaking fashion, keep using the
 // GenerateV1Counties func for v2, v3, etc.
 var EndpointMap = map[deploys.VersionType]map[string]endpointFunc{
+	deploys.LegacyVersion: {
+		"Locations": legacy.Locations,
+		"Counties":  legacy.Counties,
+	},
 	deploys.VersionType("1"): {
+		"locations": locations.V1,
+		"counties":  counties.V1,
 		"providers": providers.V1,
 	},
 }
