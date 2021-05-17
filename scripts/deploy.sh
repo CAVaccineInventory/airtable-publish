@@ -2,33 +2,8 @@
 
 set -eu
 
-WHAT=${1:-pipeline}
-if [ "$WHAT" = "monitoring" ]; then
-	DEPLOY_BRANCH=prod-monitoring
-	DEPLOY_LIMIT=origin/prod
-elif [ "$WHAT" = "pipeline" ]; then
-	DEPLOY_BRANCH=prod
-	DEPLOY_LIMIT=origin/main
-else
-	cat <<EOF
-
-Unknown deploy "$WHAT"
-
-
-USAGE:
-    $(dirname "$0")/deploy.sh [deploy]
-
-This script deploys production by merging and pushing branches:
-
- - For 'pipeline' deploys (the default), 'main' is merged into 'prod'.
-
- - For 'monitoring' deploys, 'main' is merged into 'prod-monitoring',
-   but no further than 'prod'; this ensures that the monitoring will
-   not begin paging on anything that is not yet being published.
-
-EOF
-	exit 1
-fi
+DEPLOY_BRANCH=prod
+DEPLOY_LIMIT=origin/main
 
 if [ -n "$(git status --untracked-files=no --porcelain)" ]; then
 	echo "Untracked changes in local files -- aborting!"
@@ -41,10 +16,6 @@ fi
 
 # Make sure we have the most up-to-date main
 git fetch --quiet origin
-
-# Figure out which commits we're deploying upto; for pipeline, this is
-# just main.  For monitoring, it's also limited by what `prod` includes.
-DEPLOY_LIMIT=$(git merge-base origin/main "$DEPLOY_LIMIT")
 
 # First, a couple safety checks:
 
@@ -73,10 +44,7 @@ if [ 0 -ne "$(git rev-list "$ORIGIN_DEPLOY" "^$DEPLOY_LIMIT" --max-parents=1 | w
 fi
 
 echo
-echo "You are about to deploy the following **$WHAT** commits:"
-if [ "$WHAT" != "pipeline" ]; then
-	echo "  (this is limited to go no further than current 'prod')"
-fi
+echo "You are about to deploy the following commits:"
 echo '```'
 git --no-pager log --no-decorate --oneline "$DEPLOY_LIMIT" "^$ORIGIN_DEPLOY"
 echo '```'
