@@ -1,5 +1,7 @@
 # airtable-export
 
+This API exporter is deprecated following the introduction of [Vial](https://github.com/CAVaccineInventory/vial).
+
 ## Access
 * Github committer team: [site-data-committers](https://github.com/orgs/CAVaccineInventory/teams/site-data-committers)
 * Discord channels:
